@@ -32,9 +32,68 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var PEG = module.exports;
 
-PEG.zeroBeh = function zeroBeh(m) {
-    m.ok({
+var failException = function exception(m, e) {
+    m.fail({
         in: m.in,
-        value: []
+        value: m.value,
+        error: e
     });
+};
+
+var failBeh = PEG.failBeh = function failBeh(m) {
+    m.fail({
+        in: m.in,
+        value: m.value
+    });
+};
+
+PEG.emptyBeh = function emptyBeh(m) {
+    try {
+        m.ok({
+            in: m.in,
+            value: []
+        });
+    } catch (e) {
+        failException(m, e);
+    }
+};
+
+PEG.anythingBeh = function anythingBeh(m) {
+    try {
+        if (m.in.offset < m.in.source.length) {
+            var token = m.in.source[m.in.offset];
+            return m.ok({
+                in: {
+                    source: m.in.source,
+                    offset: (m.in.offset + 1)
+                },
+                value: token
+            });
+        }
+        failBeh(m);
+    } catch (e) {
+        failException(m, e);
+    }
+};
+
+PEG.terminalPtrn = function terminalPtrn(expect) {
+    return function terminalBeh(m) {
+        try {
+            if (m.in.offset < m.in.source.length) {
+                var actual = m.in.source[m.in.offset];
+                if (actual == expect) {
+                    return m.ok({
+                        in: {
+                            source: m.in.source,
+                            offset: (m.in.offset + 1)
+                        },
+                        value: actual
+                    });
+                }
+            }
+            failBeh(m);
+        } catch (e) {
+            failException(m, e);
+        }
+    };
 };

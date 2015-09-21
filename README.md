@@ -24,16 +24,17 @@ var fail = sponsor(function(m) {
     console.log('FAIL!', m);
 });
 
-var zeroPtrn = sponsor(PEG.zeroBeh);
+var empty = sponsor(PEG.emptyBeh);
 
-zeroPtrn({
+empty({
     in: {
-        source: "",
+        source: '',
         offset: 0
     },
     ok: ok,
     fail: fail
 });
+
 ```
 
 ## Tests

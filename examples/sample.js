@@ -1,6 +1,6 @@
 /*
 
-test.js - test script
+sample.js - a few sample parsers
 
 The MIT License (MIT)
 
@@ -30,34 +30,34 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var tart = require('tart-tracing');
+var tart = require('tart');
 var PEG = require('../index.js');
 
-var test = module.exports = {};   
+var sponsor = tart.minimal({
+    fail: function (exception) {
+        console.log('FAIL!', exception);
+    }
+});
 
-test['empty pattern returns empty list'] = function (test) {
-    test.expect(2);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
+var ok = sponsor(function(m) {
+    console.log('ok:', m);
+});
+var fail = sponsor(function(m) {
+    console.log('FAIL!', m);
+});
 
-    var ok = sponsor(function(m) {
-    	test.equal(0, m.value.length);
-    });
-    var fail = sponsor(function(m) {
-        console.log('FAIL!', m);
-    });
+var empty = sponsor(PEG.emptyBeh);
+var failure = sponsor(PEG.failBeh);
+var anything = sponsor(PEG.anythingBeh);
+var period = sponsor(PEG.terminalPtrn('.'));
 
-    var empty = sponsor(PEG.emptyBeh);
-
-    empty({
-        in: {
-            source: '',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
-    
-    test.ok(tracing.eventLoop());
-    test.done();
+var input = {
+    source: '.\r\n',
+    offset: 0
 };
+
+period({
+    in: input,
+    ok: ok,
+    fail: fail
+});
