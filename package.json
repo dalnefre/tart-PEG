@@ -1,0 +1,34 @@
+{
+  "name": "tart-PEG",
+  "version": "0.1.0",
+  "description": "Parsing Expression Grammar (PEG) tools (tart module)",
+  "scripts": {
+    "inject-examples": "node scripts/injectExamples.js",
+    "readme": "node examples/readme.js",
+    "test": "node scripts/test.js"
+  },
+  "main": "index.js",
+  "devDependencies": {
+    "tart-tracing": "0.1.5",
+    "nodeunit": "0.8.1"
+  },
+  "dependencies": {
+    "tart": "0.1.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dalnefre/tart-PEG.git"
+  },
+  "keywords": [
+    "tart",
+    "actor",
+    "PEG",
+    "parsing",
+    "reference"
+  ],
+  "contributors": [
+    "Dale Schumacher <dale.schumacher@gmail.com>",
+    "Tristan Slominski <tristan.slominski@gmail.com>"
+  ],
+  "license": "MIT"
+}
