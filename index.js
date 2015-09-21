@@ -58,36 +58,18 @@ PEG.emptyBeh = function emptyBeh(m) {
     }
 };
 
-PEG.anythingBeh = function anythingBeh(m) {
-    try {
-        if (m.in.offset < m.in.source.length) {
-            var token = m.in.source[m.in.offset];
-            return m.ok({
-                in: {
-                    source: m.in.source,
-                    offset: (m.in.offset + 1)
-                },
-                value: token
-            });
-        }
-        failBeh(m);
-    } catch (e) {
-        failException(m, e);
-    }
-};
-
-PEG.terminalPtrn = function terminalPtrn(expect) {
-    return function terminalBeh(m) {
+PEG.predicatePtrn = function predicatePtrn(predicate) {
+    return function predicateBeh(m) {
         try {
             if (m.in.offset < m.in.source.length) {
-                var actual = m.in.source[m.in.offset];
-                if (actual == expect) {
+                var token = m.in.source[m.in.offset];
+                if (predicate(token)) {
                     return m.ok({
                         in: {
                             source: m.in.source,
                             offset: (m.in.offset + 1)
                         },
-                        value: actual
+                        value: token
                     });
                 }
             }
@@ -97,3 +79,11 @@ PEG.terminalPtrn = function terminalPtrn(expect) {
         }
     };
 };
+
+PEG.anythingBeh = PEG.predicatePtrn(function isTrue(token) { return true; });
+
+PEG.terminalPtrn = function terminalPtrn(expect) {
+    return PEG.predicatePtrn(function isEqual(actual) {
+        return (expect == actual);
+    });
+}

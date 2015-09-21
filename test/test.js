@@ -41,7 +41,7 @@ test['empty pattern returns empty list'] = function (test) {
     var sponsor = tracing.sponsor;
 
     var ok = sponsor(function(m) {
-    	test.equal(0, m.value.length);
+        test.equal(0, m.value.length);
     });
     var fail = sponsor(function(m) {
         console.log('FAIL!', m);
@@ -52,6 +52,61 @@ test['empty pattern returns empty list'] = function (test) {
     empty({
         in: {
             source: '',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['terminal period matches period'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal('.', m.value);
+        test.equal(1, m.in.offset);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var period = sponsor(PEG.terminalPtrn('.'));
+
+    period({
+        in: {
+            source: '.',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['terminal period fails on space'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        console.log('ok:', m);
+    });
+    var fail = sponsor(function(m) {
+        test.equal(0, m.in.offset);
+    });
+
+    var period = sponsor(PEG.terminalPtrn('.'));
+
+    period({
+        in: {
+            source: ' ',
             offset: 0
         },
         ok: ok,

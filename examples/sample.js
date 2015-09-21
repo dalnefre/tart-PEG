@@ -30,14 +30,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var tart = require('tart');
-var PEG = require('../index.js');
-
-var sponsor = tart.minimal({
-    fail: function (exception) {
-        console.log('FAIL!', exception);
-    }
-});
+var tart = require('tart-tracing');
+var tracing = tart.tracing();
+var sponsor = tracing.sponsor;
 
 var ok = sponsor(function(m) {
     console.log('ok:', m);
@@ -45,6 +40,8 @@ var ok = sponsor(function(m) {
 var fail = sponsor(function(m) {
     console.log('FAIL!', m);
 });
+
+var PEG = require('../index.js');
 
 var empty = sponsor(PEG.emptyBeh);
 var failure = sponsor(PEG.failBeh);
@@ -60,4 +57,15 @@ period({
     in: input,
     ok: ok,
     fail: fail
+});
+
+tracing.eventLoop({
+/*
+    log: function (effect) {
+        console.log('DEBUG', effect);
+    },
+*/
+    fail: function (exception) {
+        console.log('FAIL!', exception);
+    }
 });

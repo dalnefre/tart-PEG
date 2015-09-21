@@ -31,9 +31,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 "use strict";
 
 var tart = require('tart');
-var PEG = require('../index.js');
+var sponsor = tart.minimal({
+    fail: function (exception) {
+        console.log('FAIL!', exception);
+    }
+});
 
-var sponsor = tart.minimal();
+var PEG = require('../index.js');
 
 var ok = sponsor(function(m) {
     console.log('ok:', m);
