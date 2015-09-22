@@ -87,3 +87,31 @@ PEG.terminalPtrn = function terminalPtrn(expect) {
         return (expect == actual);
     });
 }
+
+PEG.notPtrn = function notPtrn(pattern) {
+    return function notBeh(m) {
+        try {
+            var success = this.sponsor(function(r) {
+                m.ok({
+                    in: m.in,
+                    value: m.value
+                });
+            });
+            pattern({
+                in: m.in,
+                ok: m.fail,
+                fail: success
+            });
+        } catch (e) {
+            failException(m, e);
+        }
+    };
+};
+
+PEG.followPtrn = function followPtrn(pattern) {
+    return function followBeh(m) {
+        var not = this.sponsor(PEG.notPtrn(pattern));
+        this.behavior = PEG.notPtrn(not);
+        this.self(m);
+    };
+};
