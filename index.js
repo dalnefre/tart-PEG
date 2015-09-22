@@ -110,8 +110,20 @@ PEG.notPtrn = function notPtrn(pattern) {
 
 PEG.followPtrn = function followPtrn(pattern) {
     return function followBeh(m) {
-        var not = this.sponsor(PEG.notPtrn(pattern));
-        this.behavior = PEG.notPtrn(not);
-        this.self(m);
+        try {
+            var success = this.sponsor(function(r) {
+                m.ok({
+                    in: m.in,
+                    value: m.value
+                });
+            });
+            pattern({
+                in: m.in,
+                ok: success,
+                fail: m.fail
+            });
+        } catch (e) {
+            failException(m, e);
+        }
     };
 };
