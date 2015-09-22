@@ -462,3 +462,59 @@ test['repeat matches whitespace 3x'] = function (test) {
     test.ok(tracing.eventLoop());
     test.done();
 };
+
+test['packrat is just memoization'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal('-', m.value);
+        test.equal(1, m.in.offset);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var minus = sponsor(PEG.packratPtrn(
+        sponsor(PEG.terminalPtrn('-'))
+    ));
+    var leftArrow = sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('<')),
+        minus,
+        minus
+    ]));
+    var rightArrow = sponsor(PEG.sequencePtrn([
+        minus,
+        minus,
+        sponsor(PEG.terminalPtrn('>'))
+    ]));
+    var emDash = sponsor(PEG.sequencePtrn([
+        minus,
+        minus,
+        minus
+    ]));
+    var enDash = sponsor(PEG.sequencePtrn([
+        minus,
+        minus
+    ]));
+    var rule = sponsor(PEG.choicePtrn([
+        leftArrow,
+        rightArrow,
+        emDash,
+        enDash,
+        minus
+    ]));
+
+    rule({
+        in: {
+            source: '- ',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};

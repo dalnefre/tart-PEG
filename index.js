@@ -235,3 +235,23 @@ PEG.repeatPtrn = function repeatPtrn(pattern) {
         });
     };
 };
+
+PEG.packratPtrn = function packratPtrn(pattern) {
+    var results = [];
+    return function packratBeh(m) {
+        var result = results[m.in.offset];
+        if (result) {
+            m.ok(result);
+        } else {
+            var memo = this.sponsor(function memo(r) {
+                results[m.in.offset] = r;
+                m.ok(r);
+            });
+            pattern({
+                in: m.in,
+                ok: memo,
+                fail: m.fail
+            });
+        }
+    };
+};
