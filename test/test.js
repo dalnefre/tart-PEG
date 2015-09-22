@@ -399,3 +399,66 @@ test['plus/minus choice fails on star'] = function (test) {
     test.ok(tracing.eventLoop());
     test.done();
 };
+
+test['repeat matches nothing'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(0, m.value.length);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.repeatPtrn(space));
+
+    whitespace({
+        in: {
+            source: '. \r\n',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['repeat matches whitespace 3x'] = function (test) {
+    test.expect(5);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(3, m.value.length);
+        test.equal(' ', m.value[0]);
+        test.equal('\r', m.value[1]);
+        test.equal('\n', m.value[2]);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.repeatPtrn(space));
+
+    whitespace({
+        in: {
+            source: ' \r\n.',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};

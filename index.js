@@ -210,3 +210,28 @@ PEG.choicePtrn = function choicePtrn(list) {
         this.self(m);
     };
 };
+
+PEG.repeatPtrn = function repeatPtrn(pattern) {
+    return function repeatBeh(m) {
+        var list = [];
+        var more = this.sponsor(function moreBeh(r) {
+            list.push(r.value);  // mutate list
+            pattern({
+                in: r.in,
+                ok: more,
+                fail: done
+            });
+        });
+        var done = this.sponsor(function doneBeh(r) {
+            m.ok({
+                in: r.in,
+                value: list
+            });
+        });
+        pattern({
+            in: m.in,
+            ok: more,
+            fail: done
+        });
+    };
+};
