@@ -216,7 +216,7 @@ test['empty sequence acts like empty pattern'] = function (test) {
 
     empty({
         in: {
-            source: '',
+            source: ' ',
             offset: 0
         },
         ok: ok,
@@ -272,5 +272,130 @@ test['sequence matches period + spaces'] = function (test) {
         }
     }));
 */
+    test.done();
+};
+
+test['empty choice acts like fail pattern'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        console.log('ok:', m);
+    });
+    var fail = sponsor(function(m) {
+        test.equal(0, m.in.offset);
+    });
+
+    var empty = sponsor(PEG.choicePtrn([]));
+
+    empty({
+        in: {
+            source: ' ',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['plus/minus choice matches plus'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal('+', m.value);
+        test.equal(1, m.in.offset);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var plus = sponsor(PEG.terminalPtrn('+'));
+    var minus = sponsor(PEG.terminalPtrn('-'));
+    var alt = sponsor(PEG.choicePtrn([
+        plus,
+        minus
+    ]));
+
+    alt({
+        in: {
+            source: '+',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['plus/minus choice matches minus'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal('-', m.value);
+        test.equal(1, m.in.offset);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var plus = sponsor(PEG.terminalPtrn('+'));
+    var minus = sponsor(PEG.terminalPtrn('-'));
+    var alt = sponsor(PEG.choicePtrn([
+        plus,
+        minus
+    ]));
+
+    alt({
+        in: {
+            source: '-',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['plus/minus choice fails on star'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        console.log('ok:', m);
+    });
+    var fail = sponsor(function(m) {
+        test.equal(0, m.in.offset);
+    });
+
+    var plus = sponsor(PEG.terminalPtrn('+'));
+    var minus = sponsor(PEG.terminalPtrn('-'));
+    var alt = sponsor(PEG.choicePtrn([
+        plus,
+        minus
+    ]));
+
+    alt({
+        in: {
+            source: '*',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
     test.done();
 };

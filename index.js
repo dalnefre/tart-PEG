@@ -168,10 +168,44 @@ PEG.sequencePtrn = function sequencePtrn(list) {
             var pattern = list.shift();
             this.behavior = andPtrn(
                 pattern,
-                this.sponsor(sequencePtrn(list))
+                this.sponsor(PEG.sequencePtrn(list))
             );
         } else {
             this.behavior = PEG.emptyBeh;
+        }
+        this.self(m);
+    };
+};
+
+var orPtrn = function orPtrn(first, rest) {
+    return function orBeh(m) {
+//        console.log('orBeh:', m);
+        var next = this.sponsor(function nextBeh(r) {
+//            console.log('nextBeh:', r, m);
+            rest({
+                in: m.in,
+                ok: m.ok,
+                fail: m.fail
+            });
+        });
+        first({
+            in: m.in,
+            ok: m.ok,
+            fail: next
+        });
+    };
+};
+
+PEG.choicePtrn = function choicePtrn(list) {
+    return function choiceBeh(m) {
+        if (list.length > 0) {
+            var pattern = list.shift();
+            this.behavior = orPtrn(
+                pattern,
+                this.sponsor(PEG.choicePtrn(list))
+            );
+        } else {
+            this.behavior = PEG.failBeh;
         }
         this.self(m);
     };
