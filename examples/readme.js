@@ -46,11 +46,16 @@ var fail = sponsor(function(m) {
     console.log('FAIL!', m);
 });
 
-var empty = sponsor(PEG.emptyBeh);
+var anything = sponsor(PEG.anythingBeh);
+var endOfInput = sponsor(PEG.notPtrn(anything));
+var parser = sponsor(PEG.sequencePtrn([
+    sponsor(PEG.terminalPtrn('.')),
+    endOfInput
+]));
 
-empty({
+parser({
     in: {
-        source: '',
+        source: '.',
         offset: 0
     },
     ok: ok,

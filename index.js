@@ -127,3 +127,52 @@ PEG.followPtrn = function followPtrn(pattern) {
         }
     };
 };
+
+var andPtrn = function andPtrn(first, rest) {
+    return function andBeh(m) {
+//        console.log('andBeh:', m);
+        var failure = this.sponsor(function failBeh(r) {
+//            console.log('failBeh:', r, m);
+            m.fail({
+                in: m.in,
+                value: m.value
+            });
+        });
+        var next = this.sponsor(function nextBeh(r) {
+//            console.log('nextBeh:', r, m);
+            var success = this.sponsor(function okBeh(rr) {
+//                console.log('okBeh:', rr, r, m);
+                rr.value.unshift(r.value);  // mutate rr.value
+                m.ok({
+                    in: rr.in,
+                    value: rr.value,
+                });
+            });
+            rest({
+                in: r.in,
+                ok: success,
+                fail: failure
+            });
+        });
+        first({
+            in: m.in,
+            ok: next,
+            fail: failure
+        });
+    };
+};
+
+PEG.sequencePtrn = function sequencePtrn(list) {
+    return function sequenceBeh(m) {
+        if (list.length > 0) {
+            var pattern = list.shift();
+            this.behavior = andPtrn(
+                pattern,
+                this.sponsor(sequencePtrn(list))
+            );
+        } else {
+            this.behavior = PEG.emptyBeh;
+        }
+        this.self(m);
+    };
+};

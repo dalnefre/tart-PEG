@@ -199,3 +199,78 @@ test['follow period matches without advancing'] = function (test) {
     test.ok(tracing.eventLoop());
     test.done();
 };
+
+test['empty sequence acts like empty pattern'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(0, m.value.length);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var empty = sponsor(PEG.sequencePtrn([]));
+
+    empty({
+        in: {
+            source: '',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['sequence matches period + spaces'] = function (test) {
+    test.expect(5);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(3, m.value.length);
+        test.equal('.', m.value[0]);
+        test.equal('\r', m.value[1]);
+        test.equal('\n', m.value[2]);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var period = sponsor(PEG.terminalPtrn('.'));
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var seq = sponsor(PEG.sequencePtrn([
+        period,
+        space,
+        space
+    ]));
+
+    seq({
+        in: {
+            source: '.\r\n',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+/*
+    test.ok(tracing.eventLoop({
+        log: function (effect) {
+            console.log('DEBUG', effect);
+        },
+        fail: function (exception) {
+            console.log('FAIL!', exception);
+        }
+    }));
+*/
+    test.done();
+};
