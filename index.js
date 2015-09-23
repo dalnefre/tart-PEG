@@ -211,8 +211,8 @@ PEG.choicePtrn = function choicePtrn(list) {
     };
 };
 
-PEG.repeatPtrn = function repeatPtrn(pattern) {
-    return function repeatBeh(m) {
+PEG.zeroOrMorePtrn = function zeroOrMorePtrn(pattern) {
+    return function zeroOrMoreBeh(m) {
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
             list.push(r.value);  // mutate list
@@ -232,6 +232,31 @@ PEG.repeatPtrn = function repeatPtrn(pattern) {
             in: m.in,
             ok: more,
             fail: done
+        });
+    };
+};
+
+PEG.oneOrMorePtrn = function oneOrMorePtrn(pattern) {
+    return function oneOrMoreBeh(m) {
+        var list = [];
+        var more = this.sponsor(function moreBeh(r) {
+            list.push(r.value);  // mutate list
+            pattern({
+                in: r.in,
+                ok: more,
+                fail: done
+            });
+        });
+        var done = this.sponsor(function doneBeh(r) {
+            m.ok({
+                in: r.in,
+                value: list
+            });
+        });
+        pattern({
+            in: m.in,
+            ok: more,
+            fail: m.fail
         });
     };
 };

@@ -400,7 +400,7 @@ test['plus/minus choice fails on star'] = function (test) {
     test.done();
 };
 
-test['repeat matches nothing'] = function (test) {
+test['zeroOrMore matches nothing'] = function (test) {
     test.expect(2);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -415,7 +415,7 @@ test['repeat matches nothing'] = function (test) {
     var space = sponsor(PEG.predicatePtrn(function(token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.repeatPtrn(space));
+    var whitespace = sponsor(PEG.zeroOrMorePtrn(space));
 
     whitespace({
         in: {
@@ -430,7 +430,38 @@ test['repeat matches nothing'] = function (test) {
     test.done();
 };
 
-test['repeat matches whitespace 3x'] = function (test) {
+test['zeroOrMore matches single space'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(1, m.value.length);
+        test.equal(' ', m.value[0]);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.zeroOrMorePtrn(space));
+
+    whitespace({
+        in: {
+            source: ' ',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['zeroOrMore matches whitespace 3x'] = function (test) {
     test.expect(5);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -448,7 +479,101 @@ test['repeat matches whitespace 3x'] = function (test) {
     var space = sponsor(PEG.predicatePtrn(function(token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.repeatPtrn(space));
+    var whitespace = sponsor(PEG.zeroOrMorePtrn(space));
+
+    whitespace({
+        in: {
+            source: ' \r\n.',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['oneOrMore fails on nothing'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        console.log('ok:', m);
+    });
+    var fail = sponsor(function(m) {
+        test.equal(0, m.in.offset);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.oneOrMorePtrn(space));
+
+    whitespace({
+        in: {
+            source: '. \r\n',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['oneOrMore matches single space'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(1, m.value.length);
+        test.equal(' ', m.value[0]);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.oneOrMorePtrn(space));
+
+    whitespace({
+        in: {
+            source: ' ',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['oneOrMore matches whitespace 3x'] = function (test) {
+    test.expect(5);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(3, m.value.length);
+        test.equal(' ', m.value[0]);
+        test.equal('\r', m.value[1]);
+        test.equal('\n', m.value[2]);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.oneOrMorePtrn(space));
 
     whitespace({
         in: {
