@@ -464,13 +464,15 @@ test['repeat matches whitespace 3x'] = function (test) {
 };
 
 test['packrat is just memoization'] = function (test) {
-    test.expect(3);
+    test.expect(5);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
     var ok = sponsor(function(m) {
-        test.equal('-', m.value);
-        test.equal(1, m.in.offset);
+        test.equal(2, m.value.length);
+        test.equal('-', m.value[0]);
+        test.equal('-', m.value[1]);
+        test.equal(2, m.in.offset);
     });
     var fail = sponsor(function(m) {
         console.log('FAIL!', m);
@@ -502,13 +504,12 @@ test['packrat is just memoization'] = function (test) {
         leftArrow,
         rightArrow,
         emDash,
-        enDash,
-        minus
+        enDash
     ]));
 
     rule({
         in: {
-            source: '- ',
+            source: '-- ',
             offset: 0
         },
         ok: ok,

@@ -241,6 +241,7 @@ PEG.packratPtrn = function packratPtrn(pattern) {
     return function packratBeh(m) {
         var result = results[m.in.offset];
         if (result) {
+//            console.log('memo:', result);
             m.ok(result);
         } else {
             var memo = this.sponsor(function memo(r) {
