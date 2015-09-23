@@ -588,6 +588,69 @@ test['oneOrMore matches whitespace 3x'] = function (test) {
     test.done();
 };
 
+test['zeroOrOne matches nothing'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(0, m.value.length);
+        test.equal(0, m.in.offset);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.zeroOrOnePtrn(space));
+
+    whitespace({
+        in: {
+            source: '. \r\n',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['zeroOrOne matches single space'] = function (test) {
+    test.expect(4);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ok = sponsor(function(m) {
+        test.equal(1, m.value.length);
+        test.equal(' ', m.value[0]);
+        test.equal(1, m.in.offset);
+    });
+    var fail = sponsor(function(m) {
+        console.log('FAIL!', m);
+    });
+
+    var space = sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+    var whitespace = sponsor(PEG.zeroOrOnePtrn(space));
+
+    whitespace({
+        in: {
+            source: ' \r\n.',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
 test['packrat is just memoization'] = function (test) {
     test.expect(5);
     var tracing = tart.tracing();

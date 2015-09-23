@@ -261,6 +261,26 @@ PEG.oneOrMorePtrn = function oneOrMorePtrn(pattern) {
     };
 };
 
+PEG.zeroOrOnePtrn = function zeroOrOnePtrn(pattern) {
+    return function zeroOrOneBeh(m) {
+        pattern({
+            in: m.in,
+            ok: this.sponsor(function oneBeh(r) {
+                m.ok({
+                    in: r.in,
+                    value: [ r.value ]
+                });
+            }),
+            fail: this.sponsor(function zeroBeh(r) {
+                m.ok({
+                    in: m.in,
+                    value: []
+                });
+            })
+        });
+    };
+};
+
 PEG.packratPtrn = function packratPtrn(pattern) {
     var results = [];
     return function packratBeh(m) {
