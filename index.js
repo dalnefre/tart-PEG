@@ -281,16 +281,18 @@ PEG.zeroOrOnePtrn = function zeroOrOnePtrn(pattern) {
     };
 };
 
-PEG.packratPtrn = function packratPtrn(pattern) {
+PEG.packratPtrn = function packratPtrn(pattern, name) {
     var results = [];
+    name = name || '';
     return function packratBeh(m) {
-        var result = results[m.in.offset];
-        if (result) {
-//            console.log('memo:', result);
-            m.ok(result);
+        var r = results[m.in.offset];
+        if (r) {
+            console.log('used:', name, r);
+            m.ok(r);
         } else {
             var memo = this.sponsor(function memo(r) {
                 results[m.in.offset] = r;
+                console.log('memo:', name, r);
                 m.ok(r);
             });
             pattern({

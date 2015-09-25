@@ -43,17 +43,67 @@ var fail = sponsor(function(m) {
 
 var PEG = require('../index.js');
 
-var empty = sponsor(PEG.emptyBeh);
-var failure = sponsor(PEG.failBeh);
-var anything = sponsor(PEG.anythingBeh);
-var period = sponsor(PEG.terminalPtrn('.'));
+var grammar = {};
+var nameRule = function nameRule(name, factory) {
+    grammar[name] = sponsor(function namedBeh(m) {
+        this.behavior = PEG.packratPtrn(factory(this.sponsor), name);
+        this.self(m);
+    });
+};
+var callRule = function callRule(name) {
+    return grammar[name];
+};
+
+nameRule('EOF', function(sponsor) {
+    return sponsor(PEG.notPtrn(
+        sponsor(PEG.anythingBeh)
+    ));
+});
+nameRule('EOL', function(sponsor) {
+    return sponsor(PEG.choicePtrn([
+        sponsor(PEG.terminalPtrn('\n')),
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.terminalPtrn('\r')),
+            sponsor(PEG.zeroOrOnePtrn(
+                sponsor(PEG.terminalPtrn('\n'))
+            ))
+        ]))
+    ]));
+});
+nameRule('Space', function(sponsor) {
+    return sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }));
+});
+nameRule('Comment', function(sponsor) {
+    return sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('#')),
+        sponsor(PEG.zeroOrMorePtrn(
+            sponsor(PEG.sequencePtrn([
+                sponsor(PEG.notPtrn(
+                    callRule('EOL')
+                )),
+                sponsor(PEG.anythingBeh)
+            ]))
+        ))
+    ]));
+});
+nameRule('_', function(sponsor) {
+    return sponsor(PEG.zeroOrMorePtrn(
+        sponsor(PEG.choicePtrn([
+            callRule('Space'),
+            callRule('Comment')
+        ]))
+    ));
+});
 
 var input = {
-    source: '.\r\n',
+    source: '\r\n# comment\n',
+//    source: 'EOL <- "\n" | "\r" "\n"?\r\n',
     offset: 0
 };
 
-period({
+(callRule('_'))({
     in: input,
     ok: ok,
     fail: fail
