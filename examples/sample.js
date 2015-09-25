@@ -46,6 +46,7 @@ var PEG = require('../index.js');
 var grammar = {};
 var nameRule = function nameRule(name, pattern) {
     var rule = sponsor(function ruleBeh(m) {
+        console.log('rule:', name, m);
         pattern({
             in: m.in,
             ok: this.sponsor(function okBeh(r) {
@@ -72,7 +73,176 @@ var callRule = function callRule(name) {
     };
 };
 
-nameRule('_',
+nameRule('Grammar',
+    sponsor(PEG.sequencePtrn([
+        callRule('_'),
+        sponsor(PEG.oneOrMorePtrn(
+            callRule('Rule')
+        )),
+        callRule('EOF')
+    ]))
+);
+nameRule('Rule',
+    sponsor(PEG.sequencePtrn([
+        callRule('Name'),
+        callRule('LEFTARROW'),
+        callRule('Expression')
+    ]))
+);
+nameRule('Expression',
+    sponsor(PEG.sequencePtrn([
+        callRule('Sequence'),
+        sponsor(PEG.zeroOrMorePtrn(
+            sponsor(PEG.sequencePtrn([
+                callRule('SLASH'),
+                callRule('Sequence')
+            ]))
+        ))
+    ]))
+);
+nameRule('Sequence',
+    sponsor(PEG.zeroOrMorePtrn(
+        callRule('Prefix')
+    ))
+);
+nameRule('Prefix',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.zeroOrOnePtrn(
+            sponsor(PEG.choicePtrn([
+                callRule('AND'),
+                callRule('NOT')
+            ]))
+        )),
+        callRule('Suffix')
+    ]))
+);
+nameRule('Suffix',
+    sponsor(PEG.sequencePtrn([
+        callRule('Primary'),
+        sponsor(PEG.zeroOrOnePtrn(
+            sponsor(PEG.choicePtrn([
+                callRule('QUESTION'),
+                callRule('STAR'),
+                callRule('PLUS')
+            ]))
+        ))
+    ]))
+);
+nameRule('Primary',
+    sponsor(PEG.choicePtrn([
+        sponsor(PEG.sequencePtrn([
+            callRule('Name'),
+            sponsor(PEG.notPtrn(
+                callRule('LEFTARROW')
+            ))
+        ])),
+        callRule('Literal'),
+        callRule('DOT')
+    ]))
+);
+nameRule('Literal',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('"')),
+        sponsor(PEG.oneOrMorePtrn(
+            sponsor(PEG.sequencePtrn([
+                sponsor(PEG.notPtrn(
+                    sponsor(PEG.terminalPtrn('"'))
+                )),
+                callRule('Character')
+            ]))
+        )),
+        sponsor(PEG.terminalPtrn('"')),
+        callRule('_')
+    ]))
+);
+
+nameRule('Name',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.predicatePtrn(function(token) {
+            return /[a-zA-Z_]/.test(token);
+        })),
+        sponsor(PEG.zeroOrMorePtrn(
+            sponsor(PEG.predicatePtrn(function(token) {
+                return /[a-zA-Z_0-9]/.test(token);
+            }))
+        )),
+        callRule('_')
+    ]))
+);
+nameRule('Character',
+    sponsor(PEG.sequencePtrn([
+/*
+        sponsor(PEG.notPtrn(
+            sponsor(PEG.terminalPtrn('\\'))
+        )),
+*/
+        sponsor(PEG.anythingBeh)
+    ]))
+);
+
+nameRule('LEFTARROW',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('<')),
+        sponsor(PEG.terminalPtrn('-')),
+        callRule('_')
+    ]))
+);
+nameRule('SLASH',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('/')),
+        callRule('_')
+    ]))
+);
+nameRule('AND',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('&')),
+        callRule('_')
+    ]))
+);
+nameRule('NOT',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('!')),
+        callRule('_')
+    ]))
+);
+nameRule('QUESTION',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('?')),
+        callRule('_')
+    ]))
+);
+nameRule('STAR',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('*')),
+        callRule('_')
+    ]))
+);
+nameRule('PLUS',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('+')),
+        callRule('_')
+    ]))
+);
+nameRule('OPEN',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('(')),
+        callRule('_')
+    ]))
+);
+nameRule('CLOSE',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn(')')),
+        callRule('_')
+    ]))
+);
+nameRule('DOT',
+    sponsor(PEG.sequencePtrn([
+        sponsor(PEG.terminalPtrn('.')),
+        callRule('_')
+    ]))
+);
+
+nameRule('_',  // optional whitespace
     sponsor(PEG.zeroOrMorePtrn(
         sponsor(PEG.choicePtrn([
             callRule('Space'),
@@ -116,12 +286,13 @@ nameRule('EOF',
 );
 
 var input = {
-    source: '\r\n# comment\n',
-//    source: 'EOL <- "\n" | "\r" "\n"?\r\n',
+//    source: '\r\n# comment\n',
+    source: 'EOL <- "\n" / "\r" "\n"?\r\n',
     offset: 0
 };
 
-(callRule('_'))({
+//(callRule('_'))({
+(callRule('Grammar'))({
     in: input,
     ok: ok,
     fail: fail
