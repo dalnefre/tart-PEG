@@ -52,30 +52,21 @@ var nameRule = function nameRule(name, pattern) {
 var callRule = function callRule(name) {
     // delay name lookup until rule is invoked
     return function callBeh(m) {
-        (grammar[name])(m);
+        var rule = grammar[name];
+        if (typeof rule !== 'function') {
+            throw Error('Unknown grammar rule: ' + name);
+        }
+        rule(m);
     };
 };
 
-nameRule('EOF',
-    sponsor(PEG.notPtrn(
-        sponsor(PEG.anythingBeh)
-    ))
-);
-nameRule('EOL',
-    sponsor(PEG.choicePtrn([
-        sponsor(PEG.terminalPtrn('\n')),
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('\r')),
-            sponsor(PEG.zeroOrOnePtrn(
-                sponsor(PEG.terminalPtrn('\n'))
-            ))
+nameRule('_',
+    sponsor(PEG.zeroOrMorePtrn(
+        sponsor(PEG.choicePtrn([
+            callRule('Space'),
+            callRule('Comment')
         ]))
-    ]))
-);
-nameRule('Space',
-    sponsor(PEG.predicatePtrn(function(token) {
-        return /\s/.test(token);
-    }))
+    ))
 );
 nameRule('Comment',
     sponsor(PEG.sequencePtrn([
@@ -90,12 +81,25 @@ nameRule('Comment',
         ))
     ]))
 );
-nameRule('_',
-    sponsor(PEG.zeroOrMorePtrn(
-        sponsor(PEG.choicePtrn([
-            callRule('Space'),
-            callRule('Comment')
+nameRule('Space',
+    sponsor(PEG.predicatePtrn(function(token) {
+        return /\s/.test(token);
+    }))
+);
+nameRule('EOL',
+    sponsor(PEG.choicePtrn([
+        sponsor(PEG.terminalPtrn('\n')),
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.terminalPtrn('\r')),
+            sponsor(PEG.zeroOrOnePtrn(
+                sponsor(PEG.terminalPtrn('\n'))
+            ))
         ]))
+    ]))
+);
+nameRule('EOF',
+    sponsor(PEG.notPtrn(
+        sponsor(PEG.anythingBeh)
     ))
 );
 
