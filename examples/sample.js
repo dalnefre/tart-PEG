@@ -35,10 +35,10 @@ var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
 var ok = sponsor(function(m) {
-    console.log('ok:', m);
+    console.log('ok:', JSON.stringify(m, null, '  '));
 });
 var fail = sponsor(function(m) {
-    console.log('FAIL!', m);
+    console.log('FAIL!', JSON.stringify(m, null, '  '));
 });
 
 var PEG = require('../index.js');
@@ -50,17 +50,22 @@ var nameRule = function nameRule(name, pattern) {
         pattern({
             in: m.in,
             ok: this.sponsor(function okBeh(r) {
-                m.ok({
+                var match = {
                     in: r.in,
                     value: [name, r.value]
-                });
+                };
+                console.log('match:', match);
+                m.ok(match);
             }),
             fail: m.fail
         });
     });
+    grammar[name] = rule;
+/*
     grammar[name] = sponsor(
         PEG.packratPtrn(rule, name)
     );
+*/
 };
 var callRule = function callRule(name) {
     // delay name lookup until rule is invoked
@@ -136,23 +141,14 @@ nameRule('Primary',
                 callRule('LEFTARROW')
             ))
         ])),
+        sponsor(PEG.sequencePtrn([
+            callRule('OPEN'),
+            callRule('Expression'),
+            callRule('CLOSE')
+        ])),
         callRule('Literal'),
+        callRule('Class'),
         callRule('DOT')
-    ]))
-);
-nameRule('Literal',
-    sponsor(PEG.sequencePtrn([
-        sponsor(PEG.terminalPtrn('"')),
-        sponsor(PEG.oneOrMorePtrn(
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.notPtrn(
-                    sponsor(PEG.terminalPtrn('"'))
-                )),
-                callRule('Character')
-            ]))
-        )),
-        sponsor(PEG.terminalPtrn('"')),
-        callRule('_')
     ]))
 );
 
@@ -169,14 +165,91 @@ nameRule('Name',
         callRule('_')
     ]))
 );
-nameRule('Character',
+nameRule('Literal',
+    sponsor(PEG.choicePtrn([
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.terminalPtrn('"')),
+            sponsor(PEG.oneOrMorePtrn(
+                sponsor(PEG.sequencePtrn([
+                    sponsor(PEG.notPtrn(
+                        sponsor(PEG.terminalPtrn('"'))
+                    )),
+                    callRule('Character')
+                ]))
+            )),
+            sponsor(PEG.terminalPtrn('"')),
+            callRule('_')
+        ])),
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.terminalPtrn("'")),
+            sponsor(PEG.oneOrMorePtrn(
+                sponsor(PEG.sequencePtrn([
+                    sponsor(PEG.notPtrn(
+                        sponsor(PEG.terminalPtrn("'"))
+                    )),
+                    callRule('Character')
+                ]))
+            )),
+            sponsor(PEG.terminalPtrn("'")),
+            callRule('_')
+        ]))
+    ]))
+);
+nameRule('Class',
     sponsor(PEG.sequencePtrn([
-/*
-        sponsor(PEG.notPtrn(
-            sponsor(PEG.terminalPtrn('\\'))
+        sponsor(PEG.terminalPtrn('[')),
+        sponsor(PEG.oneOrMorePtrn(
+            sponsor(PEG.sequencePtrn([
+                sponsor(PEG.notPtrn(
+                    sponsor(PEG.terminalPtrn(']'))
+                )),
+                callRule('Range')
+            ]))
         )),
-*/
-        sponsor(PEG.anythingBeh)
+        sponsor(PEG.terminalPtrn(']')),
+        callRule('_')
+    ]))
+);
+nameRule('Range',
+    sponsor(PEG.choicePtrn([
+        sponsor(PEG.sequencePtrn([
+            callRule('Character'),
+            sponsor(PEG.terminalPtrn('-')),
+            callRule('Character')
+        ])),
+        callRule('Character')
+    ]))
+);
+nameRule('Character',
+    sponsor(PEG.choicePtrn([
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.terminalPtrn('\\')),
+            sponsor(PEG.predicatePtrn(function(token) {
+                return /[nrt'"[\]\\]/.test(token);
+            }))
+        ])),
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.terminalPtrn('\\')),
+            sponsor(PEG.terminalPtrn('u')),
+            sponsor(PEG.predicatePtrn(function(token) {
+                return /[0-9a-fA-F]/.test(token);
+            })),
+            sponsor(PEG.predicatePtrn(function(token) {
+                return /[0-9a-fA-F]/.test(token);
+            })),
+            sponsor(PEG.predicatePtrn(function(token) {
+                return /[0-9a-fA-F]/.test(token);
+            })),
+            sponsor(PEG.predicatePtrn(function(token) {
+                return /[0-9a-fA-F]/.test(token);
+            }))
+        ])),
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.notPtrn(
+                sponsor(PEG.terminalPtrn('\\'))
+            )),
+            sponsor(PEG.anythingBeh)
+        ]))
     ]))
 );
 
@@ -287,7 +360,9 @@ nameRule('EOF',
 
 var input = {
 //    source: '\r\n# comment\n',
-    source: 'EOL <- "\n" / "\r" "\n"?\r\n',
+    source: 'Comment <- [#] (!EOL .)* EOL\r'
+          + "EOL <- '\n'\n" 
+          + '     / "\r" "\n"?\r\n',
     offset: 0
 };
 
