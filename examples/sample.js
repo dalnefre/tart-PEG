@@ -44,23 +44,25 @@ var fail = sponsor(function(m) {
 var PEG = require('../index.js');
 
 var grammar = {};
-var nameRule = function nameRule(name, factory) {
-    grammar[name] = sponsor(function namedBeh(m) {
-        this.behavior = PEG.packratPtrn(factory(this.sponsor), name);
-        this.self(m);
-    });
+var nameRule = function nameRule(name, pattern) {
+    grammar[name] = sponsor(
+        PEG.packratPtrn(pattern, name)
+    );
 };
 var callRule = function callRule(name) {
-    return grammar[name];
+    // delay name lookup until rule is invoked
+    return function callBeh(m) {
+        (grammar[name])(m);
+    };
 };
 
-nameRule('EOF', function(sponsor) {
-    return sponsor(PEG.notPtrn(
+nameRule('EOF',
+    sponsor(PEG.notPtrn(
         sponsor(PEG.anythingBeh)
-    ));
-});
-nameRule('EOL', function(sponsor) {
-    return sponsor(PEG.choicePtrn([
+    ))
+);
+nameRule('EOL',
+    sponsor(PEG.choicePtrn([
         sponsor(PEG.terminalPtrn('\n')),
         sponsor(PEG.sequencePtrn([
             sponsor(PEG.terminalPtrn('\r')),
@@ -68,15 +70,15 @@ nameRule('EOL', function(sponsor) {
                 sponsor(PEG.terminalPtrn('\n'))
             ))
         ]))
-    ]));
-});
-nameRule('Space', function(sponsor) {
-    return sponsor(PEG.predicatePtrn(function(token) {
+    ]))
+);
+nameRule('Space',
+    sponsor(PEG.predicatePtrn(function(token) {
         return /\s/.test(token);
-    }));
-});
-nameRule('Comment', function(sponsor) {
-    return sponsor(PEG.sequencePtrn([
+    }))
+);
+nameRule('Comment',
+    sponsor(PEG.sequencePtrn([
         sponsor(PEG.terminalPtrn('#')),
         sponsor(PEG.zeroOrMorePtrn(
             sponsor(PEG.sequencePtrn([
@@ -86,16 +88,16 @@ nameRule('Comment', function(sponsor) {
                 sponsor(PEG.anythingBeh)
             ]))
         ))
-    ]));
-});
-nameRule('_', function(sponsor) {
-    return sponsor(PEG.zeroOrMorePtrn(
+    ]))
+);
+nameRule('_',
+    sponsor(PEG.zeroOrMorePtrn(
         sponsor(PEG.choicePtrn([
             callRule('Space'),
             callRule('Comment')
         ]))
-    ));
-});
+    ))
+);
 
 var input = {
     source: '\r\n# comment\n',
