@@ -45,8 +45,20 @@ var PEG = require('../index.js');
 
 var grammar = {};
 var nameRule = function nameRule(name, pattern) {
+    var rule = sponsor(function ruleBeh(m) {
+        pattern({
+            in: m.in,
+            ok: this.sponsor(function okBeh(r) {
+                m.ok({
+                    in: r.in,
+                    value: [name, r.value]
+                });
+            }),
+            fail: m.fail
+        });
+    });
     grammar[name] = sponsor(
-        PEG.packratPtrn(pattern, name)
+        PEG.packratPtrn(rule, name)
     );
 };
 var callRule = function callRule(name) {
