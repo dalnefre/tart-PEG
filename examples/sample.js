@@ -36,12 +36,43 @@ var sponsor = tracing.sponsor;
 
 var ok = sponsor(function(m) {
     console.log('ok:', JSON.stringify(m, null, '  '));
+    visit(m.value);
 });
 var fail = sponsor(function(m) {
     console.log('FAIL!', JSON.stringify(m, null, '  '));
 });
 
 var PEG = require('../index.js');
+
+var actions = {};
+var visit = function visit(node) {
+    console.log('visit:', typeof(node), node);
+    if (typeof node !== 'object') {
+        return node;
+    } else if (node.rule) {  // rule node
+        var action = actions[node.rule];
+        if (action) {
+            return action(node.value);
+        } else {
+            return visit(node.value);
+        }
+    } else if (node.length) {  // list node
+        for (var i = 0; i < node.length; ++i) {
+            node[i] = visit(node[i]);
+        }
+    }
+    return node;
+};
+actions['Name'] = function visitName(node) {
+    console.log('visitName:', node);
+    var name = node[0];
+    var rest = node[1];
+    for (var i = 0; i < rest.length; ++i) {
+        name += rest[i];
+    }
+    console.log('Name:', name);
+    return name;
+};
 
 var grammar = {};
 var nameRule = function nameRule(name, pattern) {
@@ -52,7 +83,7 @@ var nameRule = function nameRule(name, pattern) {
             ok: this.sponsor(function okBeh(r) {
                 var match = {
                     in: r.in,
-                    value: [name, r.value]
+                    value: { rule:name, value:r.value }
                 };
                 console.log('match:', match);
                 m.ok(match);
