@@ -36,8 +36,8 @@ var sponsor = tracing.sponsor;
 
 var ok = sponsor(function(m) {
     console.log('ok:', JSON.stringify(m, null, '  '));
-    visit(m.value);
-    console.log('value:', JSON.stringify(m.value, null, '  '));
+    var value = visit(m.value);
+    console.log('value:', JSON.stringify(value, null, '  '));
 });
 var fail = sponsor(function(m) {
     console.log('FAIL!', JSON.stringify(m, null, '  '));
@@ -72,6 +72,22 @@ var visitToken = function visitToken(node) {
     }
     console.log('Token:', token);
     return token;
+};
+
+actions['Grammar'] = function visitGrammar(node) {
+    console.log('visitGrammar:', node);
+    var list = node.value[1];
+    var map = {};
+    for (var i = 0; i < list.length; ++i) {
+        var rule = list[i];
+        if (rule.rule === 'Rule') {
+            var name = visit(rule.value[0]);
+            var expr = visit(rule.value[2]);
+            map[name] = expr;
+        }
+    }
+    console.log('Grammar:', map);
+    return map;
 };
 actions['Name'] = function visitName(node) {
     console.log('visitName:', node);
