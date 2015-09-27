@@ -37,6 +37,7 @@ var sponsor = tracing.sponsor;
 var ok = sponsor(function(m) {
     console.log('ok:', JSON.stringify(m, null, '  '));
     visit(m.value);
+    console.log('value:', JSON.stringify(m.value, null, '  '));
 });
 var fail = sponsor(function(m) {
     console.log('FAIL!', JSON.stringify(m, null, '  '));
@@ -52,9 +53,9 @@ var visit = function visit(node) {
     } else if (node.rule) {  // rule node
         var action = actions[node.rule];
         if (action) {
-            return action(node.value);
+            node = action(node);
         } else {
-            return visit(node.value);
+            node.value = visit(node.value);
         }
     } else if (node.length) {  // list node
         for (var i = 0; i < node.length; ++i) {
@@ -63,15 +64,41 @@ var visit = function visit(node) {
     }
     return node;
 };
+var visitToken = function visitToken(node) {
+    console.log('visitToken:', node);
+    var token = node.rule;
+    if (token === undefined) {
+        token = node.value;
+    }
+    console.log('Token:', token);
+    return token;
+};
 actions['Name'] = function visitName(node) {
     console.log('visitName:', node);
-    var name = node[0];
-    var rest = node[1];
+    var value = node.value;
+    var name = value[0];
+    var rest = value[1];
     for (var i = 0; i < rest.length; ++i) {
         name += rest[i];
     }
     console.log('Name:', name);
     return name;
+};
+actions['LEFTARROW'] = visitToken;
+actions['SLASH'] = visitToken;
+actions['AND'] = visitToken;
+actions['NOT'] = visitToken;
+actions['QUESTION'] = visitToken;
+actions['STAR'] = visitToken;
+actions['PLUS'] = visitToken;
+actions['OPEN'] = visitToken;
+actions['CLOSE'] = visitToken;
+actions['DOT'] = visitToken;
+actions['_'] = function visitOptSP(node) {
+    console.log('visitOptSP:', node);
+    var space = ' ';
+    console.log('_:', space);
+    return space;
 };
 
 var grammar = {};
