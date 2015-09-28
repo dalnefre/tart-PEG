@@ -110,6 +110,39 @@ actions['Sequence'] = function visitSequence(node) {
     console.log('Sequence:', list);
     return list;
 };
+actions['Prefix'] = function visitPrefix(node) {
+    console.log('visitPrefix:', node);
+    var optn = node.value[0];
+    var ptrn = visit(node.value[1]);
+    if (optn.length === 1) {
+        ptrn = {
+            type: optn[0].rule,
+            ptrn: ptrn
+        };
+    }
+    console.log('Prefix:', ptrn);
+    return ptrn;
+};
+actions['Suffix'] = function visitSuffix(node) {
+    console.log('visitSuffix:', node);
+    var ptrn = visit(node.value[0]);
+    var optn = node.value[1];
+    if (optn.length === 1) {
+        ptrn = {
+            type: optn[0].rule,
+            ptrn: ptrn
+        };
+    }
+    console.log('Suffix:', ptrn);
+    return ptrn;
+};
+actions['Primary'] = function visitPrimary(node) {
+    console.log('visitPrimary:', node);
+//    var ptrn = visit(node.value);
+    var ptrn = '...';
+    console.log('Primary:', ptrn);
+    return ptrn;
+};
 actions['Name'] = function visitName(node) {
     console.log('visitName:', node);
     var value = node.value;
