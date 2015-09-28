@@ -89,6 +89,27 @@ actions['Grammar'] = function visitGrammar(node) {
     console.log('Grammar:', map);
     return map;
 };
+actions['Expression'] = function visitExpression(node) {
+    console.log('visitExpression:', node);
+    var first = node.value[0];
+    var rest = node.value[1];
+    var list = [];
+    list.push(visit(first));
+    for (var i = 0; i < rest.length; ++i) {
+        var next = rest[i];
+        if (next[0].rule === 'SLASH') {
+            list.push(visit(next[1]));
+        }
+    }
+    console.log('Expression:', list);
+    return list;
+};
+actions['Sequence'] = function visitSequence(node) {
+    console.log('visitSequence:', node);
+    var list = visit(node.value);
+    console.log('Sequence:', list);
+    return list;
+};
 actions['Name'] = function visitName(node) {
     console.log('visitName:', node);
     var value = node.value;
