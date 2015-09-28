@@ -138,9 +138,37 @@ actions['Suffix'] = function visitSuffix(node) {
 };
 actions['Primary'] = function visitPrimary(node) {
     console.log('visitPrimary:', node);
-//    var ptrn = visit(node.value);
-    var ptrn = '...';
+    var ptrn = node.value;
+    var rule = ptrn.rule;
+    if (rule) {
+        ptrn = visit(ptrn);
+    } else {
+        rule = ptrn[0].rule;
+        if (rule === 'Name') {
+            ptrn = visit(ptrn[0]);
+        } else {
+            ptrn = visit(ptrn[1]);
+        }
+    }
     console.log('Primary:', ptrn);
+    return ptrn;
+};
+actions['Literal'] = function visitLiteral(node) {
+    console.log('visitLiteral:', node);
+    var ptrn = {
+        type: node.rule,
+        ptrn: '...'
+    };
+    console.log('Literal:', ptrn);
+    return ptrn;
+};
+actions['Class'] = function visitClass(node) {
+    console.log('visitClass:', node);
+    var ptrn = {
+        type: node.rule,
+        ptrn: '...'
+    };
+    console.log('Class:', ptrn);
     return ptrn;
 };
 actions['Name'] = function visitName(node) {
@@ -154,6 +182,7 @@ actions['Name'] = function visitName(node) {
     console.log('Name:', name);
     return name;
 };
+/*
 actions['LEFTARROW'] = visitToken;
 actions['SLASH'] = visitToken;
 actions['AND'] = visitToken;
@@ -163,7 +192,15 @@ actions['STAR'] = visitToken;
 actions['PLUS'] = visitToken;
 actions['OPEN'] = visitToken;
 actions['CLOSE'] = visitToken;
-actions['DOT'] = visitToken;
+*/
+actions['DOT'] = function visitDOT(node) {
+    console.log('visitDOT:', node);
+    var ptrn = {
+        type: node.rule
+    };
+    console.log('DOT:', ptrn);
+    return ptrn;
+};
 actions['_'] = function visitOptSP(node) {
     console.log('visitOptSP:', node);
     var space = ' ';
