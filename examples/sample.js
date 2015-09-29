@@ -180,12 +180,6 @@ actions['Literal'] = function visitLiteral(node) {
 };
 actions['Class'] = function visitClass(node) {
     console.log('visitClass:', node);
-/*
-    var ptrn = {
-        type: node.rule,
-        ptrn: '...'
-    };
-*/
     var list = visit(node.value[1]);
     var s = [];
     for (var i = 0; i < list.length; ++i) {
@@ -252,8 +246,8 @@ actions['DOT'] = function visitDOT(node) {
     console.log('DOT:', ptrn);
     return ptrn;
 };
-actions['_'] = function visitOptSP(node) {
-    console.log('visitOptSP:', node);
+actions['_'] = function visit_(node) {  // optional whitespace
+    console.log('visit_:', node);
     var space = ' ';
     console.log('_:', space);
     return space;
@@ -576,7 +570,7 @@ nameRule('EOF',
 
 var input = {
 //    source: '\r\n# comment\n',
-    source: 'Comment <- [-#-~] (!EOL .)* EOL\r'
+    source: 'Comment <- [#] (!EOL .)* EOL\r'
           + "EOL <- '\\n'\n" 
           + '     / "\\r" "\\n"?\r\n',
     offset: 0
