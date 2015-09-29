@@ -153,24 +153,6 @@ actions['Primary'] = function visitPrimary(node) {
     console.log('Primary:', ptrn);
     return ptrn;
 };
-actions['Literal'] = function visitLiteral(node) {
-    console.log('visitLiteral:', node);
-    var ptrn = {
-        type: node.rule,
-        ptrn: '...'
-    };
-    console.log('Literal:', ptrn);
-    return ptrn;
-};
-actions['Class'] = function visitClass(node) {
-    console.log('visitClass:', node);
-    var ptrn = {
-        type: node.rule,
-        ptrn: '...'
-    };
-    console.log('Class:', ptrn);
-    return ptrn;
-};
 actions['Name'] = function visitName(node) {
     console.log('visitName:', node);
     var value = node.value;
@@ -181,6 +163,75 @@ actions['Name'] = function visitName(node) {
     }
     console.log('Name:', name);
     return name;
+};
+actions['Literal'] = function visitLiteral(node) {
+    console.log('visitLiteral:', node);
+    var list = visit(node.value[1]);
+    var s = [];
+    for (var i = 0; i < list.length; ++i) {
+        s.push(visit(list[i][1]));
+    }
+    var ptrn = {
+        type: node.rule,
+        ptrn: s
+    };
+    console.log('Literal:', ptrn);
+    return ptrn;
+};
+actions['Class'] = function visitClass(node) {
+    console.log('visitClass:', node);
+/*
+    var ptrn = {
+        type: node.rule,
+        ptrn: '...'
+    };
+*/
+    var list = visit(node.value[1]);
+    var s = [];
+    for (var i = 0; i < list.length; ++i) {
+        s.push(visit(list[i][1]));
+    }
+    var ptrn = {
+        type: node.rule,
+        ptrn: s
+    };
+    console.log('Class:', ptrn);
+    return ptrn;
+};
+actions['Range'] = function visitRange(node) {
+    console.log('visitRange:', node);
+    var r = node.value;
+    if (r.rule === 'Character') {
+        r = visit(r);
+    } else {
+        r = [
+            visit(r[0]),
+            visit(r[2])
+        ];
+    }
+    console.log('Range:', r);
+    return r;
+};
+var escChars = {
+    'n': '\n'.charCodeAt(0),
+    'r': '\r'.charCodeAt(0),
+    't': '\t'.charCodeAt(0),
+    "'": "'".charCodeAt(0),
+    '"': '"'.charCodeAt(0),
+    '[': '['.charCodeAt(0),
+    ']': ']'.charCodeAt(0),
+    '\\': '\\'.charCodeAt(0)
+};
+actions['Character'] = function visitCharacter(node) {
+    console.log('visitCharacter:', node);
+    var c = node.value[1];
+    if (node.value[0] === '\\') {
+        c = escChars[c];
+    } else {
+        c = c.charCodeAt(0);
+    }
+    console.log('Character:', c);
+    return c;
 };
 /*
 actions['LEFTARROW'] = visitToken;
@@ -525,9 +576,9 @@ nameRule('EOF',
 
 var input = {
 //    source: '\r\n# comment\n',
-    source: 'Comment <- [#] (!EOL .)* EOL\r'
-          + "EOL <- '\n'\n" 
-          + '     / "\r" "\n"?\r\n',
+    source: 'Comment <- [-#-~] (!EOL .)* EOL\r'
+          + "EOL <- '\\n'\n" 
+          + '     / "\\r" "\\n"?\r\n',
     offset: 0
 };
 
