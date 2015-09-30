@@ -34,12 +34,12 @@ var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-var ok = sponsor(function(m) {
+var ok = sponsor(function okBeh(m) {
     console.log('ok:', JSON.stringify(m, null, '  '));
     var value = visit(m.value);
     console.log('value:', JSON.stringify(value, null, '  '));
 });
-var fail = sponsor(function(m) {
+var fail = sponsor(function failBeh(m) {
     console.log('FAIL!', JSON.stringify(m, null, '  '));
 });
 
@@ -254,9 +254,11 @@ actions['_'] = function visit_(node) {  // optional whitespace
 };
 
 var grammar = {};
+var ruleStack = [];
 var nameRule = function nameRule(name, pattern) {
     var rule = sponsor(function ruleBeh(m) {
         console.log('rule:', name, m);
+        ruleStack.push(name);
         pattern({
             in: m.in,
             ok: this.sponsor(function okBeh(r) {
@@ -264,10 +266,16 @@ var nameRule = function nameRule(name, pattern) {
                     in: r.in,
                     value: { rule:name, value:r.value }
                 };
-                console.log('match:', match);
+                console.log('match:', name, match);
+//                console.log('match:', ruleStack, match);
+                ruleStack.pop();
                 m.ok(match);
             }),
-            fail: m.fail
+            fail: this.sponsor(function failBeh(r) {
+//                console.log(' fail:', ruleStack);
+                ruleStack.pop();
+                m.fail(r);
+            })
         });
     });
     grammar[name] = rule;
