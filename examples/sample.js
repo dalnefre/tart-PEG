@@ -576,11 +576,21 @@ nameRule('EOF',
     ))
 );
 
+var simpleSource = 
+    '\r\n# comment\n';
+var commentSource = 
+    'Comment <- [#] (!EOL .)* EOL\r'
+  + "EOL <- '\\n'\n" 
+  + '     / "\\r" "\\n"?\r\n';
+var exprSource =
+    'Assign <- Name "=" Assign\n'
+  + '        / Expr\n'
+  + 'Name   <- [a-zA-Z_]\n'
+  + 'Expr   <- Term ([-+] Term)*\n'
+  + 'Term   <- Factor ([/*] Factor)*\n'
+  + 'Factor <- "(" Expr ")" / [0-9]+\n';
 var input = {
-//    source: '\r\n# comment\n',
-    source: 'Comment <- [#] (!EOL .)* EOL\r'
-          + "EOL <- '\\n'\n" 
-          + '     / "\\r" "\\n"?\r\n',
+    source: exprSource,
     offset: 0
 };
 
