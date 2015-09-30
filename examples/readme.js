@@ -43,34 +43,90 @@ var named = require('../named.js');
 var ns = named.scope(sponsor);
 
 var ok = sponsor(function okBeh(m) {
-    console.log('ok:', m);
+    console.log('ok:', JSON.stringify(m, null, '  '));
 });
 var fail = sponsor(function failBeh(m) {
-    console.log('FAIL!', m);
+    console.log('FAIL:', JSON.stringify(m, null, '  '));
 });
 
-/***
+/*
 Assign <- Name "=" Assign
         / Expr
-Name   <- [a-zA-Z]
-Expr   <- Term ([-+] Term)*
-Term   <- Factor ([/*] Factor)*
-Factor <- "(" Expr ")"
-        / [0-9]+
-***/
-
-ns.define('Range',
+*/
+ns.define('Assign',
     sponsor(PEG.choicePtrn([
         sponsor(PEG.sequencePtrn([
-            ns.lookup('Character'),
-            sponsor(PEG.terminalPtrn('-')),
-            ns.lookup('Character')
+            ns.lookup('Name'),
+            sponsor(PEG.terminalPtrn('=')),
+            ns.lookup('Assign')
         ])),
-        ns.lookup('Character')
+        ns.lookup('Expr')
     ]))
 );
 
-var start = ns.lookup("Range");
+/*
+Name   <- [a-zA-Z]
+*/
+ns.define('Name',
+    sponsor(PEG.predicatePtrn(function (token) {
+        return /[a-zA-Z]/.test(token);
+    }))
+);
+
+/*
+Expr   <- Term ([-+] Term)*
+*/
+ns.define('Expr',
+    sponsor(PEG.sequencePtrn([
+        ns.lookup('Term'),
+        sponsor(PEG.zeroOrMorePtrn(
+            sponsor(PEG.sequencePtrn([
+                sponsor(PEG.predicatePtrn(function (token) {
+                    return /[-+]/.test(token);
+                })),
+                ns.lookup('Term')
+            ]))
+        ))
+    ]))
+);
+
+/*
+Term   <- Factor ([/*] Factor)*
+*/
+ns.define('Term',
+    sponsor(PEG.sequencePtrn([
+        ns.lookup('Factor'),
+        sponsor(PEG.zeroOrMorePtrn(
+            sponsor(PEG.sequencePtrn([
+                sponsor(PEG.predicatePtrn(function (token) {
+                    return /[/*]/.test(token);
+                })),
+                ns.lookup('Factor')
+            ]))
+        ))
+    ]))
+);
+
+/*
+Factor <- "(" Expr ")"
+        / [0-9]+
+*/
+ns.define('Factor',
+    sponsor(PEG.choicePtrn([
+        sponsor(PEG.sequencePtrn([
+            sponsor(PEG.terminalPtrn('(')),
+            ns.lookup('Expr'),
+            sponsor(PEG.terminalPtrn(')'))
+        ])),
+        sponsor(PEG.oneOrMorePtrn(
+            sponsor(PEG.predicatePtrn(function (token) {
+                return /[0-9]/.test(token);
+            }))
+        ))
+    ]))
+);
+
+var start = ns.lookup("Assign");
 start({
     in: {
         source: 'x=y=1-2/3+4*5/(6-7)',
