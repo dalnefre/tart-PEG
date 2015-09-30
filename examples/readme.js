@@ -39,23 +39,41 @@ var sponsor = tart.minimal({
 
 var PEG = require('../index.js');
 
-var ok = sponsor(function(m) {
+var named = require('../named.js');
+var ns = named.scope(sponsor);
+
+var ok = sponsor(function okBeh(m) {
     console.log('ok:', m);
 });
-var fail = sponsor(function(m) {
+var fail = sponsor(function failBeh(m) {
     console.log('FAIL!', m);
 });
 
-var anything = sponsor(PEG.anythingBeh);
-var endOfInput = sponsor(PEG.notPtrn(anything));
-var parser = sponsor(PEG.sequencePtrn([
-    sponsor(PEG.terminalPtrn('.')),
-    endOfInput
-]));
+/***
+Assign <- Name "=" Assign
+        / Expr
+Name   <- [a-zA-Z]
+Expr   <- Term ([-+] Term)*
+Term   <- Factor ([/*] Factor)*
+Factor <- "(" Expr ")"
+        / [0-9]+
+***/
 
-parser({
+ns.define('Range',
+    sponsor(PEG.choicePtrn([
+        sponsor(PEG.sequencePtrn([
+            ns.lookup('Character'),
+            sponsor(PEG.terminalPtrn('-')),
+            ns.lookup('Character')
+        ])),
+        ns.lookup('Character')
+    ]))
+);
+
+var start = ns.lookup("Range");
+start({
     in: {
-        source: '.',
+        source: 'x=y=1-2/3+4*5/(6-7)',
         offset: 0
     },
     ok: ok,
