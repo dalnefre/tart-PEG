@@ -35,15 +35,22 @@ var named = module.exports;
 var PEG = require('./index.js');
 
 /*
- * scope(sponsor) - construct an naming scope for parsing actors
+ * scope(sponsor, options = {}) - construct an naming scope for parsing actors
  */
-named.scope = function scope(sponsor) {
+named.scope = function scope(sponsor, options) {
+    var options = options || {};
     var ruleNamed = {};
     var ruleStack = [];
+    var log = options.log || console.log;
+    var wrapper = options.wrapper || function wrapper(rule, name) {
+        rule = sponsor(PEG.packratPtrn(rule, name));
+        rule = sponsor(checkRecursion(name, rule));
+        return rule;
+    };
 
     var setRule = function setRule(name, pattern) {
         var rule = sponsor(function ruleBeh(m) {
-            console.log('rule:', name, m);
+            log('rule:', name, m);
             ruleStack.push({
                 name: name,
                 offset: m.in.offset
@@ -55,24 +62,19 @@ named.scope = function scope(sponsor) {
                         in: r.in,
                         value: { rule:name, value:r.value }
                     };
-                    console.log('match:', name, match);
-//                    console.log('match:', ruleStack, match);
+                    log('match:', name, match);
+//                    log('match:', ruleStack, match);
                     ruleStack.pop();
                     m.ok(match);
                 }),
                 fail: this.sponsor(function failBeh(r) {
-//                    console.log(' fail:', ruleStack);
+//                    log(' fail:', ruleStack);
                     ruleStack.pop();
                     m.fail(r);
                 })
             });
         });
-/*
-*/
-        rule = sponsor(
-            PEG.packratPtrn(rule, name)
-        );
-        ruleNamed[name] = rule;
+        ruleNamed[name] = wrapper(rule, name);
     };
 
     var getRule = function getRule(name) {
@@ -85,7 +87,32 @@ named.scope = function scope(sponsor) {
             rule(m);
         };
     };
+    
+    var checkRecursion = function checkRecursionPtrn(name, rule, fail) {
+        fail = fail || function recursionFail(m) {
+            log('recursionFail', name, m);
+            m.fail({
+                in: m.in,
+                value: m.value
+            });
+        };
+-       return function checkRecursionBeh(m) {
+            var i = ruleStack.length;
+            while (i > 0) {
+                i -= 1;
+                if (ruleStack[i].offset < m.in.offset) {
+                    break;  // safe!
+                }
+                if (ruleStack[i].name == name) {
+                    return fail(m);
+                }
+            }
+            rule(m);
+        };
+    };
+
     return {
+        checkRecursion: checkRecursion,
         define: setRule,
         lookup: getRule
     };
