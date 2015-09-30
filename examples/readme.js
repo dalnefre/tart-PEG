@@ -42,13 +42,6 @@ var PEG = require('../index.js');
 var named = require('../named.js');
 var ns = named.scope(sponsor);
 
-var ok = sponsor(function okBeh(m) {
-    console.log('ok:', JSON.stringify(m, null, '  '));
-});
-var fail = sponsor(function failBeh(m) {
-    console.log('FAIL:', JSON.stringify(m, null, '  '));
-});
-
 /*
 Assign <- Name "=" Assign
         / Expr
@@ -108,16 +101,18 @@ ns.define('Term',
 );
 
 /*
-Factor <- "(" Expr ")"
+Factor <- "(" Assign ")"
+        / Name
         / [0-9]+
 */
 ns.define('Factor',
     sponsor(PEG.choicePtrn([
         sponsor(PEG.sequencePtrn([
             sponsor(PEG.terminalPtrn('(')),
-            ns.lookup('Expr'),
+            ns.lookup('Assign'),
             sponsor(PEG.terminalPtrn(')'))
         ])),
+        ns.lookup('Name'),
         sponsor(PEG.oneOrMorePtrn(
             sponsor(PEG.predicatePtrn(function (token) {
                 return /[0-9]/.test(token);
@@ -126,10 +121,17 @@ ns.define('Factor',
     ]))
 );
 
-var start = ns.lookup("Assign");
+var ok = sponsor(function okBeh(m) {
+    console.log('OK:', JSON.stringify(m, null, '  '));
+});
+var fail = sponsor(function failBeh(m) {
+    console.log('FAIL:', JSON.stringify(m, null, '  '));
+});
+
+var start = ns.lookup('Assign');
 start({
     in: {
-        source: 'x=y=1-2/3+4*5/(6-7)',
+        source: 'x=y=10-2/3+4*5/(6-7)',
         offset: 0
     },
     ok: ok,
