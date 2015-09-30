@@ -258,7 +258,10 @@ var ruleStack = [];
 var nameRule = function nameRule(name, pattern) {
     var rule = sponsor(function ruleBeh(m) {
         console.log('rule:', name, m);
-        ruleStack.push(name);
+        ruleStack.push({
+            name: name,
+            offset: m.in.offset
+        });
         pattern({
             in: m.in,
             ok: this.sponsor(function okBeh(r) {
@@ -278,12 +281,12 @@ var nameRule = function nameRule(name, pattern) {
             })
         });
     });
-    grammar[name] = rule;
 /*
-    grammar[name] = sponsor(
+*/
+    rule = sponsor(
         PEG.packratPtrn(rule, name)
     );
-*/
+    grammar[name] = rule;
 };
 var callRule = function callRule(name) {
     // delay name lookup until rule is invoked
