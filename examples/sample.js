@@ -585,10 +585,11 @@ var commentSource =
 var exprSource =
     'Assign <- Name "=" Assign\n'
   + '        / Expr\n'
-  + 'Name   <- [a-zA-Z_]\n'
+  + 'Name   <- [a-zA-Z]\n'
   + 'Expr   <- Term ([-+] Term)*\n'
   + 'Term   <- Factor ([/*] Factor)*\n'
-  + 'Factor <- "(" Expr ")" / [0-9]+\n';
+  + 'Factor <- "(" Expr ")"\n'
+  + '        / [0-9]+\n';
 var input = {
     source: exprSource,
     offset: 0
