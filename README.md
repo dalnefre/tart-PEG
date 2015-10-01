@@ -29,10 +29,10 @@ var fail = sponsor(function(m) {
     console.log('FAIL!', m);
 });
 
-var anything = sponsor(PEG.anythingBeh);
-var endOfInput = sponsor(PEG.notPtrn(anything));
-var parser = sponsor(PEG.sequencePtrn([
-    sponsor(PEG.terminalPtrn('.')),
+var anything = sponsor(PEG.anything);
+var endOfInput = sponsor(PEG.not(anything));
+var parser = sponsor(PEG.sequence([
+    sponsor(PEG.terminal('.')),
     endOfInput
 ]));
 
@@ -56,14 +56,19 @@ parser({
 The following are actor _behavior_ factories.
 Use `sponsor(behavior)` to create a pattern-matching actor.
 
-  * [PEG.fail](#PEGfail)
-  * [PEG.empty](#PEGempty)
-  * [PEG.anything](#PEGanything)
-  * [PEG.terminal(token)](#PEGterminaltoken)
-  * [PEG.predicate(condition)](#PEGpredicatecondition)
-  * [PEG.not(pattern)](#PEGnotpattern)
-  * [PEG.follow(pattern)](#PEGfollowpattern)
-  * [PEG.memoize(pattern, \[name, \[log\]\])](#PEGmemoizepatternnamelog)
+  * [PEG.fail](#pegfail)
+  * [PEG.empty](#pegempty)
+  * [PEG.anything](#peganything)
+  * [PEG.terminal(token)](#pegterminaltoken)
+  * [PEG.predicate(condition)](#pegpredicatecondition)
+  * [PEG.not(pattern)](#pegnotpattern)
+  * [PEG.follow(pattern)](#pegfollowpattern)
+  * [PEG.sequence(list)](#pegsequencelist)
+  * [PEG.choice(list)](#pegchoicelist)
+  * [PEG.zeroOrMore(pattern)](#pegzeroormorepattern)
+  * [PEG.oneOrMore(pattern)](#pegoneormorepattern)
+  * [PEG.zeroOrOne(pattern)](#pegzerooronepattern)
+  * [PEG.memoize(pattern, \[name, \[log\]\])](#pegmemoizepattern-name-log)
 
 PEG parsing actors expect a message with the following attributes:
 
@@ -120,6 +125,46 @@ Match, but do *not* consume any input, if `pattern` fails at the current positio
   * `pattern`: _Actor_ The pattern to check for look-ahead.
 
 Match, but do *not* consume any input, if `pattern` matches at the current position.
+
+### PEG.sequence(list)
+
+  * `list`: _Array_ The patterns to match in sequential order.
+
+Iterate through the `list` consuming input as long as each _pattern_ matches sequentially.
+If any _pattern_ fails, the _sequence_ fails, consuming no input (reverting to the original position).
+
+### PEG.choice(list)
+
+  * `list`: _Array_ The patterns to match as an ordered (prioritized) choice.
+
+Iterate through the `list` trying each _pattern_ in order.
+The first _pattern_ to successfully match makes the _choice_ successful, consuming the corresponding input.
+Remaining _patterns_ are not considered after a successful match.
+Otherwise, each subsequent _pattern_ is tried starting from the original position.
+If no _pattern_ matches, the _choice_ fails, consuming no input (reverting to the original position).
+
+### PEG.zeroOrMore(pattern)
+
+  * `pattern`: _Actor_ The pattern to check for possible repetition.
+
+The `pattern` is matched as many times as possible (maybe 0 times), consuming all the corresponding input.
+When the `pattern` fails, the _repetition_ matches up to the failed input position.
+
+### PEG.oneOrMore(pattern)
+
+  * `pattern`: _Actor_ The pattern to check for repetition.
+
+The `pattern` is matched as many times as possible (at least 1 time), consuming all the corresponding input.
+If the first occurance fails, the _repetition_ fails, consuming no input.
+After the first occurance, when the `pattern` fails, the _repetition_ matches up to the failed input position.
+
+### PEG.zeroOrOne(pattern)
+
+  * `pattern`: _Actor_ The pattern to check for optional occurance.
+
+Match regardless if `pattern` matches or fails at the current position.
+If `pattern` matches, the corresponding input is consumed.
+Otherwise, no input is consumed.
 
 ### PEG.memoize(pattern, [name, [log]])
 
