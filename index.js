@@ -80,7 +80,9 @@ PEG.predicate = PEG.predicatePtrn = function predicatePtrn(predicate) {
     };
 };
 
-PEG.anything = PEG.anythingBeh = PEG.predicate(function isTrue(token) { return true; });
+PEG.dot = PEG.anything = PEG.anythingBeh = PEG.predicate(function isTrue(token) {
+    return true;
+});
 
 PEG.terminal = PEG.terminalPtrn = function terminalPtrn(expect) {
     return PEG.predicate(function isEqual(actual) {
