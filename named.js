@@ -43,7 +43,7 @@ named.scope = function scope(sponsor, options) {
     var ruleStack = [];
     var log = options.log || console.log;
     var wrapper = options.wrapper || function wrapper(rule, name) {
-        rule = sponsor(PEG.packratPtrn(rule, name));
+        rule = sponsor(PEG.memoize(rule, name));
         rule = sponsor(checkRecursion(name, rule));
         return rule;
     };
