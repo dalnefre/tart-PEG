@@ -108,7 +108,7 @@ On success, the result `value` is the consumed input Character/Token.
 
 Match and consume the current input Character/Token, if `== token`.
 Otherwise fail, consuming no input.
-On success, the result `value` is the consumed input Character/Token.
+On success, the result `value` is the consumed `token`.
 
 ### PEG.predicate(condition)
 
@@ -124,14 +124,14 @@ On success, the result `value` is the consumed input Character/Token.
   * `pattern`: _Actor_ The pattern to check for look-ahead.
 
 Match, but do *not* consume any input, if `pattern` fails at the current position.
-On success, the result `value` is `undefined`.
+The result `value` is `undefined`.
 
 ### PEG.follow(pattern)
 
   * `pattern`: _Actor_ The pattern to check for look-ahead.
 
 Match, but do *not* consume any input, if `pattern` matches at the current position.
-On success, the result `value` is `undefined`.
+The result `value` is `undefined`.
 
 ### PEG.sequence(list)
 
@@ -158,7 +158,7 @@ On success, the result `value` is the matched value.
 
 The `pattern` is matched as many times as possible (maybe 0 times), consuming all the corresponding input.
 When the `pattern` fails, the _repetition_ matches up to the failed input position.
-On success, the result `value` is an _Array_ (possibly empty) of the matched values.
+The result `value` is an _Array_ (possibly empty) of the matched values.
 
 ### PEG.oneOrMore(pattern)
 
