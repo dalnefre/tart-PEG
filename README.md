@@ -58,7 +58,11 @@ Use `sponsor(behavior)` to create a pattern-matching actor.
 
   * [PEG.fail](#PEGfail)
   * [PEG.empty](#PEGempty)
+  * [PEG.anything](#PEGanything)
+  * [PEG.terminal(token)](#PEGterminaltoken)
   * [PEG.predicate(condition)](#PEGpredicatecondition)
+  * [PEG.not(pattern)](#PEGnotpattern)
+  * [PEG.follow(pattern)](#PEGfollowpattern)
   * [PEG.memoize(pattern, \[name, \[log\]\])](#PEGmemoizepatternnamelog)
 
 PEG parsing actors expect a message with the following attributes:
@@ -85,22 +89,46 @@ Always fail to match, consuming no input.
 
 Always successfully match, consuming no input.
 
+### PEG.anything
+
+Match and consume the current input Character/Token.
+Fail if there is no further input available.
+
+### PEG.terminal(token)
+
+  * `token`: _Any_ The token to expect.
+
+Match and consume the current input Character/Token, if `== token`.
+Otherwise fail, consuming no input.
+
 ### PEG.predicate(condition)
 
-  # `condition`: _Function_ `function (token) {}`
+  * `condition`: _Function_ `function (token) {}`
     Evaluates `true` if the `token` meets the matching condition.
 
 Match and consume the current input Character/Token, if it meets the `condition`.
 Otherwise fail, consuming no input.
 
+### PEG.not(pattern)
+
+  * `pattern`: _Actor_ The pattern to check for look-ahead.
+
+Match, but do *not* consume any input, if `pattern` fails at the current position.
+
+### PEG.follow(pattern)
+
+  * `pattern`: _Actor_ The pattern to check for look-ahead.
+
+Match, but do *not* consume any input, if `pattern` matches at the current position.
+
 ### PEG.memoize(pattern, [name, [log]])
 
-  * `pattern`: _Actor_ The pattern for which successful results will be memoized.
+  * `pattern`: _Actor_ The pattern for which successful results will be remembered.
   * `name`: _String_ _(Default: `''`)_ The name used to label this pattern, if any.
   * `log`: _Function_ _(Default: `console.log`)_ Used to log informative messages.
 
-Match and memoize result if `pattern` matches.
-Subsequent attempts to match at the same position will immediately return the memoized result.
+Match and remember result if `pattern` matches.
+Subsequent attempts to match at the same position will immediately return the remembered result.
 
 ## Contributors
 
