@@ -40,10 +40,10 @@ test['empty pattern returns empty list'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(0, m.value.length);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -67,10 +67,10 @@ test['anything fails on end-of-input'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         console.log('ok:', m);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         test.equal(0, m.in.offset);
     });
 
@@ -94,11 +94,11 @@ test['terminal period matches period'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal('.', m.value);
         test.equal(1, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -122,10 +122,10 @@ test['terminal period fails on space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         console.log('ok:', m);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         test.equal(0, m.in.offset);
     });
 
@@ -149,10 +149,10 @@ test['not-anything matches end-of-input'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(0, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -177,10 +177,10 @@ test['follow period matches without advancing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(0, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -205,10 +205,10 @@ test['empty sequence acts like empty pattern'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(0, m.value.length);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -232,13 +232,13 @@ test['sequence matches period + spaces'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(3, m.value.length);
         test.equal('.', m.value[0]);
         test.equal('\r', m.value[1]);
         test.equal('\n', m.value[2]);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -280,10 +280,10 @@ test['empty choice acts like fail pattern'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         console.log('ok:', m);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         test.equal(0, m.in.offset);
     });
 
@@ -307,11 +307,11 @@ test['plus/minus choice matches plus'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal('+', m.value);
         test.equal(1, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -340,11 +340,11 @@ test['plus/minus choice matches minus'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal('-', m.value);
         test.equal(1, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -373,10 +373,10 @@ test['plus/minus choice fails on star'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         console.log('ok:', m);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         test.equal(0, m.in.offset);
     });
 
@@ -405,10 +405,10 @@ test['zeroOrMore matches nothing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(0, m.value.length);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -435,11 +435,11 @@ test['zeroOrMore matches single space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(1, m.value.length);
         test.equal(' ', m.value[0]);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -466,13 +466,13 @@ test['zeroOrMore matches whitespace 3x'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(3, m.value.length);
         test.equal(' ', m.value[0]);
         test.equal('\r', m.value[1]);
         test.equal('\n', m.value[2]);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -499,10 +499,10 @@ test['oneOrMore fails on nothing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         console.log('ok:', m);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         test.equal(0, m.in.offset);
     });
 
@@ -529,11 +529,11 @@ test['oneOrMore matches single space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(1, m.value.length);
         test.equal(' ', m.value[0]);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -560,13 +560,13 @@ test['oneOrMore matches whitespace 3x'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(3, m.value.length);
         test.equal(' ', m.value[0]);
         test.equal('\r', m.value[1]);
         test.equal('\n', m.value[2]);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -593,11 +593,11 @@ test['zeroOrOne matches nothing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(0, m.value.length);
         test.equal(0, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -624,12 +624,12 @@ test['zeroOrOne matches single space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(1, m.value.length);
         test.equal(' ', m.value[0]);
         test.equal(1, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
@@ -656,13 +656,13 @@ test['packrat is just memoization'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function(m) {
+    var ok = sponsor(function (m) {
         test.equal(2, m.value.length);
         test.equal('-', m.value[0]);
         test.equal('-', m.value[1]);
         test.equal(2, m.in.offset);
     });
-    var fail = sponsor(function(m) {
+    var fail = sponsor(function (m) {
         console.log('FAIL!', m);
     });
 
