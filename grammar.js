@@ -45,9 +45,9 @@ grammar.build = function build(sponsor) {
     Grammar <- _ Rule+ EOF
     */
     ns.define('Grammar',
-        sponsor(PEG.sequencePtrn([
+        sponsor(PEG.sequence([
             ns.lookup('_'),
-            sponsor(PEG.oneOrMorePtrn(
+            sponsor(PEG.oneOrMore(
                 ns.lookup('Rule')
             )),
             ns.lookup('EOF')
@@ -57,7 +57,7 @@ grammar.build = function build(sponsor) {
     Rule <- Name LEFTARROW Expression
     */
     ns.define('Rule',
-        sponsor(PEG.sequencePtrn([
+        sponsor(PEG.sequence([
             ns.lookup('Name'),
             ns.lookup('LEFTARROW'),
             ns.lookup('Expression')
@@ -67,10 +67,10 @@ grammar.build = function build(sponsor) {
     Expression <- Sequence (SLASH Sequence)*
     */
     ns.define('Expression',
-        sponsor(PEG.sequencePtrn([
+        sponsor(PEG.sequence([
             ns.lookup('Sequence'),
-            sponsor(PEG.zeroOrMorePtrn(
-                sponsor(PEG.sequencePtrn([
+            sponsor(PEG.zeroOrMore(
+                sponsor(PEG.sequence([
                     ns.lookup('SLASH'),
                     ns.lookup('Sequence')
                 ]))
@@ -81,7 +81,7 @@ grammar.build = function build(sponsor) {
     Sequence <- Prefix*
     */
     ns.define('Sequence',
-        sponsor(PEG.zeroOrMorePtrn(
+        sponsor(PEG.zeroOrMore(
             ns.lookup('Prefix')
         ))
     );
@@ -89,9 +89,9 @@ grammar.build = function build(sponsor) {
     Prefix <- (AND / NOT)? Suffix
     */
     ns.define('Prefix',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.zeroOrOnePtrn(
-                sponsor(PEG.choicePtrn([
+        sponsor(PEG.sequence([
+            sponsor(PEG.zeroOrOne(
+                sponsor(PEG.choice([
                     ns.lookup('AND'),
                     ns.lookup('NOT')
                 ]))
@@ -103,10 +103,10 @@ grammar.build = function build(sponsor) {
     Suffix <- Primary (QUESTION / STAR / PLUS)?
     */
     ns.define('Suffix',
-        sponsor(PEG.sequencePtrn([
+        sponsor(PEG.sequence([
             ns.lookup('Primary'),
-            sponsor(PEG.zeroOrOnePtrn(
-                sponsor(PEG.choicePtrn([
+            sponsor(PEG.zeroOrOne(
+                sponsor(PEG.choice([
                     ns.lookup('QUESTION'),
                     ns.lookup('STAR'),
                     ns.lookup('PLUS')
@@ -122,14 +122,14 @@ grammar.build = function build(sponsor) {
              / DOT
     */
     ns.define('Primary',
-        sponsor(PEG.choicePtrn([
-            sponsor(PEG.sequencePtrn([
+        sponsor(PEG.choice([
+            sponsor(PEG.sequence([
                 ns.lookup('Name'),
-                sponsor(PEG.notPtrn(
+                sponsor(PEG.not(
                     ns.lookup('LEFTARROW')
                 ))
             ])),
-            sponsor(PEG.sequencePtrn([
+            sponsor(PEG.sequence([
                 ns.lookup('OPEN'),
                 ns.lookup('Expression'),
                 ns.lookup('CLOSE')
@@ -144,12 +144,12 @@ grammar.build = function build(sponsor) {
     Name <- [a-zA-Z_] [a-zA-Z_0-9]* _
     */
     ns.define('Name',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.predicatePtrn(function(token) {
+        sponsor(PEG.sequence([
+            sponsor(PEG.predicate(function(token) {
                 return /[a-zA-Z_]/.test(token);
             })),
-            sponsor(PEG.zeroOrMorePtrn(
-                sponsor(PEG.predicatePtrn(function(token) {
+            sponsor(PEG.zeroOrMore(
+                sponsor(PEG.predicate(function(token) {
                     return /[a-zA-Z_0-9]/.test(token);
                 }))
             )),
@@ -161,31 +161,31 @@ grammar.build = function build(sponsor) {
              / ['] (!['] Character)+ ['] _
     */
     ns.define('Literal',
-        sponsor(PEG.choicePtrn([
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.terminalPtrn('"')),
-                sponsor(PEG.oneOrMorePtrn(
-                    sponsor(PEG.sequencePtrn([
-                        sponsor(PEG.notPtrn(
-                            sponsor(PEG.terminalPtrn('"'))
+        sponsor(PEG.choice([
+            sponsor(PEG.sequence([
+                sponsor(PEG.terminal('"')),
+                sponsor(PEG.oneOrMore(
+                    sponsor(PEG.sequence([
+                        sponsor(PEG.not(
+                            sponsor(PEG.terminal('"'))
                         )),
                         ns.lookup('Character')
                     ]))
                 )),
-                sponsor(PEG.terminalPtrn('"')),
+                sponsor(PEG.terminal('"')),
                 ns.lookup('_')
             ])),
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.terminalPtrn("'")),
-                sponsor(PEG.oneOrMorePtrn(
-                    sponsor(PEG.sequencePtrn([
-                        sponsor(PEG.notPtrn(
-                            sponsor(PEG.terminalPtrn("'"))
+            sponsor(PEG.sequence([
+                sponsor(PEG.terminal("'")),
+                sponsor(PEG.oneOrMore(
+                    sponsor(PEG.sequence([
+                        sponsor(PEG.not(
+                            sponsor(PEG.terminal("'"))
                         )),
                         ns.lookup('Character')
                     ]))
                 )),
-                sponsor(PEG.terminalPtrn("'")),
+                sponsor(PEG.terminal("'")),
                 ns.lookup('_')
             ]))
         ]))
@@ -194,17 +194,17 @@ grammar.build = function build(sponsor) {
     Class <- "[" (!"]" Range)+ "]" _
     */
     ns.define('Class',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('[')),
-            sponsor(PEG.oneOrMorePtrn(
-                sponsor(PEG.sequencePtrn([
-                    sponsor(PEG.notPtrn(
-                        sponsor(PEG.terminalPtrn(']'))
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('[')),
+            sponsor(PEG.oneOrMore(
+                sponsor(PEG.sequence([
+                    sponsor(PEG.not(
+                        sponsor(PEG.terminal(']'))
                     )),
                     ns.lookup('Range')
                 ]))
             )),
-            sponsor(PEG.terminalPtrn(']')),
+            sponsor(PEG.terminal(']')),
             ns.lookup('_')
         ]))
     );
@@ -212,10 +212,10 @@ grammar.build = function build(sponsor) {
     Range <- Character "-" Character / Character
     */
     ns.define('Range',
-        sponsor(PEG.choicePtrn([
-            sponsor(PEG.sequencePtrn([
+        sponsor(PEG.choice([
+            sponsor(PEG.sequence([
                 ns.lookup('Character'),
-                sponsor(PEG.terminalPtrn('-')),
+                sponsor(PEG.terminal('-')),
                 ns.lookup('Character')
             ])),
             ns.lookup('Character')
@@ -227,34 +227,34 @@ grammar.build = function build(sponsor) {
                \ !"\\" .
     */
     ns.define('Character',
-        sponsor(PEG.choicePtrn([
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.terminalPtrn('\\')),
-                sponsor(PEG.predicatePtrn(function(token) {
+        sponsor(PEG.choice([
+            sponsor(PEG.sequence([
+                sponsor(PEG.terminal('\\')),
+                sponsor(PEG.predicate(function(token) {
                     return /[nrt'"[\]\\]/.test(token);
                 }))
             ])),
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.terminalPtrn('\\')),
-                sponsor(PEG.terminalPtrn('u')),
-                sponsor(PEG.predicatePtrn(function(token) {
+            sponsor(PEG.sequence([
+                sponsor(PEG.terminal('\\')),
+                sponsor(PEG.terminal('u')),
+                sponsor(PEG.predicate(function(token) {
                     return /[0-9a-fA-F]/.test(token);
                 })),
-                sponsor(PEG.predicatePtrn(function(token) {
+                sponsor(PEG.predicate(function(token) {
                     return /[0-9a-fA-F]/.test(token);
                 })),
-                sponsor(PEG.predicatePtrn(function(token) {
+                sponsor(PEG.predicate(function(token) {
                     return /[0-9a-fA-F]/.test(token);
                 })),
-                sponsor(PEG.predicatePtrn(function(token) {
+                sponsor(PEG.predicate(function(token) {
                     return /[0-9a-fA-F]/.test(token);
                 }))
             ])),
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.notPtrn(
-                    sponsor(PEG.terminalPtrn('\\'))
+            sponsor(PEG.sequence([
+                sponsor(PEG.not(
+                    sponsor(PEG.terminal('\\'))
                 )),
-                sponsor(PEG.anythingBeh)
+                sponsor(PEG.anything)
             ]))
         ]))
     );
@@ -263,9 +263,9 @@ grammar.build = function build(sponsor) {
     LEFTARROW <- "<-" _
     */
     ns.define('LEFTARROW',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('<')),
-            sponsor(PEG.terminalPtrn('-')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('<')),
+            sponsor(PEG.terminal('-')),
             ns.lookup('_')
         ]))
     );
@@ -273,8 +273,8 @@ grammar.build = function build(sponsor) {
     SLASH <- "/" _
     */
     ns.define('SLASH',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('/')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('/')),
             ns.lookup('_')
         ]))
     );
@@ -282,8 +282,8 @@ grammar.build = function build(sponsor) {
     AND <- "&" _
     */
     ns.define('AND',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('&')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('&')),
             ns.lookup('_')
         ]))
     );
@@ -291,8 +291,8 @@ grammar.build = function build(sponsor) {
     NOT <- "!" _
     */
     ns.define('NOT',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('!')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('!')),
             ns.lookup('_')
         ]))
     );
@@ -300,8 +300,8 @@ grammar.build = function build(sponsor) {
     QUESTION <- "?" _
     */
     ns.define('QUESTION',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('?')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('?')),
             ns.lookup('_')
         ]))
     );
@@ -309,8 +309,8 @@ grammar.build = function build(sponsor) {
     STAR <- "*" _
     */
     ns.define('STAR',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('*')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('*')),
             ns.lookup('_')
         ]))
     );
@@ -318,8 +318,8 @@ grammar.build = function build(sponsor) {
     PLUS <- "+" _
     */
     ns.define('PLUS',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('+')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('+')),
             ns.lookup('_')
         ]))
     );
@@ -327,8 +327,8 @@ grammar.build = function build(sponsor) {
     OPEN <- "(" _
     */
     ns.define('OPEN',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('(')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('(')),
             ns.lookup('_')
         ]))
     );
@@ -336,8 +336,8 @@ grammar.build = function build(sponsor) {
     CLOSE <- ")" _
     */
     ns.define('CLOSE',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn(')')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal(')')),
             ns.lookup('_')
         ]))
     );
@@ -345,8 +345,8 @@ grammar.build = function build(sponsor) {
     DOT <- "." _
     */
     ns.define('DOT',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('.')),
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('.')),
             ns.lookup('_')
         ]))
     );
@@ -355,8 +355,8 @@ grammar.build = function build(sponsor) {
     _ <- (Space / Comment)*  # optional whitespace
     */
     ns.define('_',  // optional whitespace
-        sponsor(PEG.zeroOrMorePtrn(
-            sponsor(PEG.choicePtrn([
+        sponsor(PEG.zeroOrMore(
+            sponsor(PEG.choice([
                 ns.lookup('Space'),
                 ns.lookup('Comment')
             ]))
@@ -366,14 +366,14 @@ grammar.build = function build(sponsor) {
     Comment <- "#" (!EOL .)*
     */
     ns.define('Comment',
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('#')),
-            sponsor(PEG.zeroOrMorePtrn(
-                sponsor(PEG.sequencePtrn([
-                    sponsor(PEG.notPtrn(
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('#')),
+            sponsor(PEG.zeroOrMore(
+                sponsor(PEG.sequence([
+                    sponsor(PEG.not(
                         ns.lookup('EOL')
                     )),
-                    sponsor(PEG.anythingBeh)
+                    sponsor(PEG.anything)
                 ]))
             ))
         ]))
@@ -382,7 +382,7 @@ grammar.build = function build(sponsor) {
     Space <- [ \t-\r]
     */
     ns.define('Space',
-        sponsor(PEG.predicatePtrn(function(token) {
+        sponsor(PEG.predicate(function(token) {
             return /\s/.test(token);
         }))
     );
@@ -391,12 +391,12 @@ grammar.build = function build(sponsor) {
          / "\r" "\n"?
     */
     ns.define('EOL',
-        sponsor(PEG.choicePtrn([
-            sponsor(PEG.terminalPtrn('\n')),
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.terminalPtrn('\r')),
-                sponsor(PEG.zeroOrOnePtrn(
-                    sponsor(PEG.terminalPtrn('\n'))
+        sponsor(PEG.choice([
+            sponsor(PEG.terminal('\n')),
+            sponsor(PEG.sequence([
+                sponsor(PEG.terminal('\r')),
+                sponsor(PEG.zeroOrOne(
+                    sponsor(PEG.terminal('\n'))
                 ))
             ]))
         ]))
@@ -405,8 +405,8 @@ grammar.build = function build(sponsor) {
     EOF <- !.
     */
     ns.define('EOF',
-        sponsor(PEG.notPtrn(
-            sponsor(PEG.anythingBeh)
+        sponsor(PEG.not(
+            sponsor(PEG.anything)
         ))
     );
 
