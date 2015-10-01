@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var tart = require('tart');
 var sponsor = tart.minimal({
-    fail: function (exception) {
-        console.log('FAIL!', exception);
+    fail: function (e) {
+        console.log('ERROR!', e);
     }
 });
 
@@ -47,10 +47,10 @@ Assign <- Name "=" Assign
         / Expr
 */
 ns.define('Assign',
-    sponsor(PEG.choicePtrn([
-        sponsor(PEG.sequencePtrn([
+    sponsor(PEG.choice([
+        sponsor(PEG.sequence([
             ns.lookup('Name'),
-            sponsor(PEG.terminalPtrn('=')),
+            sponsor(PEG.terminal('=')),
             ns.lookup('Assign')
         ])),
         ns.lookup('Expr')
@@ -61,7 +61,7 @@ ns.define('Assign',
 Name   <- [a-zA-Z]
 */
 ns.define('Name',
-    sponsor(PEG.predicatePtrn(function (token) {
+    sponsor(PEG.predicate(function (token) {
         return /[a-zA-Z]/.test(token);
     }))
 );
@@ -70,11 +70,11 @@ ns.define('Name',
 Expr   <- Term ([-+] Term)*
 */
 ns.define('Expr',
-    sponsor(PEG.sequencePtrn([
+    sponsor(PEG.sequence([
         ns.lookup('Term'),
-        sponsor(PEG.zeroOrMorePtrn(
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.predicatePtrn(function (token) {
+        sponsor(PEG.zeroOrMore(
+            sponsor(PEG.sequence([
+                sponsor(PEG.predicate(function (token) {
                     return /[-+]/.test(token);
                 })),
                 ns.lookup('Term')
@@ -87,11 +87,11 @@ ns.define('Expr',
 Term   <- Factor ([/*] Factor)*
 */
 ns.define('Term',
-    sponsor(PEG.sequencePtrn([
+    sponsor(PEG.sequence([
         ns.lookup('Factor'),
-        sponsor(PEG.zeroOrMorePtrn(
-            sponsor(PEG.sequencePtrn([
-                sponsor(PEG.predicatePtrn(function (token) {
+        sponsor(PEG.zeroOrMore(
+            sponsor(PEG.sequence([
+                sponsor(PEG.predicate(function (token) {
                     return /[/*]/.test(token);
                 })),
                 ns.lookup('Factor')
@@ -106,15 +106,15 @@ Factor <- "(" Assign ")"
         / [0-9]+
 */
 ns.define('Factor',
-    sponsor(PEG.choicePtrn([
-        sponsor(PEG.sequencePtrn([
-            sponsor(PEG.terminalPtrn('(')),
+    sponsor(PEG.choice([
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('(')),
             ns.lookup('Assign'),
-            sponsor(PEG.terminalPtrn(')'))
+            sponsor(PEG.terminal(')'))
         ])),
         ns.lookup('Name'),
-        sponsor(PEG.oneOrMorePtrn(
-            sponsor(PEG.predicatePtrn(function (token) {
+        sponsor(PEG.oneOrMore(
+            sponsor(PEG.predicate(function (token) {
                 return /[0-9]/.test(token);
             }))
         ))
