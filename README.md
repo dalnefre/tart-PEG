@@ -89,15 +89,18 @@ On success/failure the `ok`/`fail` actors expect a result message with the follo
 ### PEG.fail
 
 Always fail to match, consuming no input.
+The result `value` is `undefined`.
 
 ### PEG.empty
 
 Always successfully match, consuming no input.
+The result `value` is `[]`.
 
 ### PEG.anything
 
 Match and consume the current input Character/Token.
 Fail if there is no further input available.
+On success, the result `value` is the consumed input Character/Token.
 
 ### PEG.terminal(token)
 
@@ -105,6 +108,7 @@ Fail if there is no further input available.
 
 Match and consume the current input Character/Token, if `== token`.
 Otherwise fail, consuming no input.
+On success, the result `value` is the consumed input Character/Token.
 
 ### PEG.predicate(condition)
 
@@ -113,18 +117,21 @@ Otherwise fail, consuming no input.
 
 Match and consume the current input Character/Token, if it meets the `condition`.
 Otherwise fail, consuming no input.
+On success, the result `value` is the consumed input Character/Token.
 
 ### PEG.not(pattern)
 
   * `pattern`: _Actor_ The pattern to check for look-ahead.
 
 Match, but do *not* consume any input, if `pattern` fails at the current position.
+On success, the result `value` is `undefined`.
 
 ### PEG.follow(pattern)
 
   * `pattern`: _Actor_ The pattern to check for look-ahead.
 
 Match, but do *not* consume any input, if `pattern` matches at the current position.
+On success, the result `value` is `undefined`.
 
 ### PEG.sequence(list)
 
@@ -132,6 +139,7 @@ Match, but do *not* consume any input, if `pattern` matches at the current posit
 
 Iterate through the `list` consuming input as long as each _pattern_ matches sequentially.
 If any _pattern_ fails, the _sequence_ fails, consuming no input (reverting to the original position).
+On success, the result `value` is an _Array_ (possibly empty) of the matched values.
 
 ### PEG.choice(list)
 
@@ -142,6 +150,7 @@ The first _pattern_ to successfully match makes the _choice_ successful, consumi
 Remaining _patterns_ are not considered after a successful match.
 Otherwise, each subsequent _pattern_ is tried starting from the original position.
 If no _pattern_ matches, the _choice_ fails, consuming no input (reverting to the original position).
+On success, the result `value` is the matched value.
 
 ### PEG.zeroOrMore(pattern)
 
@@ -149,6 +158,7 @@ If no _pattern_ matches, the _choice_ fails, consuming no input (reverting to th
 
 The `pattern` is matched as many times as possible (maybe 0 times), consuming all the corresponding input.
 When the `pattern` fails, the _repetition_ matches up to the failed input position.
+On success, the result `value` is an _Array_ (possibly empty) of the matched values.
 
 ### PEG.oneOrMore(pattern)
 
@@ -157,6 +167,7 @@ When the `pattern` fails, the _repetition_ matches up to the failed input positi
 The `pattern` is matched as many times as possible (at least 1 time), consuming all the corresponding input.
 If the first occurance fails, the _repetition_ fails, consuming no input.
 After the first occurance, when the `pattern` fails, the _repetition_ matches up to the failed input position.
+On success, the result `value` is an _Array_ of the matched values.
 
 ### PEG.zeroOrOne(pattern)
 
@@ -165,6 +176,7 @@ After the first occurance, when the `pattern` fails, the _repetition_ matches up
 Match regardless if `pattern` matches or fails at the current position.
 If `pattern` matches, the corresponding input is consumed.
 Otherwise, no input is consumed.
+The result `value` is an _Array_ (possibly empty) of the matched values.
 
 ### PEG.memoize(pattern, [name, [log]])
 
