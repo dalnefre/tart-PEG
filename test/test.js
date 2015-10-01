@@ -47,7 +47,7 @@ test['empty pattern returns empty list'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var empty = sponsor(PEG.emptyBeh);
+    var empty = sponsor(PEG.empty);
 
     empty({
         in: {
@@ -74,7 +74,7 @@ test['anything fails on end-of-input'] = function (test) {
         test.equal(0, m.in.offset);
     });
 
-    var anything = sponsor(PEG.anythingBeh);
+    var anything = sponsor(PEG.anything);
 
     anything({
         in: {
@@ -102,7 +102,7 @@ test['terminal period matches period'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var period = sponsor(PEG.terminalPtrn('.'));
+    var period = sponsor(PEG.terminal('.'));
 
     period({
         in: {
@@ -129,7 +129,7 @@ test['terminal period fails on space'] = function (test) {
         test.equal(0, m.in.offset);
     });
 
-    var period = sponsor(PEG.terminalPtrn('.'));
+    var period = sponsor(PEG.terminal('.'));
 
     period({
         in: {
@@ -156,8 +156,8 @@ test['not-anything matches end-of-input'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var anything = sponsor(PEG.anythingBeh);
-    var end = sponsor(PEG.notPtrn(anything));
+    var anything = sponsor(PEG.anything);
+    var end = sponsor(PEG.not(anything));
 
     end({
         in: {
@@ -184,8 +184,8 @@ test['follow period matches without advancing'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var period = sponsor(PEG.terminalPtrn('.'));
-    var follow = sponsor(PEG.followPtrn(period));
+    var period = sponsor(PEG.terminal('.'));
+    var follow = sponsor(PEG.follow(period));
 
     follow({
         in: {
@@ -212,7 +212,7 @@ test['empty sequence acts like empty pattern'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var empty = sponsor(PEG.sequencePtrn([]));
+    var empty = sponsor(PEG.sequence([]));
 
     empty({
         in: {
@@ -242,11 +242,11 @@ test['sequence matches period + spaces'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var period = sponsor(PEG.terminalPtrn('.'));
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var period = sponsor(PEG.terminal('.'));
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var seq = sponsor(PEG.sequencePtrn([
+    var seq = sponsor(PEG.sequence([
         period,
         space,
         space
@@ -287,7 +287,7 @@ test['empty choice acts like fail pattern'] = function (test) {
         test.equal(0, m.in.offset);
     });
 
-    var empty = sponsor(PEG.choicePtrn([]));
+    var empty = sponsor(PEG.choice([]));
 
     empty({
         in: {
@@ -315,9 +315,9 @@ test['plus/minus choice matches plus'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var plus = sponsor(PEG.terminalPtrn('+'));
-    var minus = sponsor(PEG.terminalPtrn('-'));
-    var alt = sponsor(PEG.choicePtrn([
+    var plus = sponsor(PEG.terminal('+'));
+    var minus = sponsor(PEG.terminal('-'));
+    var alt = sponsor(PEG.choice([
         plus,
         minus
     ]));
@@ -348,9 +348,9 @@ test['plus/minus choice matches minus'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var plus = sponsor(PEG.terminalPtrn('+'));
-    var minus = sponsor(PEG.terminalPtrn('-'));
-    var alt = sponsor(PEG.choicePtrn([
+    var plus = sponsor(PEG.terminal('+'));
+    var minus = sponsor(PEG.terminal('-'));
+    var alt = sponsor(PEG.choice([
         plus,
         minus
     ]));
@@ -380,9 +380,9 @@ test['plus/minus choice fails on star'] = function (test) {
         test.equal(0, m.in.offset);
     });
 
-    var plus = sponsor(PEG.terminalPtrn('+'));
-    var minus = sponsor(PEG.terminalPtrn('-'));
-    var alt = sponsor(PEG.choicePtrn([
+    var plus = sponsor(PEG.terminal('+'));
+    var minus = sponsor(PEG.terminal('-'));
+    var alt = sponsor(PEG.choice([
         plus,
         minus
     ]));
@@ -412,10 +412,10 @@ test['zeroOrMore matches nothing'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrMorePtrn(space));
+    var whitespace = sponsor(PEG.zeroOrMore(space));
 
     whitespace({
         in: {
@@ -443,10 +443,10 @@ test['zeroOrMore matches single space'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrMorePtrn(space));
+    var whitespace = sponsor(PEG.zeroOrMore(space));
 
     whitespace({
         in: {
@@ -476,10 +476,10 @@ test['zeroOrMore matches whitespace 3x'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrMorePtrn(space));
+    var whitespace = sponsor(PEG.zeroOrMore(space));
 
     whitespace({
         in: {
@@ -506,10 +506,10 @@ test['oneOrMore fails on nothing'] = function (test) {
         test.equal(0, m.in.offset);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.oneOrMorePtrn(space));
+    var whitespace = sponsor(PEG.oneOrMore(space));
 
     whitespace({
         in: {
@@ -537,10 +537,10 @@ test['oneOrMore matches single space'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.oneOrMorePtrn(space));
+    var whitespace = sponsor(PEG.oneOrMore(space));
 
     whitespace({
         in: {
@@ -570,10 +570,10 @@ test['oneOrMore matches whitespace 3x'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.oneOrMorePtrn(space));
+    var whitespace = sponsor(PEG.oneOrMore(space));
 
     whitespace({
         in: {
@@ -601,10 +601,10 @@ test['zeroOrOne matches nothing'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrOnePtrn(space));
+    var whitespace = sponsor(PEG.zeroOrOne(space));
 
     whitespace({
         in: {
@@ -633,10 +633,10 @@ test['zeroOrOne matches single space'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var space = sponsor(PEG.predicatePtrn(function(token) {
+    var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrOnePtrn(space));
+    var whitespace = sponsor(PEG.zeroOrOne(space));
 
     whitespace({
         in: {
@@ -666,29 +666,29 @@ test['packrat is just memoization'] = function (test) {
         console.log('FAIL!', m);
     });
 
-    var minus = sponsor(PEG.packratPtrn(
-        sponsor(PEG.terminalPtrn('-'))
+    var minus = sponsor(PEG.packrat(
+        sponsor(PEG.terminal('-'))
     ));
-    var leftArrow = sponsor(PEG.sequencePtrn([
-        sponsor(PEG.terminalPtrn('<')),
+    var leftArrow = sponsor(PEG.sequence([
+        sponsor(PEG.terminal('<')),
         minus,
         minus
     ]));
-    var rightArrow = sponsor(PEG.sequencePtrn([
+    var rightArrow = sponsor(PEG.sequence([
         minus,
         minus,
-        sponsor(PEG.terminalPtrn('>'))
+        sponsor(PEG.terminal('>'))
     ]));
-    var emDash = sponsor(PEG.sequencePtrn([
+    var emDash = sponsor(PEG.sequence([
         minus,
         minus,
         minus
     ]));
-    var enDash = sponsor(PEG.sequencePtrn([
+    var enDash = sponsor(PEG.sequence([
         minus,
         minus
     ]));
-    var rule = sponsor(PEG.choicePtrn([
+    var rule = sponsor(PEG.choice([
         leftArrow,
         rightArrow,
         emDash,
