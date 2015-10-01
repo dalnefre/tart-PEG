@@ -32,7 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var PEG = module.exports;
 
-var failException = function exception(m, e) {
+var error = function error(m, e) {
     m.fail({
         in: m.in,
         value: m.value,
@@ -40,25 +40,25 @@ var failException = function exception(m, e) {
     });
 };
 
-var failBeh = PEG.failBeh = function failBeh(m) {
+PEG.fail = PEG.failBeh = function failBeh(m) {
     m.fail({
         in: m.in,
         value: m.value
     });
 };
 
-PEG.emptyBeh = function emptyBeh(m) {
+PEG.empty = PEG.emptyBeh = function emptyBeh(m) {
     try {
         m.ok({
             in: m.in,
             value: []
         });
     } catch (e) {
-        failException(m, e);
+        error(m, e);
     }
 };
 
-PEG.predicatePtrn = function predicatePtrn(predicate) {
+PEG.predicate = PEG.predicatePtrn = function predicatePtrn(predicate) {
     return function predicateBeh(m) {
         try {
             if (m.in.offset < m.in.source.length) {
@@ -73,22 +73,22 @@ PEG.predicatePtrn = function predicatePtrn(predicate) {
                     });
                 }
             }
-            failBeh(m);
+            PEG.fail(m);
         } catch (e) {
-            failException(m, e);
+            error(m, e);
         }
     };
 };
 
-PEG.anythingBeh = PEG.predicatePtrn(function isTrue(token) { return true; });
+PEG.anything = PEG.anythingBeh = PEG.predicate(function isTrue(token) { return true; });
 
-PEG.terminalPtrn = function terminalPtrn(expect) {
-    return PEG.predicatePtrn(function isEqual(actual) {
+PEG.terminal = PEG.terminalPtrn = function terminalPtrn(expect) {
+    return PEG.predicate(function isEqual(actual) {
         return (expect == actual);
     });
 }
 
-PEG.notPtrn = function notPtrn(pattern) {
+PEG.not = PEG.notPtrn = function notPtrn(pattern) {
     return function notBeh(m) {
         try {
             var success = this.sponsor(function(r) {
@@ -103,12 +103,12 @@ PEG.notPtrn = function notPtrn(pattern) {
                 fail: success
             });
         } catch (e) {
-            failException(m, e);
+            error(m, e);
         }
     };
 };
 
-PEG.followPtrn = function followPtrn(pattern) {
+PEG.follow = PEG.followPtrn = function followPtrn(pattern) {
     return function followBeh(m) {
         try {
             var success = this.sponsor(function(r) {
@@ -123,12 +123,12 @@ PEG.followPtrn = function followPtrn(pattern) {
                 fail: m.fail
             });
         } catch (e) {
-            failException(m, e);
+            error(m, e);
         }
     };
 };
 
-var andPtrn = function andPtrn(first, rest) {
+var andThen = function andPtrn(first, rest) {
     return function andBeh(m) {
 //        console.log('andBeh:', m);
         var failure = this.sponsor(function failBeh(r) {
@@ -161,23 +161,22 @@ var andPtrn = function andPtrn(first, rest) {
         });
     };
 };
-
-PEG.sequencePtrn = function sequencePtrn(list) {
+PEG.sequence = PEG.sequencePtrn = function sequencePtrn(list) {
     return function sequenceBeh(m) {
         if (list.length > 0) {
             var pattern = list.shift();
-            this.behavior = andPtrn(
+            this.behavior = andThen(
                 pattern,
-                this.sponsor(PEG.sequencePtrn(list))
+                this.sponsor(PEG.sequence(list))
             );
         } else {
-            this.behavior = PEG.emptyBeh;
+            this.behavior = PEG.empty;
         }
         this.self(m);
     };
 };
 
-var orPtrn = function orPtrn(first, rest) {
+var orElse = function orPtrn(first, rest) {
     return function orBeh(m) {
 //        console.log('orBeh:', m);
         var next = this.sponsor(function nextBeh(r) {
@@ -195,23 +194,22 @@ var orPtrn = function orPtrn(first, rest) {
         });
     };
 };
-
-PEG.choicePtrn = function choicePtrn(list) {
+PEG.choice = PEG.choicePtrn = function choicePtrn(list) {
     return function choiceBeh(m) {
         if (list.length > 0) {
             var pattern = list.shift();
-            this.behavior = orPtrn(
+            this.behavior = orElse(
                 pattern,
-                this.sponsor(PEG.choicePtrn(list))
+                this.sponsor(PEG.choice(list))
             );
         } else {
-            this.behavior = PEG.failBeh;
+            this.behavior = PEG.fail;
         }
         this.self(m);
     };
 };
 
-PEG.zeroOrMorePtrn = function zeroOrMorePtrn(pattern) {
+PEG.star = PEG.zeroOrMore = PEG.zeroOrMorePtrn = function zeroOrMorePtrn(pattern) {
     return function zeroOrMoreBeh(m) {
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
@@ -236,7 +234,7 @@ PEG.zeroOrMorePtrn = function zeroOrMorePtrn(pattern) {
     };
 };
 
-PEG.oneOrMorePtrn = function oneOrMorePtrn(pattern) {
+PEG.plus = PEG.oneOrMore = PEG.oneOrMorePtrn = function oneOrMorePtrn(pattern) {
     return function oneOrMoreBeh(m) {
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
@@ -261,7 +259,7 @@ PEG.oneOrMorePtrn = function oneOrMorePtrn(pattern) {
     };
 };
 
-PEG.zeroOrOnePtrn = function zeroOrOnePtrn(pattern) {
+PEG.question = PEG.optional = PEG.zeroOrOne = PEG.zeroOrOnePtrn = function zeroOrOnePtrn(pattern) {
     return function zeroOrOneBeh(m) {
         pattern({
             in: m.in,
@@ -281,18 +279,19 @@ PEG.zeroOrOnePtrn = function zeroOrOnePtrn(pattern) {
     };
 };
 
-PEG.packratPtrn = function packratPtrn(pattern, name) {
+PEG.memoize = PEG.packrat = PEG.packratPtrn = function packratPtrn(pattern, name, log) {
     var results = [];
     name = name || '';
+    log = log || console.log;
     return function packratBeh(m) {
         var r = results[m.in.offset];
         if (r) {
-            console.log('used:', name, r);
+            log('used:', name, r);
             m.ok(r);
         } else {
             var memo = this.sponsor(function memo(r) {
                 results[m.in.offset] = r;
-                console.log('memo:', name, r);
+                log('memo:', name, r);
                 m.ok(r);
             });
             pattern({
