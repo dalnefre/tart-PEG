@@ -90,7 +90,7 @@ named.scope = function scope(sponsor, options) {
     
     var checkRecursion = function checkRecursionPtrn(name, rule, fail) {
         fail = fail || function recursionFail(m) {
-            log('recursionFail', name, m);
+            log('recursionFail:', name, m);
             m.fail({
                 in: m.in,
                 value: m.value
