@@ -97,6 +97,7 @@ Always successfully match, consuming no input.
 The result `value` is `[]`.
 
 ### PEG.anything
+#### PEG.dot
 
 Match and consume the current input Character/Token.
 Fail if there is no further input available.
@@ -153,6 +154,7 @@ If no _pattern_ matches, the _choice_ fails, consuming no input (reverting to th
 On success, the result `value` is the matched value.
 
 ### PEG.zeroOrMore(pattern)
+#### PEG.star(pattern)
 
   * `pattern`: _Actor_ The pattern to check for possible repetition.
 
@@ -161,6 +163,7 @@ When the `pattern` fails, the _repetition_ matches up to the failed input positi
 The result `value` is an _Array_ (possibly empty) of the matched values.
 
 ### PEG.oneOrMore(pattern)
+#### PEG.plus(pattern)
 
   * `pattern`: _Actor_ The pattern to check for repetition.
 
@@ -170,6 +173,8 @@ After the first occurance, when the `pattern` fails, the _repetition_ matches up
 On success, the result `value` is an _Array_ of the matched values.
 
 ### PEG.zeroOrOne(pattern)
+#### PEG.question(pattern)
+#### PEG.optional(pattern)
 
   * `pattern`: _Actor_ The pattern to check for optional occurance.
 
@@ -179,6 +184,7 @@ Otherwise, no input is consumed.
 The result `value` is an _Array_ (possibly empty) of the matched values.
 
 ### PEG.memoize(pattern, [name, [log]])
+#### PEG.packrat(pattern, [name, [log]])
 
   * `pattern`: _Actor_ The pattern for which successful results will be remembered.
   * `name`: _String_ _(Default: `''`)_ The name used to label this pattern, if any.
