@@ -1,7 +1,8 @@
 tart-PEG
 ========
 
-Parsing Expression Grammar (PEG) tools (tart module)
+Parsing Expression Grammar (PEG) tools 
+([tart](https://github.com/organix/tartjs) module) 
 
 ## Usage
 
@@ -49,3 +50,58 @@ parser({
 ## Tests
 
     npm test
+
+## Documentation
+
+The following are actor _behavior_ factories.
+Use `sponsor(behavior)` to create a pattern-matching actor.
+
+  * [PEG.fail](#PEGfail)
+  * [PEG.empty](#PEGempty)
+  * [PEG.predicate(condition)](#PEGpredicatecondition)
+  * [PEG.memoize(pattern, \[name, \[log\]\])](#PEGmemoizepatternnamelog)
+
+PEG parsing actors expect a message with the following attributes:
+
+  * `in`: _Object_ Input position to start matching:
+    * `source`: _String/Array_ Sequence of Characters/Tokens to match.
+    * `offset`: _Number_ Current offset (zero-based) into `source`.
+  * `ok`: _Actor_ Send result message to this actor on success.
+  * `fail`: _Actor_ Send result message to this actor on failure.
+  * `value`: _Any_ Accumulated value, if any.
+
+On success/failure the `ok`/`fail` actors expect a result message with the following attributes:
+
+  * `in`: _Object_ Input position to continue matching:
+    * `source`: _String/Array_ Sequence of Characters/Tokens to match.
+    * `offset`: _Number_ Next offset (zero-based) into `source`.
+  * `value`: _Any_ Result value, if any.
+
+### PEG.fail
+
+Always fail to match, consuming no input.
+
+### PEG.empty
+
+Always successfully match, consuming no input.
+
+### PEG.predicate(condition)
+
+  # `condition`: _Function_ `function (token) {}`
+    Evaluates `true` if the `token` meets the matching condition.
+
+Match and consume the current input Character/Token, if it meets the `condition`.
+Otherwise fail, consuming no input.
+
+### PEG.memoize(pattern, [name, [log]])
+
+  * `pattern`: _Actor_ The pattern for which successful results will be memoized.
+  * `name`: _String_ _(Default: `''`)_ The name used to label this pattern, if any.
+  * `log`: _Function_ _(Default: `console.log`)_ Used to log informative messages.
+
+Match and memoize result if `pattern` matches.
+Subsequent attempts to match at the same position will immediately return the memoized result.
+
+## Contributors
+
+[@dalnefre](https://github.com/dalnefre), [@tristanls](https://github.com/tristanls)
