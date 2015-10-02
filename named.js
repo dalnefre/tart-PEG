@@ -39,6 +39,7 @@ var PEG = require('./index.js');
  */
 named.scope = function scope(sponsor, options) {
     var ruleNamed = {};
+    var ruleValue = {};
     var ruleStack = [];
     options = options || {};
     options.log = options.log || console.log;
@@ -55,13 +56,17 @@ named.scope = function scope(sponsor, options) {
                 name: name,
                 offset: m.in.offset
             });
+//            console.log('ruleStack =', ruleStack);
             pattern({
                 in: m.in,
                 ok: this.sponsor(function okBeh(r) {
-                    var match = {
-                        in: r.in,
-                        value: { rule:name, value:r.value }
-                    };
+                    var match = { in: r.in };
+                    try {
+                        var transform = ruleValue[name];
+                        match.value = transform(name, r.value);
+                    } catch (e) {
+                        match.error = e;
+                    }
                     options.log('match:', name, match);
 //                    options.log('match:', ruleStack, match);
                     ruleStack.pop();
@@ -75,6 +80,9 @@ named.scope = function scope(sponsor, options) {
             });
         });
         ruleNamed[name] = options.wrapper(rule, name);
+        ruleValue[name] = function ruleValue(name, value) {
+            return { name: name, value: value };  // default transform
+        };
     };
 
     options.lookup = function getRule(name) {
@@ -86,6 +94,10 @@ named.scope = function scope(sponsor, options) {
             }
             rule(m);
         };
+    };
+    
+    options.transform = function setTransform(name, transform) {
+        ruleValue[name] = transform;
     };
     
     options.cacheResults = options.cacheResults ||
