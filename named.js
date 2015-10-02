@@ -38,19 +38,19 @@ var PEG = require('./index.js');
  * scope(sponsor, options = {}) - construct an naming scope for parsing actors
  */
 named.scope = function scope(sponsor, options) {
-    var options = options || {};
     var ruleNamed = {};
     var ruleStack = [];
-    var log = options.log || console.log;
-    var wrapper = options.wrapper || function wrapper(rule, name) {
-        rule = sponsor(PEG.memoize(rule, name, log));
-        rule = sponsor(checkRecursion(name, rule));
+    options = options || {};
+    options.log = options.log || console.log;
+    options.wrapper = options.wrapper || function wrapper(rule, name) {
+        rule = sponsor(options.cacheResults(name, rule));
+        rule = sponsor(options.checkRecursion(name, rule));
         return rule;
     };
 
-    var setRule = function setRule(name, pattern) {
+    options.define = function setRule(name, pattern) {
         var rule = sponsor(function ruleBeh(m) {
-            log('rule:', name, m);
+            options.log('rule:', name, m);
             ruleStack.push({
                 name: name,
                 offset: m.in.offset
@@ -62,22 +62,22 @@ named.scope = function scope(sponsor, options) {
                         in: r.in,
                         value: { rule:name, value:r.value }
                     };
-                    log('match:', name, match);
-//                    log('match:', ruleStack, match);
+                    options.log('match:', name, match);
+//                    options.log('match:', ruleStack, match);
                     ruleStack.pop();
                     m.ok(match);
                 }),
                 fail: this.sponsor(function failBeh(r) {
-//                    log(' fail:', ruleStack);
+//                    options.log(' fail:', ruleStack);
                     ruleStack.pop();
                     m.fail(r);
                 })
             });
         });
-        ruleNamed[name] = wrapper(rule, name);
+        ruleNamed[name] = options.wrapper(rule, name);
     };
 
-    var getRule = function getRule(name) {
+    options.lookup = function getRule(name) {
         // delay name lookup until rule is invoked
         return function callBeh(m) {
             var rule = ruleNamed[name];
@@ -88,9 +88,15 @@ named.scope = function scope(sponsor, options) {
         };
     };
     
-    var checkRecursion = function checkRecursionPtrn(name, rule, fail) {
+    options.cacheResults = options.cacheResults ||
+    function cacheResults(name, rule) {
+        return PEG.memoize(rule, name, options.log);
+    };
+    
+    options.checkRecursion = options.checkRecursion ||
+    function checkRecursion(name, rule, fail) {
         fail = fail || function recursionFail(m) {
-            log('recursionFail:', name, m);
+            options.log('recursionFail:', name, m);
             m.fail({
                 in: m.in,
                 value: m.value
@@ -111,9 +117,5 @@ named.scope = function scope(sponsor, options) {
         };
     };
 
-    return {
-        checkRecursion: checkRecursion,
-        define: setRule,
-        lookup: getRule
-    };
+    return options;
 };

@@ -134,7 +134,60 @@ test['left recursion does not diverge'] = function (test) {
         fail: fail
     });
 
-    test.ok(tracing.eventLoop({ count: 100 }));
+    test.ok(tracing.eventLoop({ count: 100 }), 'Exceeded message limit');
+    test.done();
+};
+
+test['left recursion diverges with check disabled'] = function (test) {
+    test.expect(1);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var options = {
+        checkRecursion: function checkDisabled(name, rule) {
+			return function checkDisabledBeh(m) {
+				rule(m);
+			};
+        },
+        log: log
+    };
+    var ns = named.scope(sponsor, options);
+    
+    // Expr <- Expr "-" Term / Term
+    ns.define('Expr',
+        sponsor(PEG.choice([
+            sponsor(PEG.sequence([
+                ns.lookup('Expr'),
+                sponsor(PEG.terminal('-')),
+                ns.lookup('Term')
+            ])),
+            ns.lookup('Term')
+        ]))
+    );
+    // Term <- [a-z]
+    ns.define('Term',
+        sponsor(PEG.predicate(function (token) {
+            return /[a-z]/.test(token);
+        }))
+    );
+    
+    var ok = sponsor(function (r) {
+        console.log('OK:', r);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', r);
+    });
+
+    var start = ns.lookup('Expr');
+    start({
+        in: {
+            source: 'a-b-c',
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
+
+    test.ok(!tracing.eventLoop({ count: 100 }), 'Ran out of messages');
     test.done();
 };
 
