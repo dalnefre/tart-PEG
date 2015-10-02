@@ -144,9 +144,9 @@ test['left recursion diverges with check disabled'] = function (test) {
     var sponsor = tracing.sponsor;
     var options = {
         checkRecursion: function checkDisabled(name, rule) {
-			return function checkDisabledBeh(m) {
-				rule(m);
-			};
+            return function checkDisabledBeh(m) {
+                rule(m);
+            };
         },
         log: log
     };

@@ -286,14 +286,15 @@ PEG.memoize = PEG.packrat = PEG.packratPtrn = function packratPtrn(pattern, name
     name = name || '';
     log = log || console.log;
     return function packratBeh(m) {
-        var r = results[m.in.offset];
+        var at = m.in.offset;
+        var r = results[at];
         if (r) {
-            log('used:', name, r);
+            log('used:', name, at, r);
             m.ok(r);
         } else {
             var memo = this.sponsor(function memo(r) {
-                results[m.in.offset] = r;
-                log('memo:', name, r);
+                results[at] = r;
+                log('memo:', name, at, r);
                 m.ok(r);
             });
             pattern({
