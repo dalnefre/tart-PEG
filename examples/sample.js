@@ -34,22 +34,13 @@ var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-var ok = sponsor(function okBeh(m) {
-    console.log('ok:', JSON.stringify(m, null, '  '));
-    var value = visit(m.value);
-    console.log('value:', JSON.stringify(value, null, '  '));
-});
-var fail = sponsor(function failBeh(m) {
-    console.log('FAIL!', JSON.stringify(m, null, '  '));
-});
-
 var actions = {};
 var visit = function visit(node) {
     console.log('visit:', typeof(node), node);
     if (typeof node !== 'object') {
         return node;
-    } else if (node.rule) {  // rule node
-        var action = actions[node.rule];
+    } else if (node.name) {  // rule node
+        var action = actions[node.name];
         if (action) {
             node = action(node);
         } else {
@@ -64,7 +55,7 @@ var visit = function visit(node) {
 };
 var visitToken = function visitToken(node) {
     console.log('visitToken:', node);
-    var token = node.rule;
+    var token = node.name;
     if (token === undefined) {
         token = node.value;
     }
@@ -78,7 +69,7 @@ actions['Grammar'] = function visitGrammar(node) {
     var map = {};
     for (var i = 0; i < list.length; ++i) {
         var rule = list[i];
-        if (rule.rule === 'Rule') {
+        if (rule.name === 'Rule') {
             var name = visit(rule.value[0]);
             var expr = visit(rule.value[2]);
             map[name] = expr;
@@ -95,7 +86,7 @@ actions['Expression'] = function visitExpression(node) {
     list.push(visit(first));
     for (var i = 0; i < rest.length; ++i) {
         var next = rest[i];
-        if (next[0].rule === 'SLASH') {
+        if (next[0].name === 'SLASH') {
             list.push(visit(next[1]));
         }
     }
@@ -114,7 +105,7 @@ actions['Prefix'] = function visitPrefix(node) {
     var ptrn = visit(node.value[1]);
     if (optn.length === 1) {
         ptrn = {
-            type: optn[0].rule,
+            type: optn[0].name,
             ptrn: ptrn
         };
     }
@@ -127,7 +118,7 @@ actions['Suffix'] = function visitSuffix(node) {
     var optn = node.value[1];
     if (optn.length === 1) {
         ptrn = {
-            type: optn[0].rule,
+            type: optn[0].name,
             ptrn: ptrn
         };
     }
@@ -137,12 +128,12 @@ actions['Suffix'] = function visitSuffix(node) {
 actions['Primary'] = function visitPrimary(node) {
     console.log('visitPrimary:', node);
     var ptrn = node.value;
-    var rule = ptrn.rule;
-    if (rule) {
+    var name = ptrn.name;
+    if (name) {
         ptrn = visit(ptrn);
     } else {
-        rule = ptrn[0].rule;
-        if (rule === 'Name') {
+        name = ptrn[0].name;
+        if (name === 'Name') {
             ptrn = visit(ptrn[0]);
         } else {
             ptrn = visit(ptrn[1]);
@@ -170,7 +161,7 @@ actions['Literal'] = function visitLiteral(node) {
         s.push(visit(list[i][1]));
     }
     var ptrn = {
-        type: node.rule,
+        type: node.name,
         ptrn: s
     };
     console.log('Literal:', ptrn);
@@ -184,7 +175,7 @@ actions['Class'] = function visitClass(node) {
         s.push(visit(list[i][1]));
     }
     var ptrn = {
-        type: node.rule,
+        type: node.name,
         ptrn: s
     };
     console.log('Class:', ptrn);
@@ -193,7 +184,7 @@ actions['Class'] = function visitClass(node) {
 actions['Range'] = function visitRange(node) {
     console.log('visitRange:', node);
     var r = node.value;
-    if (r.rule === 'Character') {
+    if (r.name === 'Character') {
         r = visit(r);
     } else {
         r = [
@@ -239,7 +230,7 @@ actions['CLOSE'] = visitToken;
 actions['DOT'] = function visitDOT(node) {
     console.log('visitDOT:', node);
     var ptrn = {
-        type: node.rule
+        type: node.name
     };
     console.log('DOT:', ptrn);
     return ptrn;
@@ -263,7 +254,7 @@ var exprSource =
   + 'Name   <- [a-zA-Z]\n'
   + 'Expr   <- Term ([-+] Term)*\n'
   + 'Term   <- Factor ([/*] Factor)*\n'
-  + 'Factor <- "(" Expr ")"\n'
+  + 'Factor <- "(" Assign ")"\n'
   + '        / [0-9]+\n';
 var input = {
     source: exprSource,
@@ -271,6 +262,15 @@ var input = {
 };
 
 var ns = require('../grammar.js').build(sponsor);
+
+var ok = sponsor(function okBeh(m) {
+    console.log('OK:', JSON.stringify(m, null, '  '));
+    var value = visit(m.value);
+    console.log('VALUE:', JSON.stringify(value, null, '  '));
+});
+var fail = sponsor(function failBeh(m) {
+    console.log('FAIL:', JSON.stringify(m, null, '  '));
+});
 
 //var start = ns.lookup('_');
 var start = ns.lookup('Grammar');
