@@ -35,26 +35,17 @@ var PEG = require('../index.js');
 
 var test = module.exports = {};   
 
-var no_log = function () {};
+//var log = console.log;
+var log = function () {};
 
 test['packrat is just memoization'] = function (test) {
     test.expect(5);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(2, m.value.length);
-        test.equal('-', m.value[0]);
-        test.equal('-', m.value[1]);
-        test.equal(2, m.in.offset);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var minus = sponsor(PEG.terminal('-'));
 //    minus = sponsor(PEG.packrat(minus));
-    minus = sponsor(PEG.packrat(minus, 'DASH', no_log));
+    minus = sponsor(PEG.packrat(minus, 'DASH', log));
     var leftArrow = sponsor(PEG.sequence([
         sponsor(PEG.terminal('<')),
         minus,
@@ -74,14 +65,24 @@ test['packrat is just memoization'] = function (test) {
         minus,
         minus
     ]));
-    var rule = sponsor(PEG.choice([
+    var start = sponsor(PEG.choice([
         leftArrow,
         rightArrow,
         emDash,
         enDash
     ]));
 
-    rule({
+    var ok = sponsor(function (r) {
+        test.equal(2, r.value.length);
+        test.equal('-', r.value[0]);
+        test.equal('-', r.value[1]);
+        test.equal(2, r.in.offset);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: '-- ',
             offset: 0

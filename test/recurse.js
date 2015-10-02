@@ -37,8 +37,8 @@ var PEG = require('../index.js');
 
 var named = require('../named.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 test['right recursion groups right-to-left'] = function (test) {
     test.expect(5);

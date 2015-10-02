@@ -40,16 +40,16 @@ test['empty pattern returns empty list'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(0, m.value.length);
+    var start = sponsor(PEG.empty);
+
+    var ok = sponsor(function (r) {
+        test.equal(0, r.value.length);
     });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    var empty = sponsor(PEG.empty);
-
-    empty({
+    start({
         in: {
             source: '',
             offset: 0
@@ -67,16 +67,16 @@ test['anything fails on end-of-input'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        console.log('ok:', m);
+    var start = sponsor(PEG.anything);
+
+    var ok = sponsor(function (r) {
+        console.log('OK:', JSON.stringify(r, null, 2));
     });
-    var fail = sponsor(function (m) {
-        test.equal(0, m.in.offset);
+    var fail = sponsor(function (r) {
+        test.equal(0, r.in.offset);
     });
 
-    var anything = sponsor(PEG.anything);
-
-    anything({
+    start({
         in: {
             source: '',
             offset: 0
@@ -94,17 +94,17 @@ test['terminal period matches period'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal('.', m.value);
-        test.equal(1, m.in.offset);
+    var start = sponsor(PEG.terminal('.'));
+
+    var ok = sponsor(function (r) {
+        test.equal('.', r.value);
+        test.equal(1, r.in.offset);
     });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    var period = sponsor(PEG.terminal('.'));
-
-    period({
+    start({
         in: {
             source: '.',
             offset: 0
@@ -122,16 +122,16 @@ test['terminal period fails on space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        console.log('ok:', m);
+    var start = sponsor(PEG.terminal('.'));
+
+    var ok = sponsor(function (r) {
+        console.log('OK:', JSON.stringify(r, null, 2));
     });
-    var fail = sponsor(function (m) {
-        test.equal(0, m.in.offset);
+    var fail = sponsor(function (r) {
+        test.equal(0, r.in.offset);
     });
 
-    var period = sponsor(PEG.terminal('.'));
-
-    period({
+    start({
         in: {
             source: ' ',
             offset: 0
@@ -149,17 +149,18 @@ test['not-anything matches end-of-input'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(0, m.in.offset);
+    var start = sponsor(PEG.not(
+        sponsor(PEG.anything)
+    ));
+
+    var ok = sponsor(function (r) {
+        test.equal(0, r.in.offset);
     });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    var anything = sponsor(PEG.anything);
-    var end = sponsor(PEG.not(anything));
-
-    end({
+    start({
         in: {
             source: '',
             offset: 0
@@ -177,17 +178,18 @@ test['follow period matches without advancing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(0, m.in.offset);
+    var start = sponsor(PEG.follow(
+        sponsor(PEG.terminal('.'))
+    ));
+
+    var ok = sponsor(function (r) {
+        test.equal(0, r.in.offset);
     });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    var period = sponsor(PEG.terminal('.'));
-    var follow = sponsor(PEG.follow(period));
-
-    follow({
+    start({
         in: {
             source: '.',
             offset: 0
@@ -205,16 +207,16 @@ test['empty sequence acts like empty pattern'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(0, m.value.length);
+    var start = sponsor(PEG.sequence([]));
+
+    var ok = sponsor(function (r) {
+        test.equal(0, r.value.length);
     });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    var empty = sponsor(PEG.sequence([]));
-
-    empty({
+    start({
         in: {
             source: ' ',
             offset: 0
@@ -227,32 +229,32 @@ test['empty sequence acts like empty pattern'] = function (test) {
     test.done();
 };
 
-test['sequence matches period + spaces'] = function (test) {
+test['sequence matches period + space 2x'] = function (test) {
     test.expect(5);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-
-    var ok = sponsor(function (m) {
-        test.equal(3, m.value.length);
-        test.equal('.', m.value[0]);
-        test.equal('\r', m.value[1]);
-        test.equal('\n', m.value[2]);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
 
     var period = sponsor(PEG.terminal('.'));
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var seq = sponsor(PEG.sequence([
+    var start = sponsor(PEG.sequence([
         period,
         space,
         space
     ]));
 
-    seq({
+    var ok = sponsor(function (r) {
+        test.equal(3, r.value.length);
+        test.equal('.', r.value[0]);
+        test.equal('\r', r.value[1]);
+        test.equal('\n', r.value[2]);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: '.\r\n',
             offset: 0
@@ -264,6 +266,7 @@ test['sequence matches period + spaces'] = function (test) {
     test.ok(tracing.eventLoop());
 /*
     test.ok(tracing.eventLoop({
+        count: 100,
         log: function (effect) {
             console.log('DEBUG', effect);
         },
@@ -280,16 +283,16 @@ test['empty choice acts like fail pattern'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        console.log('ok:', m);
+    var start = sponsor(PEG.choice([]));
+
+    var ok = sponsor(function (r) {
+        console.log('OK:', JSON.stringify(r, null, 2));
     });
-    var fail = sponsor(function (m) {
-        test.equal(0, m.in.offset);
+    var fail = sponsor(function (r) {
+        test.equal(0, r.in.offset);
     });
 
-    var empty = sponsor(PEG.choice([]));
-
-    empty({
+    start({
         in: {
             source: ' ',
             offset: 0
@@ -307,22 +310,22 @@ test['plus/minus choice matches plus'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal('+', m.value);
-        test.equal(1, m.in.offset);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var plus = sponsor(PEG.terminal('+'));
     var minus = sponsor(PEG.terminal('-'));
-    var alt = sponsor(PEG.choice([
+    var start = sponsor(PEG.choice([
         plus,
         minus
     ]));
 
-    alt({
+    var ok = sponsor(function (r) {
+        test.equal('+', r.value);
+        test.equal(1, r.in.offset);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: '+',
             offset: 0
@@ -340,22 +343,22 @@ test['plus/minus choice matches minus'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal('-', m.value);
-        test.equal(1, m.in.offset);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var plus = sponsor(PEG.terminal('+'));
     var minus = sponsor(PEG.terminal('-'));
-    var alt = sponsor(PEG.choice([
+    var start = sponsor(PEG.choice([
         plus,
         minus
     ]));
 
-    alt({
+    var ok = sponsor(function (r) {
+        test.equal('-', r.value);
+        test.equal(1, r.in.offset);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: '-',
             offset: 0
@@ -373,21 +376,21 @@ test['plus/minus choice fails on star'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        console.log('ok:', m);
-    });
-    var fail = sponsor(function (m) {
-        test.equal(0, m.in.offset);
-    });
-
     var plus = sponsor(PEG.terminal('+'));
     var minus = sponsor(PEG.terminal('-'));
-    var alt = sponsor(PEG.choice([
+    var start = sponsor(PEG.choice([
         plus,
         minus
     ]));
 
-    alt({
+    var ok = sponsor(function (r) {
+        console.log('OK:', JSON.stringify(r, null, 2));
+    });
+    var fail = sponsor(function (r) {
+        test.equal(0, r.in.offset);
+    });
+
+    start({
         in: {
             source: '*',
             offset: 0
@@ -405,19 +408,19 @@ test['zeroOrMore matches nothing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(0, m.value.length);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrMore(space));
+    var start = sponsor(PEG.zeroOrMore(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        test.equal(0, r.value.length);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: '. \r\n',
             offset: 0
@@ -426,7 +429,7 @@ test['zeroOrMore matches nothing'] = function (test) {
         fail: fail
     });
     
-    test.ok(tracing.eventLoop());
+    test.ok(tracing.eventLoop({ count: 100 }));
     test.done();
 };
 
@@ -435,20 +438,20 @@ test['zeroOrMore matches single space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(1, m.value.length);
-        test.equal(' ', m.value[0]);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrMore(space));
+    var start = sponsor(PEG.zeroOrMore(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        test.equal(1, r.value.length);
+        test.equal(' ', r.value[0]);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: ' ',
             offset: 0
@@ -466,22 +469,22 @@ test['zeroOrMore matches whitespace 3x'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(3, m.value.length);
-        test.equal(' ', m.value[0]);
-        test.equal('\r', m.value[1]);
-        test.equal('\n', m.value[2]);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrMore(space));
+    var start = sponsor(PEG.zeroOrMore(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        test.equal(3, r.value.length);
+        test.equal(' ', r.value[0]);
+        test.equal('\r', r.value[1]);
+        test.equal('\n', r.value[2]);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: ' \r\n.',
             offset: 0
@@ -499,19 +502,19 @@ test['oneOrMore fails on nothing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        console.log('ok:', m);
-    });
-    var fail = sponsor(function (m) {
-        test.equal(0, m.in.offset);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.oneOrMore(space));
+    var start = sponsor(PEG.oneOrMore(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        console.log('OK:', JSON.stringify(r, null, 2));
+    });
+    var fail = sponsor(function (r) {
+        test.equal(0, r.in.offset);
+    });
+
+    start({
         in: {
             source: '. \r\n',
             offset: 0
@@ -529,20 +532,20 @@ test['oneOrMore matches single space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(1, m.value.length);
-        test.equal(' ', m.value[0]);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.oneOrMore(space));
+    var start = sponsor(PEG.oneOrMore(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        test.equal(1, r.value.length);
+        test.equal(' ', r.value[0]);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: ' ',
             offset: 0
@@ -560,22 +563,22 @@ test['oneOrMore matches whitespace 3x'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(3, m.value.length);
-        test.equal(' ', m.value[0]);
-        test.equal('\r', m.value[1]);
-        test.equal('\n', m.value[2]);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.oneOrMore(space));
+    var start = sponsor(PEG.oneOrMore(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        test.equal(3, r.value.length);
+        test.equal(' ', r.value[0]);
+        test.equal('\r', r.value[1]);
+        test.equal('\n', r.value[2]);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: ' \r\n.',
             offset: 0
@@ -593,20 +596,20 @@ test['zeroOrOne matches nothing'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(0, m.value.length);
-        test.equal(0, m.in.offset);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrOne(space));
+    var start = sponsor(PEG.zeroOrOne(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        test.equal(0, r.value.length);
+        test.equal(0, r.in.offset);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: '. \r\n',
             offset: 0
@@ -624,21 +627,21 @@ test['zeroOrOne matches single space'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ok = sponsor(function (m) {
-        test.equal(1, m.value.length);
-        test.equal(' ', m.value[0]);
-        test.equal(1, m.in.offset);
-    });
-    var fail = sponsor(function (m) {
-        console.log('FAIL!', m);
-    });
-
     var space = sponsor(PEG.predicate(function (token) {
         return /\s/.test(token);
     }));
-    var whitespace = sponsor(PEG.zeroOrOne(space));
+    var start = sponsor(PEG.zeroOrOne(space));
 
-    whitespace({
+    var ok = sponsor(function (r) {
+        test.equal(1, r.value.length);
+        test.equal(' ', r.value[0]);
+        test.equal(1, r.in.offset);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+    start({
         in: {
             source: ' \r\n.',
             offset: 0
