@@ -15,30 +15,106 @@ To run the below example run:
 
 var tart = require('tart');
 var sponsor = tart.minimal({
-    fail: function (exception) {
-        console.log('FAIL!', exception);
+    fail: function (e) {
+        console.log('ERROR!', e);
     }
 });
 
 var PEG = require('../index.js');
 
-var ok = sponsor(function(m) {
-    console.log('ok:', m);
+var named = require('../named.js');
+var ns = named.scope(sponsor);
+
+/*
+Assign <- Name "=" Assign
+        / Expr
+*/
+ns.define('Assign',
+    sponsor(PEG.choice([
+        sponsor(PEG.sequence([
+            ns.lookup('Name'),
+            sponsor(PEG.terminal('=')),
+            ns.lookup('Assign')
+        ])),
+        ns.lookup('Expr')
+    ]))
+);
+
+/*
+Name   <- [a-zA-Z]
+*/
+ns.define('Name',
+    sponsor(PEG.predicate(function (token) {
+        return /[a-zA-Z]/.test(token);
+    }))
+);
+
+/*
+Expr   <- Term ([-+] Term)*
+*/
+ns.define('Expr',
+    sponsor(PEG.sequence([
+        ns.lookup('Term'),
+        sponsor(PEG.zeroOrMore(
+            sponsor(PEG.sequence([
+                sponsor(PEG.predicate(function (token) {
+                    return /[-+]/.test(token);
+                })),
+                ns.lookup('Term')
+            ]))
+        ))
+    ]))
+);
+
+/*
+Term   <- Factor ([/*] Factor)*
+*/
+ns.define('Term',
+    sponsor(PEG.sequence([
+        ns.lookup('Factor'),
+        sponsor(PEG.zeroOrMore(
+            sponsor(PEG.sequence([
+                sponsor(PEG.predicate(function (token) {
+                    return /[/*]/.test(token);
+                })),
+                ns.lookup('Factor')
+            ]))
+        ))
+    ]))
+);
+
+/*
+Factor <- "(" Assign ")"
+        / Name
+        / [0-9]+
+*/
+ns.define('Factor',
+    sponsor(PEG.choice([
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('(')),
+            ns.lookup('Assign'),
+            sponsor(PEG.terminal(')'))
+        ])),
+        ns.lookup('Name'),
+        sponsor(PEG.oneOrMore(
+            sponsor(PEG.predicate(function (token) {
+                return /[0-9]/.test(token);
+            }))
+        ))
+    ]))
+);
+
+var ok = sponsor(function okBeh(m) {
+    console.log('OK:', JSON.stringify(m, null, '  '));
 });
-var fail = sponsor(function(m) {
-    console.log('FAIL!', m);
+var fail = sponsor(function failBeh(m) {
+    console.log('FAIL:', JSON.stringify(m, null, '  '));
 });
 
-var anything = sponsor(PEG.anything);
-var endOfInput = sponsor(PEG.not(anything));
-var parser = sponsor(PEG.sequence([
-    sponsor(PEG.terminal('.')),
-    endOfInput
-]));
-
-parser({
+var start = ns.lookup('Assign');
+start({
     in: {
-        source: '.',
+        source: 'x=y=10-2/3+4*5/(6-7)',
         offset: 0
     },
     ok: ok,

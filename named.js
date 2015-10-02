@@ -96,7 +96,7 @@ named.scope = function scope(sponsor, options) {
                 value: m.value
             });
         };
--       return function checkRecursionBeh(m) {
+        return function checkRecursionBeh(m) {
             var i = ruleStack.length;
             while (i > 0) {
                 i -= 1;
