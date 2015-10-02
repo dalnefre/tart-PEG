@@ -65,7 +65,7 @@ test['right recursion groups right-to-left'] = function (test) {
     );
     
     var ok = sponsor(function (r) {
-        console.log('OK:', JSON.stringify(r, null, 2));
+        log('OK:', JSON.stringify(r, null, 2));
         var rule = r.value;
         test.equal('Expr', rule.rule);
         test.equal(3, rule.value.length);
@@ -115,7 +115,7 @@ test['left recursion does not diverge'] = function (test) {
     );
     
     var ok = sponsor(function (r) {
-        console.log('OK:', JSON.stringify(r, null, 2));
+        log('OK:', JSON.stringify(r, null, 2));
         var rule = r.value;
         test.equal('Expr', rule.rule);
         test.equal(1, r.in.offset);
@@ -164,7 +164,7 @@ test['iteration makes a list'] = function (test) {
     );
     
     var ok = sponsor(function (r) {
-        console.log('OK:', JSON.stringify(r, null, 2));
+        log('OK:', JSON.stringify(r, null, 2));
         var rule = r.value;
         test.equal('Expr', rule.rule);
         test.equal(2, rule.value.length);
