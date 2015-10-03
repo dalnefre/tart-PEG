@@ -44,6 +44,38 @@ var indent = function indent() {
     return indentSpace.substring(0, indentDepth);
 };
 
+/*
+ * text(grammar[, indent]) - generate ASCII text representation of PEG grammar
+ */
+generate.text = function text(grammar, width) {
+    indentWidth = width || indentWidth;
+    var s = '';
+
+    s += '/* Generated PEG grammar */\n';
+    s += '"use strict";\n';
+    s += 'var grammar = module.exports;\n';
+    s += '\n';
+    s += 'var PEG = require("./index.js");\n';
+    s += 'var named = require("./named.js");\n';
+    s += '\n';
+    s += 'grammar.build = function build(sponsor) {\n';
+    indentDepth += indentWidth;
+    s += indent() + 'var ns = named.scope(sponsor);\n';
+    s += '\n';
+    
+    for (var name in grammar) {
+        if (grammar.hasOwnProperty(name)) {
+            s += indent() + textRule(name, grammar[name]) + '\n\n';
+        }
+    }
+    
+    s += indent() + 'return ns;  // return grammar namespace\n';
+    indentDepth -= indentWidth;
+    s += '};\n';
+
+    return s;
+};
+
 var textRule = function textRule(name, expr) {
     var s = '';
 
@@ -99,6 +131,8 @@ var textSequence = function textSequence(list) {
 var textTerm = function textTerm(term) {
     if ((typeof term === 'object') && (term.length > 0)) {
         return textExpression(term);
+    } else if (term.type === 'Literal') {
+        return textLiteral(term.ptrn);
     }
 
     var s = '';
@@ -144,34 +178,32 @@ var textTerm = function textTerm(term) {
     return s;
 };
 
-/*
- * text(grammar[, indent]) - generate ASCII text representation of PEG grammar
- */
-generate.text = function text(grammar, width) {
-    indentWidth = width || indentWidth;
+var textCharacter = function textCharacter(code) {
     var s = '';
 
-    s += '/* Generated PEG grammar */\n';
-    s += '"use strict";\n';
-    s += 'var grammar = module.exports;\n';
-    s += '\n';
-    s += 'var PEG = require("./index.js");\n';
-    s += 'var named = require("./named.js");\n';
-    s += '\n';
-    s += 'grammar.build = function build(sponsor) {\n';
-    indentDepth += indentWidth;
-    s += indent() + 'var ns = named.scope(sponsor);\n';
-    s += '\n';
+    s += 'sponsor(PEG.terminal(';
+    s += q(String.fromCharCode(code));
+    s += '))';
     
-    for (var name in grammar) {
-        if (grammar.hasOwnProperty(name)) {
-            s += indent() + textRule(name, grammar[name]) + '\n\n';
-        }
+    return s;
+};
+
+var textLiteral = function textLiteral(list) {
+    if (list.length == 1) {
+        return textCharacter(list[0]);
     }
     
-    s += indent() + 'return ns;  // return grammar namespace\n';
-    indentDepth -= indentWidth;
-    s += '};\n';
+    var s = '';
+    var a = [];
 
+    s += 'sponsor(PEG.sequence([\n';
+    indentDepth += indentWidth;
+    for (var i = 0; i < list.length; ++i) {
+        a[i] = textCharacter(list[i]);
+    }
+    s += indent() + a.join(',\n' + indent()) + '\n';
+    indentDepth -= indentWidth;
+    s += indent() + ']))';
+    
     return s;
 };
