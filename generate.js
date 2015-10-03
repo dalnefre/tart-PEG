@@ -133,6 +133,8 @@ var textTerm = function textTerm(term) {
         return textExpression(term);
     } else if (term.type === 'Literal') {
         return textLiteral(term.ptrn);
+    } else if (term.type === 'Class') {
+        return textClass(term.ptrn);
     }
 
     var s = '';
@@ -204,6 +206,35 @@ var textLiteral = function textLiteral(list) {
     s += indent() + a.join(',\n' + indent()) + '\n';
     indentDepth -= indentWidth;
     s += indent() + ']))';
+    
+    return s;
+};
+
+var rq = function rq(code) {
+    var s = q(String.fromCharCode(code));
+    s = s.substring(1, s.length - 1);  // drop outer quotes
+    if ((s === '[') || (s === ']')) {
+        s = '\\' + s;
+    }
+    return s;
+};
+var textClass = function textClass(list) {
+    var s = '';
+    
+    s += 'sponsor(PEG.predicate(function (token) {\n';
+    indentDepth += indentWidth;
+    s += indent() + 'return /[';
+    for (var i = 0; i < list.length; ++i) {
+        var range = list[i];
+        if (typeof range === 'number') {
+            s += rq(range);
+        } else {
+            s += rq(range[0]) + '-' + rq(range[1]);
+        }
+    }
+    s += ']/.test(token);\n';
+    indentDepth -= indentWidth;
+    s += indent() + '}))';
     
     return s;
 };
