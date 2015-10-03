@@ -49,14 +49,18 @@ var textRule = function textRule(name, rule) {
 
     s += 'ns.define(' + q(name) + ',\n';
     indentDepth += indentWidth;
-    s += indent() + textChoice(rule) + '\n';
+    s += indent() + textExpression(rule) + '\n';
     indentDepth -= indentWidth;
     s += indent() + '};';
     
     return s;
 };
 
-var textChoice = function textChoice(list) {
+var textExpression = function textExpression(list) {
+    if (list.length == 1) {
+        return textSequence(list[0]);
+    }
+    
     var s = '';
     var a = [];
 
@@ -73,6 +77,10 @@ var textChoice = function textChoice(list) {
 };
 
 var textSequence = function textSequence(list) {
+    if (list.length == 1) {
+        return q(list[0]);
+    }
+    
     var s = '';
     var a = [];
 
