@@ -34,167 +34,125 @@ var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-var actions = {};
-var visit = function visit(node) {
-    console.log('visit:', typeof(node), node);
-    if (typeof node !== 'object') {
-        return node;
-    } else if (node.name) {  // rule node
-        var action = actions[node.name];
-        if (action) {
-            node = action(node);
-        } else {
-            node.value = visit(node.value);
-        }
-    } else if (node.length) {  // list node
-        for (var i = 0; i < node.length; ++i) {
-            node[i] = visit(node[i]);
-        }
-    }
-    return node;
-};
-var visitToken = function visitToken(node) {
-    console.log('visitToken:', node);
-    var token = node.name;
-    if (token === undefined) {
-        token = node.value;
-    }
-    console.log('Token:', token);
-    return token;
-};
+var log = console.log;
 
-actions['Grammar'] = function visitGrammar(node) {
-    console.log('visitGrammar:', node);
-    var list = node.value[1];
+var ns = require('../grammar.js').build(sponsor);
+
+ns.transform('Grammar', function transformGrammar(name, value) {
+    log('transformGrammar:', name, value);
+    var list = value[1];
     var map = {};
     for (var i = 0; i < list.length; ++i) {
         var rule = list[i];
-        if (rule.name === 'Rule') {
-            var name = visit(rule.value[0]);
-            var expr = visit(rule.value[2]);
-            map[name] = expr;
+        if (rule.type === 'Rule') {
+            map[rule.name] = rule.expr;
         }
     }
-    console.log('Grammar:', map);
+    log('Grammar:', map);
     return map;
-};
-actions['Expression'] = function visitExpression(node) {
-    console.log('visitExpression:', node);
-    var first = node.value[0];
-    var rest = node.value[1];
+});
+ns.transform('Rule', function transformRule(name, value) {
+    log('transformRule:', name, value);
+    var rule = {
+        type: name,
+        name: value[0].ptrn,
+        expr: value[2]
+    };
+    log('Rule:', rule);
+    return rule;
+});
+ns.transform('Expression', function transformExpression(name, value) {
+    log('transformExpression:', name, value);
+    var first = value[0];
+    var rest = value[1];
     var list = [];
-    list.push(visit(first));
+    list.push(first);
     for (var i = 0; i < rest.length; ++i) {
         var next = rest[i];
-        if (next[0].name === 'SLASH') {
-            list.push(visit(next[1]));
+        if (next[0] === 'SLASH') {
+            list.push(next[1]);
         }
     }
-    console.log('Expression:', list);
+    log('Expression:', list);
     return list;
-};
-actions['Sequence'] = function visitSequence(node) {
-    console.log('visitSequence:', node);
-    var list = visit(node.value);
-    console.log('Sequence:', list);
-    return list;
-};
-actions['Prefix'] = function visitPrefix(node) {
-    console.log('visitPrefix:', node);
-    var optn = node.value[0];
-    var ptrn = visit(node.value[1]);
-    if (optn.length === 1) {
-        ptrn = {
-            type: optn[0].name,
-            ptrn: ptrn
+});
+ns.transform('Sequence', function transformSequence(name, value) {
+    log('transformSequence:', name, value);
+    log('Sequence:', value);
+    return value;
+});
+ns.transform('Prefix', function transformPrefix(name, value) {
+    log('transformPrefix:', name, value);
+    var prefix = value[0];
+    var suffix = value[1];
+    if (prefix.length == 1) {
+        return {
+            type: prefix[0],
+            ptrn: suffix
         };
-    }
-    console.log('Prefix:', ptrn);
-    return ptrn;
-};
-actions['Suffix'] = function visitSuffix(node) {
-    console.log('visitSuffix:', node);
-    var ptrn = visit(node.value[0]);
-    var optn = node.value[1];
-    if (optn.length === 1) {
-        ptrn = {
-            type: optn[0].name,
-            ptrn: ptrn
-        };
-    }
-    console.log('Suffix:', ptrn);
-    return ptrn;
-};
-actions['Primary'] = function visitPrimary(node) {
-    console.log('visitPrimary:', node);
-    var ptrn = node.value;
-    var name = ptrn.name;
-    if (name) {
-        ptrn = visit(ptrn);
     } else {
-        name = ptrn[0].name;
-        if (name === 'Name') {
-            ptrn = visit(ptrn[0]);
+        return suffix;
+    }
+});
+ns.transform('Suffix', function transformSuffix(name, value) {
+    log('transformSuffix:', name, value);
+    var primary = value[0];
+    var suffix = value[1];
+    if (suffix.length == 1) {
+        return {
+            type: suffix[0],
+            ptrn: primary
+        };
+    } else {
+        return primary;
+    }
+});
+ns.transform('Primary', function transformPrimary(name, value) {
+    log('transformPrimary:', name, value);
+    if (value.length > 1) {
+        if (value[0].type === 'Name') {
+            return value[0];
         } else {
-            ptrn = visit(ptrn[1]);
+            return value[1];
         }
-    }
-    console.log('Primary:', ptrn);
-    return ptrn;
-};
-actions['Name'] = function visitName(node) {
-    console.log('visitName:', node);
-    var value = node.value;
-    var name = value[0];
-    var rest = value[1];
-    for (var i = 0; i < rest.length; ++i) {
-        name += rest[i];
-    }
-    console.log('Name:', name);
-    return name;
-};
-actions['Literal'] = function visitLiteral(node) {
-    console.log('visitLiteral:', node);
-    var list = visit(node.value[1]);
-    var s = [];
-    for (var i = 0; i < list.length; ++i) {
-        s.push(visit(list[i][1]));
-    }
-    var ptrn = {
-        type: node.name,
-        ptrn: s
-    };
-    console.log('Literal:', ptrn);
-    return ptrn;
-};
-actions['Class'] = function visitClass(node) {
-    console.log('visitClass:', node);
-    var list = visit(node.value[1]);
-    var s = [];
-    for (var i = 0; i < list.length; ++i) {
-        s.push(visit(list[i][1]));
-    }
-    var ptrn = {
-        type: node.name,
-        ptrn: s
-    };
-    console.log('Class:', ptrn);
-    return ptrn;
-};
-actions['Range'] = function visitRange(node) {
-    console.log('visitRange:', node);
-    var r = node.value;
-    if (r.name === 'Character') {
-        r = visit(r);
     } else {
-        r = [
-            visit(r[0]),
-            visit(r[2])
-        ];
+        return value;
     }
-    console.log('Range:', r);
-    return r;
+});
+ns.transform('Name', function transformName(name, value) {
+    var s = value[0];
+    var list = value[1];
+    for (var i = 0; i < list.length; ++i) {
+        s += list[i];
+    }
+    return {
+        type: name,
+        ptrn: s
+    };
+});
+var transformString = function transformString(name, value) {
+    var list = value[1];
+    var s = [];
+    for (var i = 0; i < list.length; ++i) {
+        s.push(list[i][1]);
+    }
+    return {
+        type: name,
+        ptrn: s
+    };
 };
+ns.transform('Literal', transformString);
+ns.transform('Class', transformString);
+ns.transform('Range', function transformRange(name, value) {
+    if (value.length == 3) {
+        return [
+            value[0],
+            value[2]
+        ]
+    } else {
+        return value;
+    }
+});
 var escChars = {
     'n': '\n'.charCodeAt(0),
     'r': '\r'.charCodeAt(0),
@@ -205,42 +163,33 @@ var escChars = {
     ']': ']'.charCodeAt(0),
     '\\': '\\'.charCodeAt(0)
 };
-actions['Character'] = function visitCharacter(node) {
-    console.log('visitCharacter:', node);
-    var c = node.value[1];
-    if (node.value[0] === '\\') {
+ns.transform('Character', function transformCharacter(name, value) {
+    var c = value[1];
+    if (value[0] === '\\') {
         c = escChars[c];  // FIXME: handle unicode escapes!
     } else {
         c = c.charCodeAt(0);
     }
-    console.log('Character:', c);
     return c;
+});
+var transformToken = function transformToken(name, value) {
+    return name;
 };
-/*
-actions['LEFTARROW'] = visitToken;
-actions['SLASH'] = visitToken;
-actions['AND'] = visitToken;
-actions['NOT'] = visitToken;
-actions['QUESTION'] = visitToken;
-actions['STAR'] = visitToken;
-actions['PLUS'] = visitToken;
-actions['OPEN'] = visitToken;
-actions['CLOSE'] = visitToken;
-*/
-actions['DOT'] = function visitDOT(node) {
-    console.log('visitDOT:', node);
-    var ptrn = {
-        type: node.name
-    };
-    console.log('DOT:', ptrn);
-    return ptrn;
-};
-actions['_'] = function visit_(node) {  // optional whitespace
-    console.log('visit_:', node);
-    var space = ' ';
-    console.log('_:', space);
-    return space;
-};
+ns.transform('LEFTARROW', transformToken);
+ns.transform('SLASH', transformToken);
+ns.transform('AND', transformToken);
+ns.transform('NOT', transformToken);
+ns.transform('QUESTION', transformToken);
+ns.transform('STAR', transformToken);
+ns.transform('PLUS', transformToken);
+ns.transform('OPEN', transformToken);
+ns.transform('CLOSE', transformToken);
+ns.transform('DOT', function transformDOT(name, value) {
+    return { type: 'DOT' };
+});
+ns.transform('_', function transformSpace(name, value) {
+    return ' ';
+});
 
 var simpleSource = 
     '\r\n# comment\n';
@@ -261,12 +210,8 @@ var input = {
     offset: 0
 };
 
-var ns = require('../grammar.js').build(sponsor);
-
 var ok = sponsor(function okBeh(m) {
     console.log('OK:', JSON.stringify(m, null, '  '));
-    var value = visit(m.value);
-    console.log('VALUE:', JSON.stringify(value, null, '  '));
 });
 var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
