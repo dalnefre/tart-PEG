@@ -212,6 +212,9 @@ var input = {
 
 var ok = sponsor(function okBeh(m) {
     console.log('OK:', JSON.stringify(m, null, '  '));
+    process.stdout.write(
+        require('../generate.js').text(m.value)
+    );
 });
 var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
