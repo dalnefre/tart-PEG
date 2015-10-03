@@ -32,6 +32,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var PEG = module.exports;
 
+//var log = console.log;
+var log = function () {};
+var defaultLog = log;
+
 var error = function error(m, e) {
     m.fail({
         in: m.in,
@@ -132,18 +136,18 @@ PEG.follow = PEG.followPtrn = function followPtrn(pattern) {
 
 var andThen = function andPtrn(first, rest) {
     return function andBeh(m) {
-//        console.log('andBeh:', m);
+//        log('andBeh:', m);
         var failure = this.sponsor(function failBeh(r) {
-//            console.log('failBeh:', r, m);
+//            log('failBeh:', r, m);
             m.fail({
                 in: m.in,
                 value: m.value
             });
         });
         var next = this.sponsor(function nextBeh(r) {
-//            console.log('nextBeh:', r, m);
+//            log('nextBeh:', r, m);
             var success = this.sponsor(function okBeh(rr) {
-//                console.log('okBeh:', rr, r, m);
+//                log('okBeh:', rr, r, m);
                 rr.value.unshift(r.value);  // mutate rr.value
                 m.ok({
                     in: rr.in,
@@ -180,9 +184,9 @@ PEG.sequence = PEG.sequencePtrn = function sequencePtrn(list) {
 
 var orElse = function orPtrn(first, rest) {
     return function orBeh(m) {
-//        console.log('orBeh:', m);
+//        log('orBeh:', m);
         var next = this.sponsor(function nextBeh(r) {
-//            console.log('nextBeh:', r, m);
+//            log('nextBeh:', r, m);
             rest({
                 in: m.in,
                 ok: m.ok,
@@ -284,7 +288,7 @@ PEG.question = PEG.optional = PEG.zeroOrOne = PEG.zeroOrOnePtrn = function zeroO
 PEG.memoize = PEG.packrat = PEG.packratPtrn = function packratPtrn(pattern, name, log) {
     var results = [];
     name = name || '';
-    log = log || console.log;
+    log = log || defaultLog;
     return function packratBeh(m) {
         var at = m.in.offset;
         var r = results[at];

@@ -34,9 +34,10 @@ var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-var log = console.log;
+//var log = console.log;
+var log = function () {};
 
-var ns = require('../grammar.js').build(sponsor);
+var ns = require('../grammar.js').build(sponsor, log);
 
 ns.transform('Grammar', function transformGrammar(name, value) {
     log('transformGrammar:', name, value);
@@ -213,7 +214,7 @@ var input = {
 };
 
 var ok = sponsor(function okBeh(m) {
-    console.log('OK:', JSON.stringify(m, null, '  '));
+    log('OK:', JSON.stringify(m, null, '  '));
     process.stdout.write(
         require('../generate.js').text(m.value)
     );

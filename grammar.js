@@ -38,8 +38,8 @@ var named = require('./named.js');
 /*
  * build(sponsor) - construct parsing actors for PEG grammar
  */
-grammar.build = function build(sponsor) {
-    var ns = named.scope(sponsor);
+grammar.build = function build(sponsor, log) {
+    var ns = named.scope(sponsor, { log: log });
 
     /*
     Grammar <- _ Rule+ EOF
