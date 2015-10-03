@@ -21,9 +21,9 @@ Literal     <- ["] (!["] Character)+ ["] _
              / ['] (!['] Character)+ ['] _
 Class       <- "[" (!"]" Range)+ "]" _
 Range       <- Character "-" Character / Character
-Character   <- "\\" [nrt'"[\]\\]
-             \ "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
-             \ !"\\" .
+Character   <- "\\" [nrt'"\[\]\\]
+             / "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+             / !"\\" .
 
 LEFTARROW   <- "<-" _
 SLASH       <- "/" _

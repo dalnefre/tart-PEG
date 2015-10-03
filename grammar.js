@@ -222,16 +222,16 @@ grammar.build = function build(sponsor) {
         ]))
     );
     /*
-    Character <- "\\" [nrt'"[\]\\]
-               \ "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
-               \ !"\\" .
+    Character <- "\\" [nrt'"\[\]\\]
+               / "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+               / !"\\" .
     */
     ns.define('Character',
         sponsor(PEG.choice([
             sponsor(PEG.sequence([
                 sponsor(PEG.terminal('\\')),
                 sponsor(PEG.predicate(function(token) {
-                    return /[nrt'"[\]\\]/.test(token);
+                    return /[nrt'"\[\]\\]/.test(token);
                 }))
             ])),
             sponsor(PEG.sequence([
