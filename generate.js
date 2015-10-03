@@ -44,14 +44,14 @@ var indent = function indent() {
     return indentSpace.substring(0, indentDepth);
 };
 
-var textRule = function textRule(name, rule) {
+var textRule = function textRule(name, expr) {
     var s = '';
 
     s += 'ns.define(' + q(name) + ',\n';
     indentDepth += indentWidth;
-    s += indent() + textExpression(rule) + '\n';
+    s += indent() + textExpression(expr) + '\n';
     indentDepth -= indentWidth;
-    s += indent() + '};';
+    s += indent() + ');';
     
     return s;
 };
@@ -78,7 +78,7 @@ var textExpression = function textExpression(list) {
 
 var textSequence = function textSequence(list) {
     if (list.length == 1) {
-        return q(list[0]);
+        return textTerm(list[0]);
     }
     
     var s = '';
@@ -87,11 +87,59 @@ var textSequence = function textSequence(list) {
     s += 'sponsor(PEG.sequence([\n';
     indentDepth += indentWidth;
     for (var i = 0; i < list.length; ++i) {
-        a[i] = q(list[i]);
+        a[i] = textTerm(list[i]);
     }
     s += indent() + a.join(',\n' + indent()) + '\n';
     indentDepth -= indentWidth;
     s += indent() + ']))';
+    
+    return s;
+};
+
+var textTerm = function textTerm(term) {
+    if ((typeof term === 'object') && (term.length > 0)) {
+        return textExpression(term);
+    }
+
+    var s = '';
+
+    if (term.type === 'Name') {
+        s += 'ns.lookup(' + q(term.ptrn) + ')';
+    } else if (term.type === 'AND') {
+        s += 'sponsor(PEG.follow(\n';
+        indentDepth += indentWidth;
+        s += indent() + textTerm(term.ptrn) + '\n';
+        indentDepth -= indentWidth;
+        s += indent() + '))';
+    } else if (term.type === 'NOT') {
+        s += 'sponsor(PEG.not(\n';
+        indentDepth += indentWidth;
+        s += indent() + textTerm(term.ptrn) + '\n';
+        indentDepth -= indentWidth;
+        s += indent() + '))';
+    } else if (term.type === 'QUESTION') {
+        s += 'sponsor(PEG.optional(\n';
+        indentDepth += indentWidth;
+        s += indent() + textTerm(term.ptrn) + '\n';
+        indentDepth -= indentWidth;
+        s += indent() + '))';
+    } else if (term.type === 'STAR') {
+        s += 'sponsor(PEG.star(\n';
+        indentDepth += indentWidth;
+        s += indent() + textTerm(term.ptrn) + '\n';
+        indentDepth -= indentWidth;
+        s += indent() + '))';
+    } else if (term.type === 'PLUS') {
+        s += 'sponsor(PEG.plus(\n';
+        indentDepth += indentWidth;
+        s += indent() + textTerm(term.ptrn) + '\n';
+        indentDepth -= indentWidth;
+        s += indent() + '))';
+    } else if (term.type === 'DOT') {
+        s += 'sponsor(PEG.dot)';
+    } else {
+        s += q(term);
+    }
     
     return s;
 };
@@ -117,7 +165,7 @@ generate.text = function text(grammar, width) {
     
     for (var name in grammar) {
         if (grammar.hasOwnProperty(name)) {
-            s += indent() + textRule(name, grammar[name]) + '\n';
+            s += indent() + textRule(name, grammar[name]) + '\n\n';
         }
     }
     

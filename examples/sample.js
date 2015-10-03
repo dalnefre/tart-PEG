@@ -204,6 +204,7 @@ var exprSource =
   + 'Expr   <- Term ([-+] Term)*\n'
   + 'Term   <- Factor ([/*] Factor)*\n'
   + 'Factor <- "(" Assign ")"\n'
+  + '        / Name\n'
   + '        / [0-9]+\n';
 var input = {
     source: exprSource,
