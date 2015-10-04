@@ -36,7 +36,7 @@ var PEG = require('./index.js');
 var named = require('./named.js');
 
 /*
- * build(sponsor) - construct parsing actors for PEG grammar
+ * build(sponsor[, log]) - construct parsing actors for PEG grammar
  */
 grammar.build = function build(sponsor, log) {
     var ns = named.scope(sponsor, { log: log });
