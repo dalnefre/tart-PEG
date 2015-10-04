@@ -1,0 +1,76 @@
+#
+# Lexical tokens for the Humus programming language (cf. humusSyntax.peg)
+#
+
+tokens  <- _ token* EOF
+token   <- symbol
+         / keyword
+         / const
+         / boolean
+         / number
+         / char
+         / string
+         / ident
+
+symbol  <- '#' ident
+
+keyword <- LET / IN / AFTER / SEND / TO / CREATE / WITH / BECOME / THROW
+         / IF / ELIF / ELSE / CASE / OF / END / NEW
+LET     <- 'L' 'E' 'T' _
+IN      <- 'I' 'N' _
+AFTER   <- 'A' 'F' 'T' 'E' 'R' _
+SEND    <- 'S' 'E' 'N' 'D' _
+TO      <- 'T' 'O' _
+CREATE  <- 'C' 'R' 'E' 'A' 'T' 'E' _
+WITH    <- 'W' 'I' 'T' 'H' _
+BECOME  <- 'B' 'E' 'C' 'O' 'M' 'E' _
+THROW   <- 'T' 'H' 'R' 'O' 'W' _
+IF      <- 'I' 'F' _
+ELIF    <- 'E' 'L' 'I' 'F' _
+ELSE    <- 'E' 'L' 'S' 'E' _
+CASE    <- 'C' 'A' 'S' 'E' _
+OF      <- 'O' 'F' _
+END     <- 'E' 'N' 'D' _
+NEW     <- 'N' 'E' 'W' _
+
+const   <- SELF / NIL / UNDEF
+SELF    <- "SELF" _     # 'S' 'E' 'L' 'F' _
+NIL     <- "NIL" _      # 'N' 'I' 'L' _
+UNDEF   <- "?" _        # '?' _
+
+boolean <- TRUE / FALSE
+TRUE    <- 'T' 'R' 'U' 'E' _
+FALSE   <- 'F' 'A' 'L' 'S' 'E' _
+
+number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
+
+char    <- "'" (!"'" qchar) "'" _
+string  <- '"' (!'"' qchar)+ '"' _
+qchar   <- '\\' [nrt'"\[\]\\]
+         / '\\u' [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+         / !'\\' .
+
+# ident   <- !number (!punct .)+
+ident   <- !IGNORE [0-9a-zA-Z!%&'*+-/?@^_~]+ _
+punct   <- [#$(),.:;=\[\\\]]
+
+IGNORE  <- '_' _
+LBRACK  <- '[' _
+RBRACK  <- ']' _
+COLON   <- ':' _
+COMMA   <- ',' _
+LPAREN  <- '(' _
+RPAREN  <- ')' _
+EQUAL   <- '=' _
+VALUE   <- '$' _
+#LAMBDA  <- [\\\u03BB] _
+LAMBDA  <- [\\] _
+DOT     <- '.' _
+
+_       <- &punct                           # token boundary
+         / (space / note)*
+comment <- '#' space (!EOL .)*
+space   <- [ \t-\r]
+EOL     <- '\n'
+         / '\r' '\n'?
+EOF     <- !.

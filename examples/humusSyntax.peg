@@ -1,0 +1,44 @@
+#
+# Syntax of Humus programming language in terms of tokens (cf. humusTokens.peg)
+#
+
+humus <- stmt+
+block <- LBRACK stmt* RBRACK
+stmt  <- LET eqtn !IN
+       / (AFTER expr)? SEND expr TO expr
+       / CREATE ident WITH expr
+       / BECOME expr
+       / THROW expr
+       / expr
+expr  <- LET eqtn IN expr
+       / IF eqtn expr (ELIF eqtn expr)* (ELSE expr)?
+       / CASE expr OF (ptrn COLON expr)+ END
+       / term COMMA expr
+       / term
+term  <- const
+       / call
+       / ident
+       / NEW term
+       / LPAREN expr? RPAREN
+call  <- ident LPAREN expr? RPAREN
+       / LPAREN expr RPAREN LPAREN expr? RPAREN
+eqtn  <- ident LPAREN ptrn? RPAREN EQUAL expr
+       / ptrn EQUAL ptrn
+ptrn  <- pterm COMMA ptrn
+       / pterm
+pterm <- IGNORE
+       / const
+       / ident
+       / VALUE term
+       / LPAREN ptrn? RPAREN
+const <- block
+       / SELF
+       / LAMBDA ptrn DOT expr
+       / number
+       / char
+       / string
+       / UNDEF
+       / NIL
+       / TRUE
+       / FALSE
+       / symbol
