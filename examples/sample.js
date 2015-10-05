@@ -86,7 +86,7 @@ tracing.eventLoop({
         console.log('DEBUG', effect);
     },
 */
-    fail: function (exception) {
-        console.log('FAIL!', exception);
+    fail: function (e) {
+        console.log('ERROR!', e);
     }
 });
