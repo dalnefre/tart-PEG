@@ -184,6 +184,16 @@ semantic.transform = function transform(ns) {
         return c;
     });
 
+    ns.transform('Object', function transformObject(name, value) {
+        log('transformObject:', name, value);
+        var result = {
+            type: name,
+            ptrn: value
+        };
+        log('Object:', result);
+        return result;
+    });
+
     var transformToken = function transformToken(name, value) {
         return name;
     };

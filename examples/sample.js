@@ -41,22 +41,23 @@ var ns = require('../grammar.js').build(sponsor, log);
 
 require('../reducePEG.js').transform(ns);
 
-var simpleSource = 
-    '\r\n# comment\n';
-var commentSource = 
-    'Comment <- [#] (!EOL .)* EOL\r'
-  + "EOL <- '\\n'\n" 
-  + '     / "\\r" "\\n"?\r\n';
-var exprSource =
-    'Assign <- Name "=" Assign\n'
-  + '        / Expr\n'
-  + 'Name   <- [a-zA-Z]\n'
-  + 'Expr   <- Term ([-+] Term)*\n'
-  + 'Term   <- Factor ([/*] Factor)*\n'
-  + 'Factor <- "(" Assign ")"\n'
-  + '        / Name\n'
-  + '        / [0-9]+\n';
-var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
+var simpleSource = ''
++ '\r\n# comment\n';
+var commentSource = ''
++ 'Comment <- [#] (!EOL .)* EOL\r'
++ "EOL <- '\\n'\n" 
++ '     / "\\r" "\\n"?\r\n';
+var exprSource = ''
++ 'Assign <- Name "=" Assign\n'
++ '        / Expr\n'
++ 'Name   <- [a-zA-Z]\n'
++ 'Expr   <- Term ([-+] Term)*\n'
++ 'Term   <- Factor ([/*] Factor)*\n'
++ 'Factor <- "(" Assign ")"\n'
++ '        / Name\n'
++ '        / [0-9]+\n';
+//var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
+var fileSource = require('fs').readFileSync('examples/humusSyntax.peg', 'utf8');
 var input = {
     source: fileSource,
     offset: 0

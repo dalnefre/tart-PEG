@@ -135,6 +135,8 @@ var textTerm = function textTerm(term) {
         return textLiteral(term.ptrn);
     } else if (term.type === 'Class') {
         return textClass(term.ptrn);
+    } else if (term.type === 'Object') {
+        return textObject(term.ptrn);
     }
 
     var s = '';
@@ -236,5 +238,17 @@ var textClass = function textClass(list) {
     indentDepth -= indentWidth;
     s += indent() + '}))';
     
+    return s;
+};
+
+var textObject = function textObject(ptrn) {
+    var s = '';
+
+    s += 'sponsor(PEG.object(\n';
+    indentDepth += indentWidth;
+    s += indent() + q(ptrn) + '\n';
+    indentDepth -= indentWidth;
+    s += indent() + '))';
+
     return s;
 };

@@ -119,6 +119,7 @@ grammar.build = function build(sponsor, log) {
              / OPEN Expression CLOSE
              / Literal
              / Class
+             / Object
              / DOT
     */
     ns.define('Primary',
@@ -136,6 +137,7 @@ grammar.build = function build(sponsor, log) {
             ])),
             ns.lookup('Literal'),
             ns.lookup('Class'),
+            ns.lookup('Object'),
             ns.lookup('DOT')
         ]))
     );
@@ -258,6 +260,36 @@ grammar.build = function build(sponsor, log) {
             ]))
         ]))
     );
+    /*
+    Object <- LBRACE (Property (COMMA Property)*)? RBRACE
+    */
+    ns.define('Object',
+        sponsor(PEG.sequence([
+            ns.lookup('LBRACE'),
+            sponsor(PEG.zeroOrOne(
+                sponsor(PEG.sequence([
+                    ns.lookup('Property'),
+                    sponsor(PEG.zeroOrMore(
+                        sponsor(PEG.sequence([
+                            ns.lookup('COMMA'),
+                            ns.lookup('Property')
+                        ]))
+                    ))
+                ]))
+            )),
+            ns.lookup('RBRACE')
+        ]))
+    );
+    /*
+    Property <- Name COLON Expression
+    */
+    ns.define('Property',
+        sponsor(PEG.sequence([
+            ns.lookup('Name'),
+            ns.lookup('COLON'),
+            ns.lookup('Expression')
+        ]))
+    );
 
     /*
     LEFTARROW <- "<-" _
@@ -347,6 +379,42 @@ grammar.build = function build(sponsor, log) {
     ns.define('DOT',
         sponsor(PEG.sequence([
             sponsor(PEG.terminal('.')),
+            ns.lookup('_')
+        ]))
+    );
+    /*
+    LBRACE <- "{" _
+    */
+    ns.define('LBRACE',
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('{')),
+            ns.lookup('_')
+        ]))
+    );
+    /*
+    RBRACE <- "}" _
+    */
+    ns.define('RBRACE',
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('}')),
+            ns.lookup('_')
+        ]))
+    );
+    /*
+    COLON <- ":" _
+    */
+    ns.define('COLON',
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal(':')),
+            ns.lookup('_')
+        ]))
+    );
+    /*
+    COMMA <- "," _
+    */
+    ns.define('COMMA',
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal(',')),
             ns.lookup('_')
         ]))
     );

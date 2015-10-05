@@ -44,14 +44,14 @@ var error = function error(m, e) {
     });
 };
 
-PEG.fail = PEG.failBeh = function failBeh(m) {
+PEG.fail /*= PEG.failBeh*/ = function failBeh(m) {
     m.fail({
         in: m.in,
         value: m.value
     });
 };
 
-PEG.empty = PEG.emptyBeh = function emptyBeh(m) {
+PEG.empty /*= PEG.emptyBeh*/ = function emptyBeh(m) {
     try {
         m.ok({
             in: m.in,
@@ -284,6 +284,13 @@ PEG.question = PEG.optional = PEG.zeroOrOne = PEG.zeroOrOnePtrn = function zeroO
         });
     };
 };
+
+PEG.object = function objectPtrn(object) {
+	//
+	// FIXME: implement Object pattern
+	//
+	return PEG.fail;
+}
 
 PEG.memoize = PEG.packrat = PEG.packratPtrn = function packratPtrn(pattern, name, log) {
     var results = [];

@@ -259,6 +259,14 @@ If `pattern` matches, the corresponding input is consumed.
 Otherwise, no input is consumed.
 The result `value` is an _Array_ (possibly empty) of the matched values.
 
+### PEG.object(object)
+
+  * `object`: _Object_ An object containing expected property patterns.
+
+Match and consume the current input Token, if it matches `object`.
+Otherwise fail, consuming no input.
+On success, the result `value` is the consumed input Token.
+
 ### PEG.memoize(pattern, [name, [log]])
 #### PEG.packrat(pattern, [name, [log]])
 

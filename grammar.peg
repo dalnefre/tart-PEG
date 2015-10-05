@@ -13,6 +13,7 @@ Primary     <- Name !LEFTARROW
              / OPEN Expression CLOSE
              / Literal
              / Class
+             / Object
              / DOT
 
 # Lexical syntax
@@ -24,6 +25,8 @@ Range       <- Character "-" Character / Character
 Character   <- "\\" [nrt'"\[\]\\]
              / "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
              / !"\\" .
+Object      <- LBRACE (Property (COMMA Property)*)? RBRACE
+Property    <- Name COLON Expression
 
 LEFTARROW   <- "<-" _
 SLASH       <- "/" _
@@ -35,6 +38,10 @@ PLUS        <- "+" _
 OPEN        <- "(" _
 CLOSE       <- ")" _
 DOT         <- "." _
+LBRACE      <- "{" _
+RBRACE      <- "}" _
+COLON       <- ":" _
+COMMA       <- "," _
 
 _           <- (Space / Comment)*   # optional whitespace
 Comment     <- "#" (!EOL .)*
