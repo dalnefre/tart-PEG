@@ -36,8 +36,8 @@ var semantic = module.exports;
  * transform(ns) - augment grammar namespace with reduction semantics
  */
 semantic.transform = function transform(ns) {
-    var log = console.log;
-//    var log = function () {};
+//    var log = console.log;
+    var log = function () {};
 
     ns.transform('tokens', function transformTokens(name, value) {
         log('transformTokens:', name, value);
@@ -64,30 +64,80 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
-/*
-number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
-*/
+    ns.transform('number', function transformNumber(name, value) {
+        log('transformNumber:', name, value);
+        var result = {
+            type: name
+        };
+        result.sign = value[0][0];
+        result.radix = value[1].join('');
+        if (value[2].length) {
+            result.digits = value[2][0][1].join('');
+            result.radix = parseInt(result.radix, 10);
+        } else {
+            result.digits = result.radix;
+            result.radix = 10;
+        }
+        result.value = parseInt(result.digits, result.radix);
+        if (result.sign == '-') {
+            result.value = -(result.value);
+        }
+        log('Number:', result);
+        return result;
+    });
 
-/*
-char    <- "'" (!"'" qchar) "'" _
-string  <- '"' (!'"' qchar)+ '"' _
-qchar   <- '\\' [nrt'"\[\]\\]
-         / '\\u' [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
-         / !'\\' .
-*/
+    ns.transform('char', function transformChar(name, value) {
+        log('transformChar:', name, value);
+        var result = {
+            type: name,
+            value: value[1][1]
+        };
+        log('Char:', result);
+        return result;
+    });
+
+    ns.transform('string', function transformString(name, value) {
+        log('transformString:', name, value);        
+        var list = value[1];
+        var s = '';
+        for (var i = 0; i < list.length; ++i) {
+            s += list[i][1];
+        }
+        var result = {
+            type: name,
+            value: s
+        };
+        log('String:', result);
+        return result;
+    });
+
+    var escChars = {
+        'n': '\n',
+        'r': '\r',
+        't': '\t',
+        "'": "'",
+        '"': '"',
+        '[': '[',
+        ']': ']',
+        '\\': '\\'
+    };
+    ns.transform('qchar', function transformCharacter(name, value) {
+        log('transformCharacter:', name, value);
+        var result = value[1];
+        if (value[0] === '\\') {
+            result = escChars[result];  // FIXME: handle unicode escapes!
+        }
+        log('Character:', result);
+        return result;
+    });
 
     ns.transform('ident', transformValue);
 
     ns.transform('name', function transformName(name, value) {
         log('transformName:', name, value);
-        var list = value[0];
-        var s = '';
-        for (var i = 0; i < list.length; ++i) {
-            s += list[i];
-        }
         var result = {
             type: name,
-            value: s
+            value: value[0].join('')
         };
         log('Name:', result);
         return result;
@@ -102,55 +152,6 @@ qchar   <- '\\' [nrt'"\[\]\\]
         log('Punct:', result);
         return result;
     });
-
-//----
-
-    var transformString = function transformString(name, value) {
-        var list = value[1];
-        var s = [];
-        for (var i = 0; i < list.length; ++i) {
-            s.push(list[i][1]);
-        }
-        return {
-            type: name,
-            ptrn: s
-        };
-    };
-    ns.transform('Literal', transformString);
-    ns.transform('Class', transformString);
-
-    ns.transform('Range', function transformRange(name, value) {
-        if (value.length == 3) {
-            return [
-                value[0],
-                value[2]
-            ]
-        } else {
-            return value;
-        }
-    });
-
-    var escChars = {
-        'n': '\n'.charCodeAt(0),
-        'r': '\r'.charCodeAt(0),
-        't': '\t'.charCodeAt(0),
-        "'": "'".charCodeAt(0),
-        '"': '"'.charCodeAt(0),
-        '[': '['.charCodeAt(0),
-        ']': ']'.charCodeAt(0),
-        '\\': '\\'.charCodeAt(0)
-    };
-    ns.transform('Character', function transformCharacter(name, value) {
-        var c = value[1];
-        if (value[0] === '\\') {
-            c = escChars[c];  // FIXME: handle unicode escapes!
-        } else {
-            c = c.charCodeAt(0);
-        }
-        return c;
-    });
-
-//----
 
     var transformNamed = function transformNamed(name, value) {
         log('transformNamed:', name, value);

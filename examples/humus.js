@@ -37,14 +37,13 @@ var sponsor = tracing.sponsor;
 //var log = console.log;
 var log = function () {};
 
-var ns = require('./humusTokens.js').build(sponsor, log);
 //var ns = require('./humusSyntax.js').build(sponsor, log);
+var ns = require('./humusTokens.js').build(sponsor, log);
 
 require('./reduceTokens.js').transform(ns);
 
-var simpleSource = 
-    'SEND (#Hello, #World, #.) TO println\n';
-//    'SEND (#Hello, "World", \'\\n\', ##, -42) TO println\n';
+var helloSource = 
+    'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n';
 var labelSource = 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
   + 'CREATE R WITH label_beh(println, #Right)\n'
@@ -53,12 +52,12 @@ var labelSource =
   + 'SEND #Hello TO L\n';
 //var fileSource = require('fs').readFileSync('sample.hum', 'utf8');
 var input = {
-    source: simpleSource,
+    source: helloSource,
     offset: 0
 };
 
 var ok = sponsor(function okBeh(m) {
-    console.log('OK:', JSON.stringify(m, null, '  '));
+    log('OK:', JSON.stringify(m, null, '  '));
     process.stdout.write('---- TOKENS ----\n');
     var list = m.value;
     for (var i = 0; i < list.length; ++i) {
