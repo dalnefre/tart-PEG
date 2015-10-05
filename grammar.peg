@@ -28,6 +28,8 @@ Character   <- "\\" [nrt'"\[\]\\]
 Object      <- LBRACE (Property (COMMA Property)*)? RBRACE
 Property    <- Name COLON Expression
 
+DOT         <- "." _
+
 LEFTARROW   <- "<-" _
 SLASH       <- "/" _
 AND         <- "&" _
@@ -37,7 +39,6 @@ STAR        <- "*" _
 PLUS        <- "+" _
 OPEN        <- "(" _
 CLOSE       <- ")" _
-DOT         <- "." _
 LBRACE      <- "{" _
 RBRACE      <- "}" _
 COLON       <- ":" _

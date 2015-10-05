@@ -43,6 +43,8 @@ require('../reducePEG.js').transform(ns);
 
 var simpleSource = ''
 + '\r\n# comment\n';
+var objectSource = ''
++ 'IGNORE  <- { type:\'name\', value:\'_\' }';
 var commentSource = ''
 + 'Comment <- [#] (!EOL .)* EOL\r'
 + "EOL <- '\\n'\n" 
@@ -57,9 +59,9 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 //var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
-var fileSource = require('fs').readFileSync('examples/humusSyntax.peg', 'utf8');
+//var fileSource = require('fs').readFileSync('examples/humusSyntax.peg', 'utf8');
 var input = {
-    source: fileSource,
+    source: objectSource,
     offset: 0
 };
 

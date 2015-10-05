@@ -36,8 +36,8 @@ var semantic = module.exports;
  * transform(ns) - augment grammar namespace with reduction semantics
  */
 semantic.transform = function transform(ns) {
-//    var log = console.log;
-    var log = function () {};
+    var log = console.log;
+//    var log = function () {};
 
     ns.transform('Grammar', function transformGrammar(name, value) {
         log('transformGrammar:', name, value);
@@ -186,12 +186,43 @@ semantic.transform = function transform(ns) {
 
     ns.transform('Object', function transformObject(name, value) {
         log('transformObject:', name, value);
+        var list = [];
+        if (value[1].length == 1) {
+            var props = value[1][0];
+            var first = props[0];
+//            log('transformObject.first:', first);
+            var rest = props[1];
+//            log('transformObject.rest:', rest);
+            list.push(first);
+            for (var i = 0; i < rest.length; ++i) {
+                var next = rest[i];
+//                log('transformObject.next:', next);
+                if (next[0] === 'COMMA') {
+                    list.push(next[1]);
+                }
+            }
+        }
         var result = {
             type: name,
-            ptrn: value
+            ptrn: list
         };
         log('Object:', result);
         return result;
+    });
+
+    ns.transform('Property', function transformProperty(name, value) {
+        log('transformProperty:', name, value);
+        var result = {
+            type: name,
+            name: value[0].ptrn,
+            expr: value[2]
+        };
+        log('Property:', result);
+        return result;
+    });
+
+    ns.transform('DOT', function transformDOT(name, value) {
+        return { type: 'DOT' };
     });
 
     var transformToken = function transformToken(name, value) {
@@ -206,10 +237,10 @@ semantic.transform = function transform(ns) {
     ns.transform('PLUS', transformToken);
     ns.transform('OPEN', transformToken);
     ns.transform('CLOSE', transformToken);
-
-    ns.transform('DOT', function transformDOT(name, value) {
-        return { type: 'DOT' };
-    });
+    ns.transform('LBRACE', transformToken);
+    ns.transform('RBRACE', transformToken);
+    ns.transform('COLON', transformToken);
+    ns.transform('COMMA', transformToken);
 
     ns.transform('_', function transformSpace(name, value) {
         return ' ';

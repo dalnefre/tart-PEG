@@ -292,6 +292,16 @@ grammar.build = function build(sponsor, log) {
     );
 
     /*
+    DOT <- "." _
+    */
+    ns.define('DOT',
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('.')),
+            ns.lookup('_')
+        ]))
+    );
+
+    /*
     LEFTARROW <- "<-" _
     */
     ns.define('LEFTARROW',
@@ -370,15 +380,6 @@ grammar.build = function build(sponsor, log) {
     ns.define('CLOSE',
         sponsor(PEG.sequence([
             sponsor(PEG.terminal(')')),
-            ns.lookup('_')
-        ]))
-    );
-    /*
-    DOT <- "." _
-    */
-    ns.define('DOT',
-        sponsor(PEG.sequence([
-            sponsor(PEG.terminal('.')),
             ns.lookup('_')
         ]))
     );
