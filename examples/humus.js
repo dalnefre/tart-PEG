@@ -51,7 +51,6 @@ var parseTokens = function parseTokens(source) {
     });
 
     var start = ns.lookup('tokens');
-    //var start = ns.lookup('humus');
     start({
         in: {
             source: source,
@@ -72,6 +71,8 @@ var parseSyntax = function parseSyntax(source) {
         process.stdout.write(JSON.stringify(list[i]) + '\n');
     }
     process.stdout.write('</TOKENS>\n');
+    
+    //var start = ns.lookup('humus');
 };
 
 var helloSource = 
