@@ -4,13 +4,15 @@
 
 tokens  <- _ token* EOF
 token   <- symbol
-         / keyword
-         / const
-         / boolean
+#         / keyword
+#         / const
+#         / boolean
          / number
          / char
          / string
+#         / IGNORE
          / ident
+         / punct
 
 symbol  <- '#' ident
 
@@ -51,8 +53,8 @@ qchar   <- '\\' [nrt'"\[\]\\]
          / !'\\' .
 
 # ident   <- !number (!punct .)+
-ident   <- !IGNORE [0-9a-zA-Z!%&'*+-/?@^_~]+ _
-punct   <- [#$(),.:;=\[\\\]]
+ident   <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
+punct   <- [#$(),.:;=\[\\\]] _
 
 IGNORE  <- '_' _
 LBRACK  <- '[' _
@@ -68,7 +70,7 @@ LAMBDA  <- [\\] _
 DOT     <- '.' _
 
 _       <- &punct                           # token boundary
-         / (space / note)*
+         / (space / comment)*
 comment <- '#' space (!EOL .)*
 space   <- [ \t-\r]
 EOL     <- '\n'

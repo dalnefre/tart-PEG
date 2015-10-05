@@ -6,6 +6,7 @@
     "inject-examples": "node scripts/injectExamples.js",
     "readme": "node examples/readme.js",
     "sample": "node examples/sample.js",
+    "humus": "node examples/humus.js",
     "test": "node scripts/test.js"
   },
   "main": "index.js",

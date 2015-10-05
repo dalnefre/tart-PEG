@@ -2,8 +2,8 @@
 "use strict";
 var grammar = module.exports;
 
-var PEG = require("./index.js");
-var named = require("./named.js");
+var PEG = require("../index.js");
+var named = require("../named.js");
 
 grammar.build = function build(sponsor) {
   var ns = named.scope(sponsor);

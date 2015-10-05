@@ -2,8 +2,8 @@
 "use strict";
 var grammar = module.exports;
 
-var PEG = require("./index.js");
-var named = require("./named.js");
+var PEG = require("../index.js");
+var named = require("../named.js");
 
 grammar.build = function build(sponsor) {
   var ns = named.scope(sponsor);
@@ -21,13 +21,15 @@ grammar.build = function build(sponsor) {
   ns.define("token",
     sponsor(PEG.choice([
       ns.lookup("symbol"),
-      ns.lookup("keyword"),
-      ns.lookup("const"),
-      ns.lookup("boolean"),
+//      ns.lookup("keyword"),
+//      ns.lookup("const"),
+//      ns.lookup("boolean"),
       ns.lookup("number"),
       ns.lookup("char"),
       ns.lookup("string"),
-      ns.lookup("ident")
+//      ns.lookup("IGNORE"),
+      ns.lookup("ident"),
+      ns.lookup("punct")
     ]))
   );
 
@@ -371,12 +373,9 @@ grammar.build = function build(sponsor) {
 
   ns.define("ident",
     sponsor(PEG.sequence([
-      sponsor(PEG.not(
-        ns.lookup("IGNORE")
-      )),
       sponsor(PEG.plus(
         sponsor(PEG.predicate(function (token) {
-          return /[0-9a-zA-Z!%&'*+-/?@^_~]/.test(token);
+          return /[-0-9a-zA-Z!%&'*+/?@^_~]/.test(token);
         }))
       )),
       ns.lookup("_")
@@ -384,9 +383,12 @@ grammar.build = function build(sponsor) {
   );
 
   ns.define("punct",
-    sponsor(PEG.predicate(function (token) {
-      return /[#$(),.:;=\[\\\]]/.test(token);
-    }))
+    sponsor(PEG.sequence([
+      sponsor(PEG.predicate(function (token) {
+        return /[#$(),.:;=\[\\\]]/.test(token);
+      })),
+      ns.lookup("_")
+    ]))
   );
 
   ns.define("IGNORE",
@@ -476,7 +478,7 @@ grammar.build = function build(sponsor) {
       sponsor(PEG.star(
         sponsor(PEG.choice([
           ns.lookup("space"),
-          ns.lookup("note")
+          ns.lookup("comment")
         ]))
       ))
     ]))
