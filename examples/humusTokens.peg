@@ -14,7 +14,7 @@ token   <- symbol
          / ident
          / punct
 
-symbol  <- '#' ident
+symbol  <- '#' (punct / name)
 
 keyword <- LET / IN / AFTER / SEND / TO / CREATE / WITH / BECOME / THROW
          / IF / ELIF / ELSE / CASE / OF / END / NEW
@@ -53,7 +53,8 @@ qchar   <- '\\' [nrt'"\[\]\\]
          / !'\\' .
 
 # ident   <- !number (!punct .)+
-ident   <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
+ident   <- name
+name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
 punct   <- [#$(),.:;=\[\\\]] _
 
 IGNORE  <- '_' _

@@ -1,6 +1,6 @@
 /*
 
-sample.js - building on the PEG ASCII grammar
+reducePEG.js - semantic transformation to simplify PEG parsing results
 
 The MIT License (MIT)
 
@@ -31,9 +31,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 "use strict";
 
 var semantic = module.exports;
-
-//var PEG = require('./index.js');
-//var named = require('./named.js');
 
 /*
  * transform(ns) - augment grammar namespace with reduction semantics

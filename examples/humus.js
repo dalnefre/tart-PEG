@@ -40,10 +40,11 @@ var log = function () {};
 var ns = require('./humusTokens.js').build(sponsor, log);
 //var ns = require('./humusSyntax.js').build(sponsor, log);
 
-//require('../reduceTokens.js').transform(ns);
+require('./reduceTokens.js').transform(ns);
 
 var simpleSource = 
-    'SEND (#Hello, #World) TO println\n';
+    'SEND (#Hello, #World, #.) TO println\n';
+//    'SEND (#Hello, "World", \'\\n\', ##, -42) TO println\n';
 var labelSource = 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
   + 'CREATE R WITH label_beh(println, #Right)\n'
@@ -59,9 +60,9 @@ var input = {
 var ok = sponsor(function okBeh(m) {
     console.log('OK:', JSON.stringify(m, null, '  '));
     process.stdout.write('---- TOKENS ----\n');
-    var list = m.value.value[1];
+    var list = m.value;
     for (var i = 0; i < list.length; ++i) {
-        process.stdout.write(JSON.stringify(list[i].value) + '\n');
+        process.stdout.write(JSON.stringify(list[i]) + '\n');
     }
 });
 var fail = sponsor(function failBeh(m) {

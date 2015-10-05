@@ -36,7 +36,10 @@ grammar.build = function build(sponsor) {
   ns.define("symbol",
     sponsor(PEG.sequence([
       sponsor(PEG.terminal("#")),
-      ns.lookup("ident")
+      sponsor(PEG.choice([
+        ns.lookup("punct"),
+        ns.lookup("name")
+      ]))
     ]))
   );
 
@@ -371,7 +374,9 @@ grammar.build = function build(sponsor) {
     ]))
   );
 
-  ns.define("ident",
+  ns.define("ident", ns.lookup("name"));
+
+  ns.define("name",
     sponsor(PEG.sequence([
       sponsor(PEG.plus(
         sponsor(PEG.predicate(function (token) {
