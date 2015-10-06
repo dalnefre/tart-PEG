@@ -34,20 +34,20 @@ var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var parseTokens = function parseTokens(source) {
     var ns = require('./humusTokens.js').build(this.sponsor, log);
     require('./reduceTokens.js').transform(ns);
 
     var ok = this.sponsor(function okBeh(m) {
-        log('OK:', JSON.stringify(m, null, '  '));
+        log('Tokens OK:', JSON.stringify(m, null, '  '));
         var syntax = this.sponsor(parseSyntax);
         syntax(m.value);
     });
     var fail = this.sponsor(function failBeh(m) {
-        console.log('FAIL:', JSON.stringify(m, null, '  '));
+        console.log('Tokens FAIL:', JSON.stringify(m, null, '  '));
     });
 
     var start = ns.lookup('tokens');
@@ -71,8 +71,24 @@ var parseSyntax = function parseSyntax(source) {
         process.stdout.write(JSON.stringify(list[i]) + '\n');
     }
     process.stdout.write('</TOKENS>\n');
-    
-    //var start = ns.lookup('humus');
+/*
+*/
+    var ok = this.sponsor(function okBeh(m) {
+        console.log('Syntax OK:', JSON.stringify(m, null, '  '));
+    });
+    var fail = this.sponsor(function failBeh(m) {
+        console.log('Syntax FAIL:', JSON.stringify(m, null, '  '));
+    });
+
+    var start = ns.lookup('humus');
+    start({
+        in: {
+            source: source,
+            offset: 0
+        },
+        ok: ok,
+        fail: fail
+    });
 };
 
 var helloSource = 

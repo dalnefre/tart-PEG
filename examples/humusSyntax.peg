@@ -33,7 +33,7 @@ pterm   <- IGNORE
          / ident
 const   <- block
          / SELF
-         / '\' ptrn '.' expr
+         / '\\' ptrn '.' expr
          / number
          / char
          / string

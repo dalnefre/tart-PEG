@@ -61,8 +61,9 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 //var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
+var fileSource = require('fs').readFileSync('examples/humusSyntax.peg', 'utf8');
 var input = {
-    source: stringSource,
+    source: fileSource,
     offset: 0
 };
 

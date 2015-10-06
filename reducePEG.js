@@ -36,8 +36,8 @@ var semantic = module.exports;
  * transform(ns) - augment grammar namespace with reduction semantics
  */
 semantic.transform = function transform(ns) {
-    var log = console.log;
-//    var log = function () {};
+//    var log = console.log;
+    var log = function () {};
 
     ns.transform('Grammar', function transformGrammar(name, value) {
         log('transformGrammar:', name, value);
