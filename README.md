@@ -144,6 +144,7 @@ Use `sponsor(behavior)` to create a pattern-matching actor.
   * [PEG.zeroOrMore(pattern)](#pegzeroormorepattern)
   * [PEG.oneOrMore(pattern)](#pegoneormorepattern)
   * [PEG.zeroOrOne(pattern)](#pegzerooronepattern)
+  * [PEG.object(object)](#pegobjectobject)
   * [PEG.memoize(pattern, \[name, \[log\]\])](#pegmemoizepattern-name-log)
 
 PEG parsing actors expect a message with the following attributes:
@@ -261,7 +262,7 @@ The result `value` is an _Array_ (possibly empty) of the matched values.
 
 ### PEG.object(object)
 
-  * `object`: _Object_ An object containing expected property patterns.
+  * `object`: _Object_ An object containing expected property values.
 
 Match and consume the current input Token, if it matches `object`.
 Otherwise fail, consuming no input.
