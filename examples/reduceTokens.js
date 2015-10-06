@@ -145,10 +145,7 @@ semantic.transform = function transform(ns) {
 
     ns.transform('punct', function transformPunct(name, value) {
         log('transformPunct:', name, value);
-        var result = {
-            type: name,
-            value: value[0]
-        };
+        var result = value[0];
         log('Punct:', result);
         return result;
     });

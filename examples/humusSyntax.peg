@@ -3,7 +3,7 @@
 #
         
 humus   <- stmt+
-block   <- LBRACK stmt* RBRACK
+block   <- '[' stmt* ']'
 stmt    <- LET eqtn !IN
          / (AFTER expr)? SEND expr TO expr
          / CREATE ident WITH expr
@@ -12,28 +12,28 @@ stmt    <- LET eqtn !IN
          / expr
 expr    <- LET eqtn IN expr
          / IF eqtn expr (ELIF eqtn expr)* (ELSE expr)?
-         / CASE expr OF (ptrn COLON expr)+ END
-         / term COMMA expr
+         / CASE expr OF (ptrn ':' expr)+ END
+         / term ',' expr
          / term
 term    <- NEW term
          / const
          / call
-         / LPAREN expr? RPAREN
+         / '(' expr? ')'
          / ident
-call    <- ident LPAREN expr? RPAREN
-         / LPAREN expr RPAREN LPAREN expr? RPAREN
-eqtn    <- ident LPAREN ptrn? RPAREN EQUAL expr
-         / ptrn EQUAL ptrn
-ptrn    <- pterm COMMA ptrn
+call    <- ident '(' expr? ')'
+         / '(' expr ')' '(' expr? ')'
+eqtn    <- ident '(' ptrn? ')' '=' expr
+         / ptrn '=' ptrn
+ptrn    <- pterm ',' ptrn
          / pterm
 pterm   <- IGNORE
-         / VALUE term
-         / LPAREN ptrn? RPAREN
+         / '$' term
+         / '(' ptrn? ')'
          / const
          / ident
 const   <- block
          / SELF
-         / LAMBDA ptrn DOT expr
+         / '\' ptrn '.' expr
          / number
          / char
          / string
@@ -69,17 +69,6 @@ TRUE    <- { type:'name', value:'TRUE' }
 FALSE   <- { type:'name', value:'FALSE' }
 
 IGNORE  <- { type:'name', value:'_' }
-
-LBRACK  <- { type:'punct', value:'[' }
-RBRACK  <- { type:'punct', value:']' }
-COLON   <- { type:'punct', value:':' }
-COMMA   <- { type:'punct', value:',' }
-LPAREN  <- { type:'punct', value:'(' }
-RPAREN  <- { type:'punct', value:')' }
-EQUAL   <- { type:'punct', value:'=' }
-VALUE   <- { type:'punct', value:'$' }
-LAMBDA  <- { type:'punct', value:'\\' }
-DOT     <- { type:'punct', value:'.' }
 
 ident   <- { type:'name' }
 number  <- { type:'number' }

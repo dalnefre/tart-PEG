@@ -58,17 +58,6 @@ name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
 punct   <- [#$(),.:;=\[\\\]] _
 
 IGNORE  <- '_' _
-LBRACK  <- '[' _
-RBRACK  <- ']' _
-COLON   <- ':' _
-COMMA   <- ',' _
-LPAREN  <- '(' _
-RPAREN  <- ')' _
-EQUAL   <- '=' _
-VALUE   <- '$' _
-#LAMBDA  <- [\\\u03BB] _
-LAMBDA  <- [\\] _
-DOT     <- '.' _
 
 _       <- &punct                           # token boundary
          / (space / comment)*
