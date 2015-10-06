@@ -241,20 +241,24 @@ var textClass = function textClass(list) {
     return s;
 };
 
+var sq = function sq(list) {
+    var s = '';
+    for (var i = 0; i < list.length; ++i) {
+        s += String.fromCharCode(list[i]);
+    }
+    return q(s);
+};
 var textObject = function textObject(list) {
     var s = '';
     var a = [];
 
     s += 'sponsor(PEG.object({\n';
     indentDepth += indentWidth;
-/*
-    s += q(list);  // FIXME: REPLACE THIS STUB ASAP
-*/
     for (var i = 0; i < list.length; ++i) {
         var rule = list[i];
         if (rule.type === 'Property') {
             a.push(q(rule.name) + ': '
-                + textExpression(rule.expr));
+                + sq(rule.value.ptrn));
         }
     }
     s += indent() + a.join(',\n' + indent()) + '\n';

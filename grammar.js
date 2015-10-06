@@ -287,7 +287,7 @@ grammar.build = function build(sponsor, log) {
         sponsor(PEG.sequence([
             ns.lookup('Name'),
             ns.lookup('COLON'),
-            ns.lookup('Expression')
+            ns.lookup('Literal')
         ]))
     );
 

@@ -285,11 +285,17 @@ PEG.question = PEG.optional = PEG.zeroOrOne = PEG.zeroOrOnePtrn = function zeroO
     };
 };
 
-PEG.object = function objectPtrn(object) {
-	//
-	// FIXME: implement Object pattern
-	//
-	return PEG.fail;
+PEG.object = function objectPtrn(expect) {
+    return PEG.predicate(function matchObject(actual) {
+        for (var name in expect) {
+            if (expect.hasOwnProperty(name)) {
+                if (expect[name] !== actual[name]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    });
 }
 
 PEG.memoize = PEG.packrat = PEG.packratPtrn = function packratPtrn(pattern, name, log) {

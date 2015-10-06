@@ -215,7 +215,7 @@ semantic.transform = function transform(ns) {
         var result = {
             type: name,
             name: value[0].ptrn,
-            expr: value[2]
+            value: value[2]
         };
         log('Property:', result);
         return result;

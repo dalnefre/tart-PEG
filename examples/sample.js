@@ -58,10 +58,9 @@ var exprSource = ''
 + 'Factor <- "(" Assign ")"\n'
 + '        / Name\n'
 + '        / [0-9]+\n';
-//var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
-//var fileSource = require('fs').readFileSync('examples/humusSyntax.peg', 'utf8');
+var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
 var input = {
-    source: objectSource,
+    source: fileSource,
     offset: 0
 };
 
