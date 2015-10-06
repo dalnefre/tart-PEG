@@ -281,7 +281,7 @@ grammar.build = function build(sponsor, log) {
         ]))
     );
     /*
-    Property <- Name COLON Expression
+    Property <- Name COLON Literal
     */
     ns.define('Property',
         sponsor(PEG.sequence([
