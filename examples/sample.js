@@ -44,7 +44,9 @@ require('../reducePEG.js').transform(ns);
 var simpleSource = ''
 + '\r\n# comment\n';
 var objectSource = ''
-+ 'IGNORE  <- { type:\'name\', value:\'_\' }';
++ 'IGNORE <- { type:\'name\', value:\'_\' }';
+var stringSource = ''
++ 'STRING <- \'One\' "Two" Three [Four] [Five]+ [Six]*';
 var commentSource = ''
 + 'Comment <- [#] (!EOL .)* EOL\r'
 + "EOL <- '\\n'\n" 
@@ -58,9 +60,9 @@ var exprSource = ''
 + 'Factor <- "(" Assign ")"\n'
 + '        / Name\n'
 + '        / [0-9]+\n';
-var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
+//var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
 var input = {
-    source: fileSource,
+    source: stringSource,
     offset: 0
 };
 
