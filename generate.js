@@ -132,7 +132,11 @@ var textTerm = function textTerm(term) {
     if ((typeof term === 'object') && (term.length > 0)) {
         return textExpression(term);
     } else if (term.type === 'Literal') {
-        return textLiteral(term.ptrn);
+        if ((term.open === '\'') && (term.close === '\'')) {
+            return textString(term.ptrn);
+        } else {
+            return textLiteral(term.ptrn);
+        }
     } else if (term.type === 'Class') {
         return textClass(term.ptrn);
     } else if (term.type === 'Object') {
@@ -192,6 +196,23 @@ var textCharacter = function textCharacter(code) {
     return s;
 };
 
+var sq = function sq(list) {
+    var s = '';
+    for (var i = 0; i < list.length; ++i) {
+        s += String.fromCharCode(list[i]);
+    }
+    return q(s);
+};
+var textString = function textString(list) {
+    var s = '';
+
+    s += 'sponsor(PEG.terminal(';
+    s += sq(list);
+    s += '))';
+    
+    return s;
+};
+
 var textLiteral = function textLiteral(list) {
     if (list.length == 1) {
         return textCharacter(list[0]);
@@ -241,13 +262,6 @@ var textClass = function textClass(list) {
     return s;
 };
 
-var sq = function sq(list) {
-    var s = '';
-    for (var i = 0; i < list.length; ++i) {
-        s += String.fromCharCode(list[i]);
-    }
-    return q(s);
-};
 var textObject = function textObject(list) {
     var s = '';
     var a = [];
