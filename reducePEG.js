@@ -147,6 +147,8 @@ semantic.transform = function transform(ns) {
         }
         return {
             type: name,
+            open: value[0],
+            close: value[2],
             ptrn: s
         };
     };
