@@ -4,18 +4,18 @@
         
 humus   <- stmt+
 block   <- '[' stmt* ']'
-stmt    <- LET eqtn !IN
-         / (AFTER expr)? SEND expr TO expr
-         / CREATE ident WITH expr
-         / BECOME expr
-         / THROW expr
+stmt    <- 'LET' eqtn !'IN'
+         / ('AFTER' expr)? 'SEND' expr 'TO' expr
+         / 'CREATE' ident 'WITH' expr
+         / 'BECOME' expr
+         / 'THROW' expr
          / expr
-expr    <- LET eqtn IN expr
-         / IF eqtn expr (ELIF eqtn expr)* (ELSE expr)?
-         / CASE expr OF (ptrn ':' expr)+ END
+expr    <- 'LET' eqtn 'IN' expr
+         / 'IF' eqtn expr ('ELIF' eqtn expr)* ('ELSE' expr)?
+         / 'CASE' expr 'OF' (ptrn ':' expr)+ 'END'
          / term ',' expr
          / term
-term    <- NEW term
+term    <- 'NEW' term
          / const
          / call
          / '(' expr? ')'
@@ -26,51 +26,25 @@ eqtn    <- ident '(' ptrn? ')' '=' expr
          / ptrn '=' ptrn
 ptrn    <- pterm ',' ptrn
          / pterm
-pterm   <- IGNORE
+pterm   <- '_'
          / '$' term
          / '(' ptrn? ')'
          / const
          / ident
 const   <- block
-         / SELF
+         / 'SELF'
          / '\\' ptrn '.' expr
+         / symbol
          / number
          / char
          / string
-         / UNDEF
-         / NIL
-         / TRUE
-         / FALSE
-         / symbol
+         / 'NIL'
+         / 'TRUE'
+         / 'FALSE'
+         / '?'
 
 # Tokens
-LET     <- { type:'name', value:'LET' }
-IN      <- { type:'name', value:'IN' }
-AFTER   <- { type:'name', value:'AFTER' }
-SEND    <- { type:'name', value:'SEND' }
-TO      <- { type:'name', value:'TO' }
-CREATE  <- { type:'name', value:'CREATE' }
-WITH    <- { type:'name', value:'WITH' }
-BECOME  <- { type:'name', value:'BECOME' }
-THROW   <- { type:'name', value:'THROW' }
-IF      <- { type:'name', value:'IF' }
-ELIF    <- { type:'name', value:'ELIF' }
-ELSE    <- { type:'name', value:'ELSE' }
-CASE    <- { type:'name', value:'CASE' }
-OF      <- { type:'name', value:'OF' }
-END     <- { type:'name', value:'END' }
-NEW     <- { type:'name', value:'NEW' }
-
-SELF    <- { type:'name', value:'SELF' }
-NIL     <- { type:'name', value:'NIL' }
-UNDEF   <- { type:'name', value:'?' }
-
-TRUE    <- { type:'name', value:'TRUE' }
-FALSE   <- { type:'name', value:'FALSE' }
-
-IGNORE  <- { type:'name', value:'_' }
-
-ident   <- { type:'name' }
+ident   <- { type:'ident' }
 number  <- { type:'number' }
 char    <- { type:'char' }
 string  <- { type:'string' }

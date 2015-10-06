@@ -32,6 +32,40 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var semantic = module.exports;
 
+semantic.keywords = [
+    'LET',
+    'IN',
+    'AFTER',
+    'SEND',
+    'TO',
+    'CREATE',
+    'WITH',
+    'BECOME',
+    'THROW',
+    'IF',
+    'ELIF',
+    'ELSE',
+    'CASE',
+    'OF',
+    'END',
+    'NEW',
+    'SELF',
+    'NIL',
+    'TRUE',
+    'FALSE',
+    '?',
+    '_'
+];
+var isKeyword = function isKeyword(name) {
+    var list = semantic.keywords;
+    for (var i = 0; i < list.length; ++i) {
+        if (list[i] === name) {
+            return true;
+        }
+    }
+    return false;
+};
+
 /*
  * transform(ns) - augment grammar namespace with reduction semantics
  */
@@ -58,7 +92,7 @@ semantic.transform = function transform(ns) {
         log('transformSymbol:', name, value);
         var result = {
             type: name,
-            value: value[1].value
+            value: value[1]
         };
         log('Symbol:', result);
         return result;
@@ -131,14 +165,22 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
-    ns.transform('ident', transformValue);
+    ns.transform('ident', function transformIdent(name, value) {
+        log('transformIdent:', name, value);
+        var result = value;
+        if (!isKeyword(result)) {
+            result = {
+                type: name,
+                value: value
+            };
+        }
+        log('Ident:', result);
+        return result;
+    });
 
     ns.transform('name', function transformName(name, value) {
         log('transformName:', name, value);
-        var result = {
-            type: name,
-            value: value[0].join('')
-        };
+        var result = value[0].join('');
         log('Name:', result);
         return result;
     });
@@ -158,17 +200,6 @@ semantic.transform = function transform(ns) {
         log('Named:', result);
         return result;
     };
-    ns.transform('IGNORE', transformNamed);
-    ns.transform('LBRACK', transformNamed);
-    ns.transform('RBRACK', transformNamed);
-    ns.transform('COLON', transformNamed);
-    ns.transform('COMMA', transformNamed);
-    ns.transform('LPAREN', transformNamed);
-    ns.transform('RPAREN', transformNamed);
-    ns.transform('EQUAL', transformNamed);
-    ns.transform('VALUE', transformNamed);
-    ns.transform('LAMBDA', transformNamed);
-    ns.transform('DOT', transformNamed);
     ns.transform('_', transformNamed);
 
     return ns;
