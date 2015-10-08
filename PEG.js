@@ -82,11 +82,12 @@ On success/failure the ok/fail actors expect a result message with this format:
 
 */
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {
+    console.log('error', e);
     m.fail({
         start: m.input,
         end: m.input,
@@ -95,6 +96,7 @@ var error = function error(m, e) {
 };
 
 PEG.fail = function failBeh(m) {
+    log('failBeh:', m);
     m.fail({
         start: m.input,
         end: m.input
@@ -102,6 +104,7 @@ PEG.fail = function failBeh(m) {
 };
 
 PEG.empty = function emptyBeh(m) {
+    log('emptyBeh:', m);
     m.ok({
         start: m.input,
         end: m.input,
@@ -111,11 +114,12 @@ PEG.empty = function emptyBeh(m) {
 
 PEG.predicate = function predicatePtrn(predicate) {
     return function predicateBeh(m) {
+        log('predicateBeh:', m);
         try {
             var token = m.input.token;
             if (token !== undefined) {
                 if (predicate(token)) {
-                    m.input.next(sponsor(function readBeh(input) {
+                    m.input.next(this.sponsor(function readBeh(input) {
                         m.ok({
                             start: m.input,
                             end: input,
@@ -144,6 +148,7 @@ PEG.terminal = function terminalPtrn(expect) {
 
 PEG.not = function notPtrn(pattern) {
     return function notBeh(m) {
+        log('notBeh:', m);
         try {
             var result = {
                 start: m.input,
@@ -166,6 +171,7 @@ PEG.not = function notPtrn(pattern) {
 
 PEG.follow = function followPtrn(pattern) {
     return function followBeh(m) {
+        log('followBeh:', m);
         try {
             var result = {
                 start: m.input,
@@ -269,6 +275,7 @@ PEG.choice = function choicePtrn(list) {
 
 PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
     return function zeroOrMoreBeh(m) {
+        log('zeroOrMoreBeh:', m);
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
             list.push(r.value);  // mutate list
@@ -295,6 +302,7 @@ PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
 
 PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
     return function oneOrMoreBeh(m) {
+        log('oneOrMoreBeh:', m);
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
             list.push(r.value);  // mutate list
@@ -321,6 +329,7 @@ PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
 
 PEG.question = PEG.optional = PEG.zeroOrOne = function zeroOrOnePtrn(pattern) {
     return function zeroOrOneBeh(m) {
+        log('zeroOrOneBeh:', m);
         pattern({
             input: m.input,
             ok: this.sponsor(function oneBeh(r) {
@@ -380,5 +389,15 @@ PEG.memoize = PEG.packrat = function packratPtrn(pattern, name, log) {
         } catch (e) {
             error(m, e);
         }
+    };
+};
+
+PEG.start = function start(pattern, ok, fail) {
+    return function startBeh(s) {
+        pattern({
+            input: s,
+            ok: ok,
+            fail: fail
+        });
     };
 };
