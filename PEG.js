@@ -142,21 +142,21 @@ PEG.terminal = function terminalPtrn(expect) {
     });
 }
 
-/* ---- PATTERNS BELOW THIS LINE STILL REQUIRE CONVERSION ---- */
-
 PEG.not = function notPtrn(pattern) {
     return function notBeh(m) {
         try {
-            var success = this.sponsor(function(r) {
-                m.ok({
-                    in: m.in,
-                    value: m.value
-                });
-            });
+            var result = {
+                start: m.input,
+                end: m.input
+            };
             pattern({
-                in: m.in,
-                ok: m.fail,
-                fail: success
+                input: m.input,
+                ok: this.sponsor(function okBeh(r) {
+                    m.fail(result);
+                }),
+                fail: this.sponsor(function failBeh(r) {
+                    m.ok(result);
+                })
             });
         } catch (e) {
             error(m, e);
@@ -167,22 +167,26 @@ PEG.not = function notPtrn(pattern) {
 PEG.follow = function followPtrn(pattern) {
     return function followBeh(m) {
         try {
-            var success = this.sponsor(function(r) {
-                m.ok({
-                    in: m.in,
-                    value: m.value
-                });
-            });
+            var result = {
+                start: m.input,
+                end: m.input
+            };
             pattern({
-                in: m.in,
-                ok: success,
-                fail: m.fail
+                input: m.input,
+                ok: this.sponsor(function okBeh(r) {
+                    m.ok(result);
+                }),
+                fail: this.sponsor(function failBeh(r) {
+                    m.fail(result);
+                })
             });
         } catch (e) {
             error(m, e);
         }
     };
 };
+
+/* ---- PATTERNS BELOW THIS LINE STILL REQUIRE CONVERSION ---- */
 
 var andThen = function andPtrn(first, rest) {
     return function andBeh(m) {
