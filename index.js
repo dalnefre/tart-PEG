@@ -44,14 +44,14 @@ var error = function error(m, e) {
     });
 };
 
-PEG.fail /*= PEG.failBeh*/ = function failBeh(m) {
+PEG.fail = function failBeh(m) {
     m.fail({
         in: m.in,
         value: m.value
     });
 };
 
-PEG.empty /*= PEG.emptyBeh*/ = function emptyBeh(m) {
+PEG.empty = function emptyBeh(m) {
     try {
         m.ok({
             in: m.in,
@@ -62,7 +62,7 @@ PEG.empty /*= PEG.emptyBeh*/ = function emptyBeh(m) {
     }
 };
 
-PEG.predicate = PEG.predicatePtrn = function predicatePtrn(predicate) {
+PEG.predicate = function predicatePtrn(predicate) {
     return function predicateBeh(m) {
         try {
             if (m.in.offset < m.in.source.length) {
@@ -84,17 +84,17 @@ PEG.predicate = PEG.predicatePtrn = function predicatePtrn(predicate) {
     };
 };
 
-PEG.dot = PEG.anything = PEG.anythingBeh = PEG.predicate(function isTrue(token) {
+PEG.dot = PEG.anything = PEG.predicate(function isTrue(token) {
     return true;
 });
 
-PEG.terminal = PEG.terminalPtrn = function terminalPtrn(expect) {
+PEG.terminal = function terminalPtrn(expect) {
     return PEG.predicate(function isEqual(actual) {
         return (expect == actual);
     });
 }
 
-PEG.not = PEG.notPtrn = function notPtrn(pattern) {
+PEG.not = function notPtrn(pattern) {
     return function notBeh(m) {
         try {
             var success = this.sponsor(function(r) {
@@ -114,7 +114,7 @@ PEG.not = PEG.notPtrn = function notPtrn(pattern) {
     };
 };
 
-PEG.follow = PEG.followPtrn = function followPtrn(pattern) {
+PEG.follow = function followPtrn(pattern) {
     return function followBeh(m) {
         try {
             var success = this.sponsor(function(r) {
@@ -167,7 +167,7 @@ var andThen = function andPtrn(first, rest) {
         });
     };
 };
-PEG.sequence = PEG.sequencePtrn = function sequencePtrn(list) {
+PEG.sequence = function sequencePtrn(list) {
     return function sequenceBeh(m) {
         if (list.length > 0) {
             var pattern = list.shift();
@@ -200,7 +200,7 @@ var orElse = function orPtrn(first, rest) {
         });
     };
 };
-PEG.choice = PEG.choicePtrn = function choicePtrn(list) {
+PEG.choice = function choicePtrn(list) {
     return function choiceBeh(m) {
         if (list.length > 0) {
             var pattern = list.shift();
@@ -215,7 +215,7 @@ PEG.choice = PEG.choicePtrn = function choicePtrn(list) {
     };
 };
 
-PEG.star = PEG.zeroOrMore = PEG.zeroOrMorePtrn = function zeroOrMorePtrn(pattern) {
+PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
     return function zeroOrMoreBeh(m) {
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
@@ -240,7 +240,7 @@ PEG.star = PEG.zeroOrMore = PEG.zeroOrMorePtrn = function zeroOrMorePtrn(pattern
     };
 };
 
-PEG.plus = PEG.oneOrMore = PEG.oneOrMorePtrn = function oneOrMorePtrn(pattern) {
+PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
     return function oneOrMoreBeh(m) {
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
@@ -265,7 +265,7 @@ PEG.plus = PEG.oneOrMore = PEG.oneOrMorePtrn = function oneOrMorePtrn(pattern) {
     };
 };
 
-PEG.question = PEG.optional = PEG.zeroOrOne = PEG.zeroOrOnePtrn = function zeroOrOnePtrn(pattern) {
+PEG.question = PEG.optional = PEG.zeroOrOne = function zeroOrOnePtrn(pattern) {
     return function zeroOrOneBeh(m) {
         pattern({
             in: m.in,
@@ -298,7 +298,7 @@ PEG.object = function objectPtrn(expect) {
     });
 }
 
-PEG.memoize = PEG.packrat = PEG.packratPtrn = function packratPtrn(pattern, name, log) {
+PEG.memoize = PEG.packrat = function packratPtrn(pattern, name, log) {
     var results = [];
     name = name || '';
     log = log || defaultLog;
