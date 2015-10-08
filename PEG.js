@@ -186,8 +186,6 @@ PEG.follow = function followPtrn(pattern) {
     };
 };
 
-/* ---- PATTERNS BELOW THIS LINE STILL REQUIRE CONVERSION ---- */
-
 var andThen = function andPtrn(first, rest) {
     return function andBeh(m) {
 //        log('andBeh:', m);
@@ -275,19 +273,20 @@ PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
         var more = this.sponsor(function moreBeh(r) {
             list.push(r.value);  // mutate list
             pattern({
-                in: r.in,
+                input: r.end,
                 ok: more,
                 fail: done
             });
         });
         var done = this.sponsor(function doneBeh(r) {
             m.ok({
-                in: r.in,
+                start: m.input,
+                end: r.end,
                 value: list
             });
         });
         pattern({
-            in: m.in,
+            input: m.input,
             ok: more,
             fail: done
         });
@@ -300,19 +299,20 @@ PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
         var more = this.sponsor(function moreBeh(r) {
             list.push(r.value);  // mutate list
             pattern({
-                in: r.in,
+                input: r.end,
                 ok: more,
                 fail: done
             });
         });
         var done = this.sponsor(function doneBeh(r) {
             m.ok({
-                in: r.in,
+                start: m.input,
+                end: r.end,
                 value: list
             });
         });
         pattern({
-            in: m.in,
+            input: m.input,
             ok: more,
             fail: m.fail
         });
@@ -322,16 +322,18 @@ PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
 PEG.question = PEG.optional = PEG.zeroOrOne = function zeroOrOnePtrn(pattern) {
     return function zeroOrOneBeh(m) {
         pattern({
-            in: m.in,
+            input: m.input,
             ok: this.sponsor(function oneBeh(r) {
                 m.ok({
-                    in: r.in,
+                    start: m.input,
+                    end: r.end,
                     value: [ r.value ]
                 });
             }),
             fail: this.sponsor(function zeroBeh(r) {
                 m.ok({
-                    in: m.in,
+                    start: m.input,
+                    end: m.input,
                     value: []
                 });
             })
