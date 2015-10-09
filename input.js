@@ -70,7 +70,7 @@ var memo = input.memo = function memo(streamBeh) {
 
 var arrayStream = input.arrayStream = function arrayStream(seq, pos) {
 	pos = pos || 0;
-	return memo(function streamBeh(cust) {
+	return input.memo(function streamBeh(cust) {
 		var token = seq[pos];
 		log('arrayStream:', pos, JSON.stringify(token));
 		if (pos < seq.length) {
@@ -98,7 +98,7 @@ var stringStream = input.stringStream = function stringStream(seq, prev) {
 		col: -1,
 		pos: -1
 	};
-	return memo(function streamBeh(cust) {
+	return input.memo(function streamBeh(cust) {
     	log('stringStream.prev:', prev);
 		var pos = prev.pos + 1;
 		var row = prev.row;
