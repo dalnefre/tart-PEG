@@ -182,6 +182,7 @@ test['follow period matches without advancing'] = function (test) {
     test.ok(tracing.eventLoop());
     test.done();
 };
+
 /*
 test['empty sequence acts like empty pattern'] = function (test) {
     test.expect(2);
@@ -381,38 +382,9 @@ test['plus/minus choice fails on star'] = function (test) {
     test.ok(tracing.eventLoop());
     test.done();
 };
+*/
 
 test['zeroOrMore matches nothing'] = function (test) {
-    test.expect(2);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-
-    var space = sponsor(PEG.predicate(function (token) {
-        return /\s/.test(token);
-    }));
-    var start = sponsor(PEG.zeroOrMore(space));
-
-    var ok = sponsor(function (r) {
-        test.equal(0, r.value.length);
-    });
-    var fail = sponsor(function (r) {
-        console.log('FAIL:', JSON.stringify(r, null, 2));
-    });
-
-    start({
-        in: {
-            source: '. \r\n',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
-    
-    test.ok(tracing.eventLoop({ count: 100 }));
-    test.done();
-};
-
-test['zeroOrMore matches single space'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -423,28 +395,24 @@ test['zeroOrMore matches single space'] = function (test) {
     var start = sponsor(PEG.zeroOrMore(space));
 
     var ok = sponsor(function (r) {
-        test.equal(1, r.value.length);
-        test.equal(' ', r.value[0]);
+        log('OK:', JSON.stringify(r, null, 2));
+        test.equal(0, r.value.length);
+        test.equal(0, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: ' ',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream('. \r\n'));
+	stream(matcher);
     
-    test.ok(tracing.eventLoop());
+    test.ok(tracing.eventLoop({ count: 100 }));
     test.done();
 };
 
-test['zeroOrMore matches whitespace 3x'] = function (test) {
-    test.expect(5);
+test['zeroOrMore matches single space'] = function (test) {
+    test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
@@ -454,23 +422,48 @@ test['zeroOrMore matches whitespace 3x'] = function (test) {
     var start = sponsor(PEG.zeroOrMore(space));
 
     var ok = sponsor(function (r) {
-        test.equal(3, r.value.length);
+        log('OK:', JSON.stringify(r, null, 2));
+        test.equal(1, r.value.length);
         test.equal(' ', r.value[0]);
-        test.equal('\r', r.value[1]);
-        test.equal('\n', r.value[2]);
+        test.equal(1, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: ' \r\n.',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream(' '));
+	stream(matcher);
+    
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['zeroOrMore matches whitespace 3x'] = function (test) {
+    test.expect(6);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var space = sponsor(PEG.predicate(function (token) {
+        return /\s/.test(token);
+    }));
+    var start = sponsor(PEG.zeroOrMore(space));
+
+    var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
+        test.equal(3, r.value.length);
+        test.equal(' ', r.value[0]);
+        test.equal('\r', r.value[1]);
+        test.equal('\n', r.value[2]);
+        test.equal(3, r.end.pos);
     });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream(' \r\n.'));
+	stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -490,24 +483,20 @@ test['oneOrMore fails on nothing'] = function (test) {
         console.log('OK:', JSON.stringify(r, null, 2));
     });
     var fail = sponsor(function (r) {
-        test.equal(0, r.in.offset);
+        log('FAIL:', JSON.stringify(r, null, 2));
+        test.equal(0, r.end.pos);
     });
 
-    start({
-        in: {
-            source: '. \r\n',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream('. \r\n'));
+	stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
 };
 
 test['oneOrMore matches single space'] = function (test) {
-    test.expect(3);
+    test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
@@ -517,28 +506,25 @@ test['oneOrMore matches single space'] = function (test) {
     var start = sponsor(PEG.oneOrMore(space));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal(1, r.value.length);
         test.equal(' ', r.value[0]);
+        test.equal(1, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: ' ',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream(' '));
+	stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
 };
 
 test['oneOrMore matches whitespace 3x'] = function (test) {
-    test.expect(5);
+    test.expect(6);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
@@ -548,23 +534,20 @@ test['oneOrMore matches whitespace 3x'] = function (test) {
     var start = sponsor(PEG.oneOrMore(space));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal(3, r.value.length);
         test.equal(' ', r.value[0]);
         test.equal('\r', r.value[1]);
         test.equal('\n', r.value[2]);
+        test.equal(3, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: ' \r\n.',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream(' \r\n.'));
+	stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -581,21 +564,17 @@ test['zeroOrOne matches nothing'] = function (test) {
     var start = sponsor(PEG.zeroOrOne(space));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal(0, r.value.length);
-        test.equal(0, r.in.offset);
+        test.equal(0, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: '. \r\n',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream('. \r\n'));
+	stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -612,24 +591,19 @@ test['zeroOrOne matches single space'] = function (test) {
     var start = sponsor(PEG.zeroOrOne(space));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal(1, r.value.length);
         test.equal(' ', r.value[0]);
-        test.equal(1, r.in.offset);
+        test.equal(1, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: ' \r\n.',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream(' \r\n.'));
+	stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
 };
-*/
