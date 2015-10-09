@@ -82,8 +82,8 @@ On success/failure the ok/fail actors expect a result message with this format:
 
 */
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {
@@ -194,32 +194,33 @@ PEG.follow = function followPtrn(pattern) {
 
 var andThen = function andPtrn(first, rest) {
     return function andBeh(m) {
-//        log('andBeh:', m);
+        log('andBeh:', m);
         var failure = this.sponsor(function failBeh(r) {
 //            log('failBeh:', r, m);
             m.fail({
-                in: m.in,
-                value: m.value
+                start: m.input,
+                end: r.end
             });
         });
         var next = this.sponsor(function nextBeh(r) {
-//            log('nextBeh:', r, m);
+            log('nextBeh:', r, m);
             var success = this.sponsor(function okBeh(rr) {
 //                log('okBeh:', rr, r, m);
                 rr.value.unshift(r.value);  // mutate rr.value
                 m.ok({
-                    in: rr.in,
-                    value: rr.value,
+                    start: m.input,
+                    end: rr.end,
+                    value: rr.value
                 });
             });
             rest({
-                in: r.in,
+                input: r.end,
                 ok: success,
                 fail: failure
             });
         });
         first({
-            in: m.in,
+            input: m.input,
             ok: next,
             fail: failure
         });
@@ -242,17 +243,17 @@ PEG.sequence = function sequencePtrn(list) {
 
 var orElse = function orPtrn(first, rest) {
     return function orBeh(m) {
-//        log('orBeh:', m);
+        log('orBeh:', m);
         var next = this.sponsor(function nextBeh(r) {
-//            log('nextBeh:', r, m);
+            log('nextBeh:', r, m);
             rest({
-                in: m.in,
+                input: m.input,
                 ok: m.ok,
                 fail: m.fail
             });
         });
         first({
-            in: m.in,
+            input: m.input,
             ok: m.ok,
             fail: next
         });

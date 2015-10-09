@@ -30,10 +30,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var tart = require('tart-tracing');
-var PEG = require('../index.js');
-
 var test = module.exports = {};   
+
+var tart = require('tart-tracing');
+//var PEG = require('../index.js');
+var PEG = require('../PEG.js');
+var input = require('../input.js');
 
 //var log = console.log;
 var log = function () {};
@@ -73,23 +75,19 @@ test['packrat is just memoization'] = function (test) {
     ]));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal(2, r.value.length);
         test.equal('-', r.value[0]);
         test.equal('-', r.value[1]);
-        test.equal(2, r.in.offset);
+        test.equal(2, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: '-- ',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+	var matcher = sponsor(PEG.start(start, ok, fail));
+	var stream = sponsor(input.stringStream('-- '));
+	stream(matcher);
     
     test.ok(tracing.eventLoop({ count: 100 }));
     test.done();
