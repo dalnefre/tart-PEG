@@ -438,11 +438,37 @@ PEG.namespace = function namespace(log) {
         };
     };
 
+    var ruleStack = [];
+    ns.stackingWrapper = function stackingWrapper(pattern, rule) {
+        return function stackingBeh(m) {
+            log('stackingBeh:', rule, m);
+            ruleStack.push({
+                name: rule.name,
+                pos: m.input.pos
+            });
+            log('ruleStack.push:', ruleStack);
+            pattern({
+                input: m.input,
+                ok: this.sponsor(function okBeh(r) {
+                    ruleStack.pop();
+                    log('ruleStack.ok:', ruleStack);
+                    m.ok(r);
+                }),
+                fail: this.sponsor(function failBeh(r) {
+                    ruleStack.pop();
+                    log('ruleStack.fail:', ruleStack);
+                    m.fail(r);
+                })
+            });
+        };
+    };
+
     ns.wrapper = function wrapRule(rule) {
         return function wrapBeh(m) {
             log('wrapBeh:', rule, m);
             var transform = this.sponsor(ns.transformWrapper(rule));
-            this.behavior = PEG.memoize(transform, rule.name, log);
+            var stacking = this.sponsor(ns.stackingWrapper(transform, rule));
+            this.behavior = PEG.memoize(stacking, rule.name, log);
             this.self(m);
         }
     };
