@@ -59,31 +59,10 @@ On success/failure the ok/fail actors expect a result message with this format:
     value: <semantic value, if any>
 }
 
-OLD-STYLE PATTERNS USED A DIFFERENT API/PROTOCOL, AS SHOWN HERE...
-
-PEG parsing actors expect a message with this format:
-{
-    in: {
-        source: <token sequence>,
-        offset: <0-based position in source>
-    },
-    ok: <success actor>,
-    fail: <failure actor>
-}
-
-On success/failure the ok/fail actors expect a result message with this format:
-{
-    in: {
-        source: <token sequence>,
-        offset: <0-based position in source>
-    },
-    value: <semantic value, if any>
-}
-
 */
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {
@@ -369,6 +348,7 @@ PEG.memoize = PEG.packrat = function packratPtrn(pattern, name, log) {
     name = name || '';
     log = log || defaultLog;
     return function packratBeh(m) {
+        log('packratBeh:', name, m);
         try {
             var at = m.input.pos;
             var r = results[at];
@@ -391,6 +371,83 @@ PEG.memoize = PEG.packrat = function packratPtrn(pattern, name, log) {
             error(m, e);
         }
     };
+};
+
+PEG.namespace = function namespace(log) {
+    var ns = {};
+    var ruleNamed = [];
+    log = log || defaultLog;
+    
+    ns.define = function setRule(name, pattern) {
+        if (ruleNamed[name]) {
+            throw Error('Redefined rule: ' + name);
+        }
+        log('setRule:', name);
+        ruleNamed[name] = {
+            name: name,
+            pattern: pattern,
+            transform: function ruleValue(rule, value) {  // default transform
+                return {
+                    name: rule.name,
+                    value: value
+                };
+            }
+        };
+    };
+    
+    ns.lookup = function getRule(name) {
+        // delay name lookup until rule is invoked
+        log('getRule:', name);
+        return function callBeh(m) {
+            log('callBeh:', name, m);
+            var rule = ruleNamed[name];
+            if (!rule) {
+                throw Error('Undefined rule: ' + name);
+            }
+            this.behavior = ns.wrapper(rule);
+            this.self(m);
+        };
+    };
+    
+    ns.transform = function setTransform(name, transform) {
+        var rule = ruleNamed[name];
+        if (!rule) {
+            throw Error('Undefined rule: ' + name);
+        }
+        rule.transform = transform;
+    };
+    
+    ns.transformWrapper = function transformWrapper(rule) {
+        return function transformBeh(m) {
+            log('transformBeh:', rule, m);
+            rule.pattern({
+                input: m.input,
+                ok: this.sponsor(function okBeh(r) {
+                    try {
+                        r.value = rule.transform(rule, r.value);
+                    } catch (e) {
+                        r.value = undefined;
+                        r.error = e;
+                    }
+                    m.ok(r);
+                }),
+                fail: this.sponsor(function failBeh(r) {
+                    m.fail(r);
+                })
+            });
+        };
+    };
+
+    ns.wrapper = function wrapRule(rule) {
+        return function wrapBeh(m) {
+            log('wrapBeh:', rule, m);
+            var transform = this.sponsor(ns.transformWrapper(rule));
+            this.behavior = PEG.memoize(transform, rule.name, log);
+            this.self(m);
+        }
+    };
+
+    return ns;
 };
 
 PEG.start = function start(pattern, ok, fail) {

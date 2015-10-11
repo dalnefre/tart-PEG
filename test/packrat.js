@@ -37,8 +37,8 @@ var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 test['packrat is just memoization'] = function (test) {
     test.expect(5);
@@ -85,10 +85,82 @@ test['packrat is just memoization'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('-- '));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('-- '));
+    stream(matcher);
     
     test.ok(tracing.eventLoop({ count: 100 }));
+    test.done();
+};
+
+test['namespace defaults to packrat and named value transform'] = function (test) {
+    test.expect(9);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var ns = PEG.namespace(log);
+    ns.define('minus',
+        sponsor(PEG.terminal('-'))
+    );
+    ns.define('leftArrow',
+        sponsor(PEG.sequence([
+            sponsor(PEG.terminal('<')),
+            sponsor(ns.lookup('minus')),
+            sponsor(ns.lookup('minus'))
+        ]))
+    );
+    ns.define('rightArrow',
+        sponsor(PEG.sequence([
+            sponsor(ns.lookup('minus')),
+            sponsor(ns.lookup('minus')),
+            sponsor(PEG.terminal('>'))
+        ]))
+    );
+    ns.define('emDash',
+        sponsor(PEG.sequence([
+            sponsor(ns.lookup('minus')),
+            sponsor(ns.lookup('minus')),
+            sponsor(ns.lookup('minus'))
+        ]))
+    );
+    ns.define('enDash',
+        sponsor(PEG.sequence([
+            sponsor(ns.lookup('minus')),
+            sponsor(ns.lookup('minus'))
+        ]))
+    );
+    ns.define('start',
+        sponsor(PEG.choice([
+            sponsor(ns.lookup('leftArrow')),
+            sponsor(ns.lookup('rightArrow')),
+            sponsor(ns.lookup('emDash')),
+            sponsor(ns.lookup('enDash'))
+        ]))
+    );
+
+    var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
+        test.equal(2, r.end.pos);
+        var v = r.value;
+        test.equal('start', v.name);
+        v = v.value;
+        test.equal('enDash', v.name);
+        v = v.value;
+        test.equal(2, v.length);
+        test.equal('minus', v[0].name);
+        test.equal('-', v[0].value);
+        test.equal('minus', v[1].name);
+        test.equal('-', v[1].value);
+    });
+    var fail = sponsor(function (r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+
+	var start = sponsor(ns.lookup('start'));
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('-- '));
+    stream(matcher);
+    
+    test.ok(tracing.eventLoop({ count: 1000 }));
     test.done();
 };
