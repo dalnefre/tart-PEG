@@ -61,8 +61,8 @@ On success/failure the ok/fail actors expect a result message with this format:
 
 */
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {
@@ -348,7 +348,7 @@ PEG.memoize = PEG.packrat = function packratPtrn(pattern, name, log) {
     name = name || '';
     log = log || defaultLog;
     return function packratBeh(m) {
-        log('packratBeh:', name, m);
+//        log('packratBeh:', name, m);
         try {
             var at = m.input.pos;
             var r = results[at];
@@ -382,7 +382,7 @@ PEG.namespace = function namespace(log) {
         if (ruleNamed[name]) {
             throw Error('Redefined rule: ' + name);
         }
-        log('setRule:', name);
+//        log('setRule:', name);
         ruleNamed[name] = {
             name: name,
             pattern: pattern,
@@ -397,9 +397,9 @@ PEG.namespace = function namespace(log) {
     
     ns.lookup = function getRule(name) {
         // delay name lookup until rule is invoked
-        log('getRule:', name);
+//        log('getRule:', name);
         return function callBeh(m) {
-            log('callBeh:', name, m);
+//            log('callBeh:', name, m);
             var rule = ruleNamed[name];
             if (!rule) {
                 throw Error('Undefined rule: ' + name);
@@ -419,7 +419,7 @@ PEG.namespace = function namespace(log) {
     
     ns.transformWrapper = function transformWrapper(rule) {
         return function transformBeh(m) {
-            log('transformBeh:', rule, m);
+//            log('transformBeh:', rule, m);
             rule.pattern({
                 input: m.input,
                 ok: this.sponsor(function okBeh(r) {
@@ -462,7 +462,7 @@ PEG.namespace = function namespace(log) {
                 });
                 return;
             }
-            log('stackingBeh:', rule, m);
+//            log('stackingBeh:', rule, m);
             ruleStack.push({
                 rule: rule,
                 pos: m.input.pos
@@ -472,12 +472,12 @@ PEG.namespace = function namespace(log) {
                 input: m.input,
                 ok: this.sponsor(function okBeh(r) {
                     ruleStack.pop();
-                    log('ruleStack.ok:', ruleStack);
+//                    log('ruleStack.ok:', ruleStack);
                     m.ok(r);
                 }),
                 fail: this.sponsor(function failBeh(r) {
                     ruleStack.pop();
-                    log('ruleStack.fail:', ruleStack);
+//                    log('ruleStack.fail:', ruleStack);
                     m.fail(r);
                 })
             });
@@ -486,7 +486,7 @@ PEG.namespace = function namespace(log) {
 
     ns.wrapper = function wrapRule(rule) {
         return function wrapBeh(m) {
-            log('wrapBeh:', rule, m);
+//            log('wrapBeh:', rule, m);
             var transform = this.sponsor(ns.transformWrapper(rule));
             var stacking = this.sponsor(ns.stackingWrapper(transform, rule));
             this.behavior = PEG.memoize(stacking, rule.name, log);

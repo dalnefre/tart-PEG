@@ -33,12 +33,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 var test = module.exports = {};   
 
 var tart = require('tart-tracing');
-//var PEG = require('../index.js');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 test['packrat is just memoization'] = function (test) {
     test.expect(5);
@@ -156,7 +155,7 @@ test['namespace defaults to packrat and named value transform'] = function (test
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var start = sponsor(ns.lookup('start'));
+    var start = sponsor(ns.lookup('start'));
     var matcher = sponsor(PEG.start(start, ok, fail));
     var stream = sponsor(input.stringStream('-- '));
     stream(matcher);

@@ -33,28 +33,27 @@ OTHER DEALINGS IN THE SOFTWARE.
 var test = module.exports = {};   
 
 var tart = require('tart-tracing');
-var PEG = require('../index.js');
+var PEG = require('../PEG.js');
+var input = require('../input.js');
 
-var named = require('../named.js');
-
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 test['right recursion groups right-to-left'] = function (test) {
     test.expect(5);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var ns = named.scope(sponsor, { log: log });
+    var ns = PEG.namespace(log);
     
     // Expr <- Term "-" Expr / Term
     ns.define('Expr',
         sponsor(PEG.choice([
             sponsor(PEG.sequence([
-                ns.lookup('Term'),
+                sponsor(ns.lookup('Term')),
                 sponsor(PEG.terminal('-')),
-                ns.lookup('Expr')
+                sponsor(ns.lookup('Expr'))
             ])),
-            ns.lookup('Term')
+            sponsor(ns.lookup('Term'))
         ]))
     );
     // Term <- [a-z]
@@ -70,23 +69,18 @@ test['right recursion groups right-to-left'] = function (test) {
         test.equal('Expr', rule.name);
         test.equal(3, rule.value.length);
         test.equal('Term', rule.value[0].name);
-        test.equal(5, r.in.offset);
+        test.equal(5, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', r);
     });
 
-    var start = ns.lookup('Expr');
-    start({
-        in: {
-            source: 'a-b-c',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var start = sponsor(ns.lookup('Expr'));
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('a-b-c'));
+    stream(matcher);
 
-    test.ok(tracing.eventLoop({ count: 100 }));
+    test.ok(tracing.eventLoop({ count: 1000 }));
     test.done();
 };
 
@@ -94,17 +88,17 @@ test['left recursion does not diverge'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var ns = named.scope(sponsor, { log: log });
+    var ns = PEG.namespace(log);
     
     // Expr <- Expr "-" Term / Term
     ns.define('Expr',
         sponsor(PEG.choice([
             sponsor(PEG.sequence([
-                ns.lookup('Expr'),
+                sponsor(ns.lookup('Expr')),
                 sponsor(PEG.terminal('-')),
-                ns.lookup('Term')
+                sponsor(ns.lookup('Term'))
             ])),
-            ns.lookup('Term')
+            sponsor(ns.lookup('Term'))
         ]))
     );
     // Term <- [a-z]
@@ -118,23 +112,18 @@ test['left recursion does not diverge'] = function (test) {
         log('OK:', JSON.stringify(r, null, 2));
         var rule = r.value;
         test.equal('Expr', rule.name);
-        test.equal(1, r.in.offset);
+        test.equal(1, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', r);
     });
 
-    var start = ns.lookup('Expr');
-    start({
-        in: {
-            source: 'a-b-c',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var start = sponsor(ns.lookup('Expr'));
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('a-b-c'));
+    stream(matcher);
 
-    test.ok(tracing.eventLoop({ count: 100 }), 'Exceeded message limit');
+    test.ok(tracing.eventLoop({ count: 1000 }), 'Exceeded message limit');
     test.done();
 };
 
@@ -142,25 +131,25 @@ test['left recursion diverges with check disabled'] = function (test) {
     test.expect(1);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var options = {
-        checkRecursion: function checkDisabled(name, rule) {
-            return function checkDisabledBeh(m) {
-                rule(m);
-            };
-        },
-        log: log
+    var ns = PEG.namespace(log);
+    ns.wrapper = function wrapRule(rule) {
+        return function noStackBeh(m) {
+            log('noStackBeh:', rule, m);
+            var transform = this.sponsor(ns.transformWrapper(rule));
+            this.behavior = PEG.memoize(transform, rule.name, log);
+            this.self(m);
+        }
     };
-    var ns = named.scope(sponsor, options);
     
     // Expr <- Expr "-" Term / Term
     ns.define('Expr',
         sponsor(PEG.choice([
             sponsor(PEG.sequence([
-                ns.lookup('Expr'),
+                sponsor(ns.lookup('Expr')),
                 sponsor(PEG.terminal('-')),
-                ns.lookup('Term')
+                sponsor(ns.lookup('Term'))
             ])),
-            ns.lookup('Term')
+            sponsor(ns.lookup('Term'))
         ]))
     );
     // Term <- [a-z]
@@ -177,17 +166,12 @@ test['left recursion diverges with check disabled'] = function (test) {
         console.log('FAIL:', r);
     });
 
-    var start = ns.lookup('Expr');
-    start({
-        in: {
-            source: 'a-b-c',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var start = sponsor(ns.lookup('Expr'));
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('a-b-c'));
+    stream(matcher);
 
-    test.ok(!tracing.eventLoop({ count: 100 }), 'Ran out of messages');
+    test.ok(!tracing.eventLoop({ count: 1000 }), 'Ran out of messages');
     test.done();
 };
 
@@ -195,16 +179,16 @@ test['iteration makes a list'] = function (test) {
     test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var ns = named.scope(sponsor, { log: log });
+    var ns = PEG.namespace(log);
     
     // Expr <- Term ("-" Term)*
     ns.define('Expr',
         sponsor(PEG.sequence([
-            ns.lookup('Term'),
+            sponsor(ns.lookup('Term')),
             sponsor(PEG.star(
                 sponsor(PEG.sequence([
                     sponsor(PEG.terminal('-')),
-                    ns.lookup('Term')
+                    sponsor(ns.lookup('Term'))
                 ]))
             ))
         ]))
@@ -221,22 +205,17 @@ test['iteration makes a list'] = function (test) {
         var rule = r.value;
         test.equal('Expr', rule.name);
         test.equal(2, rule.value.length);
-        test.equal(5, r.in.offset);
+        test.equal(5, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', r);
     });
 
-    var start = ns.lookup('Expr');
-    start({
-        in: {
-            source: 'a-b-c',
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var start = sponsor(ns.lookup('Expr'));
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('a-b-c'));
+    stream(matcher);
 
-    test.ok(tracing.eventLoop({ count: 100 }));
+    test.ok(tracing.eventLoop({ count: 1000 }));
     test.done();
 };
