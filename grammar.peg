@@ -18,19 +18,19 @@ Primary     <- Name !LEFTARROW
 
 # Lexical syntax
 Name        <- [a-zA-Z_] [a-zA-Z_0-9]* _
-Literal     <- ["] (!["] Character)+ ["] _
-             / ['] (!['] Character)+ ['] _
+Literal     <- "\"" (!"\"" Character)+ "\"" _
+             / "'" (!"'" Character)+ "'" _
 Class       <- "[" (!"]" Range)+ "]" _
 Range       <- Character "-" Character / Character
 Character   <- "\\" [nrt'"\[\]\\]
-             / "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+             / "\\" "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
              / !"\\" .
 Object      <- LBRACE (Property (COMMA Property)*)? RBRACE
 Property    <- Name COLON Literal
 
 DOT         <- "." _
 
-LEFTARROW   <- "<-" _
+LEFTARROW   <- "<" "-" _
 SLASH       <- "/" _
 AND         <- "&" _
 NOT         <- "!" _

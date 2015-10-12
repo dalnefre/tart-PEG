@@ -55,17 +55,21 @@ generate.text = function text(grammar, width) {
     s += '"use strict";\n';
     s += 'var grammar = module.exports;\n';
     s += '\n';
-    s += 'var PEG = require("./index.js");\n';
-    s += 'var named = require("./named.js");\n';
+    s += 'var PEG = require("./PEG.js");\n';
+    s += 'var input = require("./input.js");\n';
     s += '\n';
-    s += 'grammar.build = function build(sponsor) {\n';
+    s += 'grammar.build = function build(sponsor, log) {\n';
     indentDepth += indentWidth;
-    s += indent() + 'var ns = named.scope(sponsor);\n';
+    s += indent() + 'var ns = PEG.namespace(log);\n';
     s += '\n';
     
     for (var name in grammar) {
         if (grammar.hasOwnProperty(name)) {
-            s += indent() + textRule(name, grammar[name]) + '\n\n';
+            var expr = grammar[name];
+            s += '/*\n';
+            // FIXME: echo rule text here...
+            s += '*/\n';
+            s += indent() + textRule(name, expr) + '\n\n';
         }
     }
     
@@ -146,7 +150,7 @@ var textTerm = function textTerm(term) {
     var s = '';
 
     if (term.type === 'Name') {
-        s += 'ns.lookup(' + q(term.ptrn) + ')';
+        s += 'sponsor(ns.lookup(' + q(term.ptrn) + '))';
     } else if (term.type === 'AND') {
         s += 'sponsor(PEG.follow(\n';
         indentDepth += indentWidth;
