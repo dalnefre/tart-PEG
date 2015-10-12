@@ -383,7 +383,7 @@ PEG.namespace = function namespace(log) {
             throw Error('Redefined rule: ' + name);
         }
 //        log('setRule:', name);
-        ruleNamed[name] = {
+        var rule = {
             name: name,
             pattern: pattern,
             transform: function ruleValue(rule, value) {  // default transform
@@ -393,6 +393,7 @@ PEG.namespace = function namespace(log) {
                 };
             }
         };
+        ruleNamed[name] = rule;
     };
     
     ns.lookup = function getRule(name) {
@@ -404,8 +405,10 @@ PEG.namespace = function namespace(log) {
             if (!rule) {
                 throw Error('Undefined rule: ' + name);
             }
-            this.behavior = ns.wrapper(rule);
-            this.self(m);
+            if (!rule.wrapped) {
+                rule.wrapped = this.sponsor(ns.wrapper(rule));
+            }
+            rule.wrapped(m);
         };
     };
     

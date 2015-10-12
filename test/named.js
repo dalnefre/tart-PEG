@@ -36,8 +36,8 @@ var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 test['right recursion groups right-to-left'] = function (test) {
     test.expect(5);
