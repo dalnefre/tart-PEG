@@ -1,10 +1,15 @@
 tart-PEG
 ========
 
-Parsing Expression Grammar (PEG) tools 
+Parsing Expression Grammar (PEG) tools -- **OLD VERSION**
 ([tart](https://github.com/organix/tartjs) module) 
 
-(See [OLD.md](OLD.md) for documentation of the deprecated API)
+_NOTE: THIS VERSION OF THE API HAS BEEN SUPERCEDED_
+
+This version read input from indexed collections
+and assumed a named scope would create actors directly.
+
+SEE [README.md](README.md) FOR THE LATEST DOCUMENTATION.
 
 ## Usage
 
