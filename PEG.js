@@ -439,14 +439,35 @@ PEG.namespace = function namespace(log) {
     };
 
     var ruleStack = [];
+    var isRecursive = function isRecursive(rule, m) {
+        var i = ruleStack.length;
+        while (i > 0) {
+            i -= 1;
+            if (ruleStack[i].pos < m.input.pos) {
+                return false;  // safe
+            }
+            if (ruleStack[i].rule === rule) {
+                return true;  // RECURSIVE
+            }
+        }
+        return false;  // safe
+    };
     ns.stackingWrapper = function stackingWrapper(pattern, rule) {
         return function stackingBeh(m) {
+            if (isRecursive(rule, m)) {
+                log('RECURSIVE:', rule, m);
+                m.fail({
+                    start: m.input,
+                    end: m.input
+                });
+                return;
+            }
             log('stackingBeh:', rule, m);
             ruleStack.push({
-                name: rule.name,
+                rule: rule,
                 pos: m.input.pos
             });
-            log('ruleStack.push:', ruleStack);
+//            log('ruleStack.push:', ruleStack);
             pattern({
                 input: m.input,
                 ok: this.sponsor(function okBeh(r) {
