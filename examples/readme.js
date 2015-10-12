@@ -37,10 +37,13 @@ var sponsor = tart.minimal({
     }
 });
 
-var PEG = require('../index.js');
+var PEG = require('../PEG.js');
+var input = require('../input.js');
 
-var named = require('../named.js');
-var ns = named.scope(sponsor);
+//var log = console.log;
+var log = function () {};
+
+var ns = PEG.namespace(log);
 
 /*
 Assign <- Name "=" Assign
@@ -49,11 +52,11 @@ Assign <- Name "=" Assign
 ns.define('Assign',
     sponsor(PEG.choice([
         sponsor(PEG.sequence([
-            ns.lookup('Name'),
+            sponsor(ns.lookup('Name')),
             sponsor(PEG.terminal('=')),
-            ns.lookup('Assign')
+            sponsor(ns.lookup('Assign'))
         ])),
-        ns.lookup('Expr')
+        sponsor(ns.lookup('Expr'))
     ]))
 );
 
@@ -71,13 +74,13 @@ Expr   <- Term ([-+] Term)*
 */
 ns.define('Expr',
     sponsor(PEG.sequence([
-        ns.lookup('Term'),
+        sponsor(ns.lookup('Term')),
         sponsor(PEG.zeroOrMore(
             sponsor(PEG.sequence([
                 sponsor(PEG.predicate(function (token) {
                     return /[-+]/.test(token);
                 })),
-                ns.lookup('Term')
+                sponsor(ns.lookup('Term'))
             ]))
         ))
     ]))
@@ -88,13 +91,13 @@ Term   <- Factor ([/*] Factor)*
 */
 ns.define('Term',
     sponsor(PEG.sequence([
-        ns.lookup('Factor'),
+        sponsor(ns.lookup('Factor')),
         sponsor(PEG.zeroOrMore(
             sponsor(PEG.sequence([
                 sponsor(PEG.predicate(function (token) {
                     return /[/*]/.test(token);
                 })),
-                ns.lookup('Factor')
+                sponsor(ns.lookup('Factor'))
             ]))
         ))
     ]))
@@ -109,10 +112,10 @@ ns.define('Factor',
     sponsor(PEG.choice([
         sponsor(PEG.sequence([
             sponsor(PEG.terminal('(')),
-            ns.lookup('Assign'),
+            sponsor(ns.lookup('Assign')),
             sponsor(PEG.terminal(')'))
         ])),
-        ns.lookup('Name'),
+        sponsor(ns.lookup('Name')),
         sponsor(PEG.oneOrMore(
             sponsor(PEG.predicate(function (token) {
                 return /[0-9]/.test(token);
@@ -128,12 +131,7 @@ var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
 });
 
-var start = ns.lookup('Assign');
-start({
-    in: {
-        source: 'x=y=10-2/3+4*5/(6-7)',
-        offset: 0
-    },
-    ok: ok,
-    fail: fail
-});
+var start = sponsor(ns.lookup('Assign'));
+var matcher = sponsor(PEG.start(start, ok, fail));
+var stream = sponsor(input.stringStream('x=y=10-2/3+4*5/(6-7)'));
+stream(matcher);

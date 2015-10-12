@@ -9,7 +9,7 @@
     "humus": "node examples/humus.js",
     "test": "node scripts/test.js"
   },
-  "main": "index.js",
+  "main": "PEG.js",
   "devDependencies": {
     "tart-tracing": "0.1.5",
     "nodeunit": "0.8.1"
