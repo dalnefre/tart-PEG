@@ -63,14 +63,15 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
+var source = fileSource;
 var stream = sponsor(
-    require('../input.js').stringStream(fileSource)
+    require('../input.js').stringStream(source)
 );
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));
     process.stdout.write(
-        require('../generate.js').text(m.value)
+        require('../generate.js').text(m.value, 2, source)
     );
 });
 var fail = sponsor(function failBeh(m) {

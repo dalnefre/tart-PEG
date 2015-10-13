@@ -47,7 +47,7 @@ var indent = function indent() {
 /*
  * text(grammar[, indent]) - generate ASCII text representation of PEG grammar
  */
-generate.text = function text(grammar, width) {
+generate.text = function text(grammar, width, source) {
     indentWidth = width || indentWidth;
     var s = '';
 
@@ -67,8 +67,7 @@ generate.text = function text(grammar, width) {
         if (grammar.hasOwnProperty(name)) {
             var rule = grammar[name];
             s += '/*\n';
-            // FIXME: echo rule text here...
-            s += '[' + rule.start.pos + ',' + rule.end.pos + ')' + '\n'
+            s += source.substring(rule.start.pos, rule.end.pos);
             s += '*/\n';
             s += indent() + textRule(name, rule) + '\n\n';
         }
