@@ -65,11 +65,12 @@ generate.text = function text(grammar, width) {
     
     for (var name in grammar) {
         if (grammar.hasOwnProperty(name)) {
-            var expr = grammar[name];
+            var rule = grammar[name];
             s += '/*\n';
             // FIXME: echo rule text here...
+            s += '[' + rule.start.pos + ',' + rule.end.pos + ')' + '\n'
             s += '*/\n';
-            s += indent() + textRule(name, expr) + '\n\n';
+            s += indent() + textRule(name, rule) + '\n\n';
         }
     }
     
@@ -80,12 +81,12 @@ generate.text = function text(grammar, width) {
     return s;
 };
 
-var textRule = function textRule(name, expr) {
+var textRule = function textRule(name, rule) {
     var s = '';
 
     s += 'ns.define(' + q(name) + ',\n';
     indentDepth += indentWidth;
-    s += indent() + textExpression(expr) + '\n';
+    s += indent() + textExpression(rule.expr) + '\n';
     indentDepth -= indentWidth;
     s += indent() + ');';
     

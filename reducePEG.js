@@ -46,17 +46,19 @@ semantic.transform = function transform(ns) {
         for (var i = 0; i < list.length; ++i) {
             var rule = list[i];
             if (rule.type === 'Rule') {
-                map[rule.name] = rule.expr;
+                map[rule.name] = rule;
             }
         }
         log('Grammar:', map);
         return map;
     });
 
-    ns.transform('Rule', function transformRule(name, value) {
+    ns.transform('Rule', function transformRule(name, value, r) {
         log('transformRule:', name, value);
         var rule = {
             type: name,
+            start: r.start,
+            end: r.end,
             name: value[0].ptrn,
             expr: value[2]
         };

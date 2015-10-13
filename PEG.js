@@ -386,9 +386,11 @@ PEG.namespace = function namespace(log) {
         var rule = {
             name: name,
             pattern: pattern,
-            transform: function ruleValue(name, value) {  // default transform
+            transform: function ruleValue(name, value, r) {  // default transform
                 return {
                     name: name,
+                    start: r.start,
+                    end: r.end,
                     value: value
                 };
             }
@@ -427,7 +429,7 @@ PEG.namespace = function namespace(log) {
                 input: m.input,
                 ok: this.sponsor(function okBeh(r) {
                     try {
-                        r.value = rule.transform(rule.name, r.value);
+                        r.value = rule.transform(rule.name, r.value, r);
                     } catch (e) {
                         r.value = undefined;
                         r.error = e;
