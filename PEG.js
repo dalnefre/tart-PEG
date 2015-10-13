@@ -378,6 +378,14 @@ PEG.namespace = function namespace(log) {
     var ruleNamed = [];
     log = log || defaultLog;
     
+    var defaultTransform = function ruleValue(name, value, r) {
+        return {
+            name: name,
+            start: r.start,
+            end: r.end,
+            value: value
+        };
+    };
     ns.define = function setRule(name, pattern) {
         if (ruleNamed[name]) {
             throw Error('Redefined rule: ' + name);
@@ -386,14 +394,7 @@ PEG.namespace = function namespace(log) {
         var rule = {
             name: name,
             pattern: pattern,
-            transform: function ruleValue(name, value, r) {  // default transform
-                return {
-                    name: name,
-                    start: r.start,
-                    end: r.end,
-                    value: value
-                };
-            }
+            transform: defaultTransform
         };
         ruleNamed[name] = rule;
     };
