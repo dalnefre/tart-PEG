@@ -1,6 +1,6 @@
 /*
 
-sample.js - building on the PEG ASCII grammar
+sample.js - sample usage of full PEG toolchain
 
 The MIT License (MIT)
 
@@ -37,6 +37,8 @@ var sponsor = tracing.sponsor;
 //var log = console.log;
 var log = function () {};
 
+var PEG = require('../PEG.js');
+
 var ns = require('../grammar.js').build(sponsor, log);
 
 require('../reducePEG.js').transform(ns);
@@ -61,28 +63,24 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
-var input = {
-    source: fileSource,
-    offset: 0
-};
+var source = fileSource;
+var stream = sponsor(
+    require('../input.js').stringStream(source)
+);
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));
     process.stdout.write(
-        require('../generate.js').text(m.value)
+        require('../generate.js').text(m.value, 2, source)
     );
 });
 var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
 });
 
-//var start = ns.lookup('_');
-var start = ns.lookup('Grammar');
-start({
-    in: input,
-    ok: ok,
-    fail: fail
-});
+var start = sponsor(ns.lookup('Grammar'));
+var matcher = sponsor(PEG.start(start, ok, fail));
+stream(matcher);
 
 tracing.eventLoop({
 /*
