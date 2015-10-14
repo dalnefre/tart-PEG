@@ -56,7 +56,6 @@ generate.text = function text(grammar, width, source) {
     s += 'var grammar = module.exports;\n';
     s += '\n';
     s += 'var PEG = require("./PEG.js");\n';
-    s += 'var input = require("./input.js");\n';
     s += '\n';
     s += 'grammar.build = function build(sponsor, log) {\n';
     indentDepth += indentWidth;

@@ -2,43 +2,59 @@
 "use strict";
 var grammar = module.exports;
 
-var PEG = require("../index.js");
-var named = require("../named.js");
+var PEG = require("../PEG.js");
 
-grammar.build = function build(sponsor) {
-  var ns = named.scope(sponsor);
+grammar.build = function build(sponsor, log) {
+  var ns = PEG.namespace(log);
 
+/*
+tokens  <- _ token* EOF
+*/
   ns.define("tokens",
     sponsor(PEG.sequence([
-      ns.lookup("_"),
+      sponsor(ns.lookup("_")),
       sponsor(PEG.star(
-        ns.lookup("token")
+        sponsor(ns.lookup("token"))
       )),
-      ns.lookup("EOF")
+      sponsor(ns.lookup("EOF"))
     ]))
   );
 
+/*
+token   <- symbol
+         / number
+         / char
+         / string
+         / ident
+         / punct
+*/
   ns.define("token",
     sponsor(PEG.choice([
-      ns.lookup("symbol"),
-      ns.lookup("number"),
-      ns.lookup("char"),
-      ns.lookup("string"),
-      ns.lookup("ident"),
-      ns.lookup("punct")
+      sponsor(ns.lookup("symbol")),
+      sponsor(ns.lookup("number")),
+      sponsor(ns.lookup("char")),
+      sponsor(ns.lookup("string")),
+      sponsor(ns.lookup("ident")),
+      sponsor(ns.lookup("punct"))
     ]))
   );
 
+/*
+symbol  <- '#' (punct / name)
+*/
   ns.define("symbol",
     sponsor(PEG.sequence([
       sponsor(PEG.terminal("#")),
       sponsor(PEG.choice([
-        ns.lookup("punct"),
-        ns.lookup("name")
+        sponsor(ns.lookup("punct")),
+        sponsor(ns.lookup("name"))
       ]))
     ]))
   );
 
+/*
+number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
+*/
   ns.define("number",
     sponsor(PEG.sequence([
       sponsor(PEG.optional(
@@ -59,10 +75,13 @@ grammar.build = function build(sponsor) {
           ))
         ]))
       )),
-      ns.lookup("_")
+      sponsor(ns.lookup("_"))
     ]))
   );
 
+/*
+char    <- "'" (!"'" qchar) "'" _
+*/
   ns.define("char",
     sponsor(PEG.sequence([
       sponsor(PEG.terminal("'")),
@@ -70,13 +89,16 @@ grammar.build = function build(sponsor) {
         sponsor(PEG.not(
           sponsor(PEG.terminal("'"))
         )),
-        ns.lookup("qchar")
+        sponsor(ns.lookup("qchar"))
       ])),
       sponsor(PEG.terminal("'")),
-      ns.lookup("_")
+      sponsor(ns.lookup("_"))
     ]))
   );
 
+/*
+string  <- '"' (!'"' qchar)+ '"' _
+*/
   ns.define("string",
     sponsor(PEG.sequence([
       sponsor(PEG.terminal("\"")),
@@ -85,14 +107,19 @@ grammar.build = function build(sponsor) {
           sponsor(PEG.not(
             sponsor(PEG.terminal("\""))
           )),
-          ns.lookup("qchar")
+          sponsor(ns.lookup("qchar"))
         ]))
       )),
       sponsor(PEG.terminal("\"")),
-      ns.lookup("_")
+      sponsor(ns.lookup("_"))
     ]))
   );
 
+/*
+qchar   <- '\\' [nrt'"\[\]\\]
+         / '\\u' [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+         / !'\\' .
+*/
   ns.define("qchar",
     sponsor(PEG.choice([
       sponsor(PEG.sequence([
@@ -125,10 +152,16 @@ grammar.build = function build(sponsor) {
     ]))
   );
 
+/*
+ident   <- name
+*/
   ns.define("ident",
-    ns.lookup("name")
+    sponsor(ns.lookup("name"))
   );
 
+/*
+name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
+*/
   ns.define("name",
     sponsor(PEG.sequence([
       sponsor(PEG.plus(
@@ -136,41 +169,51 @@ grammar.build = function build(sponsor) {
           return /[-0-9a-zA-Z!%&'*+/?@^_~]/.test(token);
         }))
       )),
-      ns.lookup("_")
+      sponsor(ns.lookup("_"))
     ]))
   );
 
+/*
+punct   <- [#$(),.:;=\[\\\]] _
+*/
   ns.define("punct",
     sponsor(PEG.sequence([
       sponsor(PEG.predicate(function (token) {
         return /[#$(),.:;=\[\\\]]/.test(token);
       })),
-      ns.lookup("_")
+      sponsor(ns.lookup("_"))
     ]))
   );
 
+/*
+_       <- &punct                           # token boundary
+         / (space / comment)*
+*/
   ns.define("_",
     sponsor(PEG.choice([
       sponsor(PEG.follow(
-        ns.lookup("punct")
+        sponsor(ns.lookup("punct"))
       )),
       sponsor(PEG.star(
         sponsor(PEG.choice([
-          ns.lookup("space"),
-          ns.lookup("comment")
+          sponsor(ns.lookup("space")),
+          sponsor(ns.lookup("comment"))
         ]))
       ))
     ]))
   );
 
+/*
+comment <- '#' space (!EOL .)*
+*/
   ns.define("comment",
     sponsor(PEG.sequence([
       sponsor(PEG.terminal("#")),
-      ns.lookup("space"),
+      sponsor(ns.lookup("space")),
       sponsor(PEG.star(
         sponsor(PEG.sequence([
           sponsor(PEG.not(
-            ns.lookup("EOL")
+            sponsor(ns.lookup("EOL"))
           )),
           sponsor(PEG.dot)
         ]))
@@ -178,12 +221,19 @@ grammar.build = function build(sponsor) {
     ]))
   );
 
+/*
+space   <- [ \t-\r]
+*/
   ns.define("space",
     sponsor(PEG.predicate(function (token) {
       return /[ \t-\r]/.test(token);
     }))
   );
 
+/*
+EOL     <- '\n'
+         / '\r' '\n'?
+*/
   ns.define("EOL",
     sponsor(PEG.choice([
       sponsor(PEG.terminal("\n")),
@@ -196,6 +246,9 @@ grammar.build = function build(sponsor) {
     ]))
   );
 
+/*
+EOF     <- !.
+*/
   ns.define("EOF",
     sponsor(PEG.not(
       sponsor(PEG.dot)

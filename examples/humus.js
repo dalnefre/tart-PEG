@@ -1,6 +1,6 @@
 /*
 
-humus.js - building on the PEG ASCII grammar
+humus.js - chained parser for the Actor language Humus
 
 The MIT License (MIT)
 
@@ -37,6 +37,8 @@ var sponsor = tracing.sponsor;
 var log = console.log;
 //var log = function () {};
 
+var PEG = require("../PEG.js");
+
 var parseTokens = function parseTokens(source) {
     var ns = require('./humusTokens.js').build(this.sponsor, log);
     require('./reduceTokens.js').transform(ns);
@@ -50,15 +52,10 @@ var parseTokens = function parseTokens(source) {
         console.log('Tokens FAIL:', JSON.stringify(m, null, '  '));
     });
 
-    var start = ns.lookup('tokens');
-    start({
-        in: {
-            source: source,
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var stream = sponsor(require('../input.js').stringStream(source));
+    var start = sponsor(ns.lookup('tokens'));
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    stream(matcher);
 };
 
 var parseSyntax = function parseSyntax(source) {
@@ -80,15 +77,10 @@ var parseSyntax = function parseSyntax(source) {
         console.log('Syntax FAIL:', JSON.stringify(m, null, '  '));
     });
 
-    var start = ns.lookup('humus');
-    start({
-        in: {
-            source: source,
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var stream = sponsor(require('../input.js').arrayStream(source));
+    var start = sponsor(ns.lookup('humus'));
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    stream(matcher);
 };
 
 var helloSource = 

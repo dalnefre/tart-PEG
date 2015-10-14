@@ -3,7 +3,6 @@
 var grammar = module.exports;
 
 var PEG = require("./PEG.js");
-var input = require("./input.js");
 
 grammar.build = function build(sponsor, log) {
   var ns = PEG.namespace(log);
