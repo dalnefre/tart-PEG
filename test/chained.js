@@ -30,10 +30,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var tart = require('tart-tracing');
-var PEG = require('../index.js');
-
 var test = module.exports = {};   
+
+var tart = require('tart-tracing');
+var PEG = require('../PEG.js');
+var input = require('../input.js');
+
+//var log = console.log;
+var log = function () {};
 
 test['object matches empty expected object'] = function (test) {
     test.expect(3);
@@ -43,6 +47,7 @@ test['object matches empty expected object'] = function (test) {
     var start = sponsor(PEG.object({}));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal('name', r.value.type);
         test.equal('answer', r.value.value);
     });
@@ -50,16 +55,12 @@ test['object matches empty expected object'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: [
-                { type:'name', value:'answer' }
-            ],
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var source = [
+		{ type:'name', value:'answer' }
+	];
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.arrayStream(source));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -73,6 +74,7 @@ test['object matches single expected property'] = function (test) {
     var start = sponsor(PEG.object({ type:'name' }));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal('name', r.value.type);
         test.equal('answer', r.value.value);
     });
@@ -80,16 +82,12 @@ test['object matches single expected property'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: [
-                { type:'name', value:'answer' }
-            ],
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var source = [
+		{ type:'name', value:'answer' }
+	];
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.arrayStream(source));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -103,6 +101,7 @@ test['object matches all expected properties'] = function (test) {
     var start = sponsor(PEG.object({ type:'name', value:'answer' }));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal('name', r.value.type);
         test.equal('answer', r.value.value);
     });
@@ -110,16 +109,12 @@ test['object matches all expected properties'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: [
-                { type:'name', value:'answer' }
-            ],
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var source = [
+		{ type:'name', value:'answer' }
+	];
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.arrayStream(source));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -136,19 +131,16 @@ test['object fails to match on missing property'] = function (test) {
         console.log('OK:', JSON.stringify(r, null, 2));
     });
     var fail = sponsor(function (r) {
-        test.equal(0, r.in.offset);
+        log('FAIL:', JSON.stringify(r, null, 2));
+        test.equal(0, r.end.pos);
     });
 
-    start({
-        in: {
-            source: [
-                { type:'name', value:'answer' }
-            ],
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var source = [
+		{ type:'name', value:'answer' }
+	];
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.arrayStream(source));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -166,6 +158,7 @@ test['object sequence matches object-list source'] = function (test) {
     ]));
 
     var ok = sponsor(function (r) {
+        log('OK:', JSON.stringify(r, null, 2));
         test.equal(3, r.value.length);
         test.equal('name', r.value[0].type);
         test.equal('operator', r.value[1].type);
@@ -175,18 +168,14 @@ test['object sequence matches object-list source'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-    start({
-        in: {
-            source: [
-                { type:'name', value:'answer' },
-                { type:'operator', value:'=' },
-                { type:'number', value:'42' }
-            ],
-            offset: 0
-        },
-        ok: ok,
-        fail: fail
-    });
+    var source = [
+		{ type:'name', value:'answer' },
+		{ type:'operator', value:'=' },
+		{ type:'number', value:'42' }
+	];
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.arrayStream(source));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();

@@ -31,7 +31,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 "use strict";
 
 var tart = require('tart-tracing');
-var PEG = require('../index.js');
 var input = require('../input.js');
 
 //var log = console.log;
