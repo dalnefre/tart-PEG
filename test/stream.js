@@ -39,14 +39,16 @@ var log = console.log;
 var test = module.exports = {};   
 
 test['characters() reads individual characters'] = function (test) {
-    test.expect(0);
+    test.expect(5);
 //    var tracing = tart.tracing();
 //    var sponsor = tracing.sponsor;
 
 	var cr = s.characters();
+	var ar = Array('.', '\r', '\r', '\n', '!');
 	cr.on('readable', function onReadable() {
 		var obj = cr.read();
 		log('readable:', obj);
+		test.equal(obj.value, ar[obj.pos]);
 	});
     cr.write('.\r\r\n!');
     cr.write(null);
