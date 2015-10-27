@@ -44,7 +44,7 @@ s.characters = function characters() {
     var pos = 0;
     ts._transform = function _transform(chunk, encoding, callback) {
         log('_transform:', chunk, encoding, callback);
-        var sa = chunk.toString().split('');
+        var sa = chunk.toString(encoding).split('');
         log('sa:', sa);
         sa.forEach(function (ch) {
             ts.push({
