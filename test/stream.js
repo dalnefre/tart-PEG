@@ -44,13 +44,13 @@ test['characters() reads individual characters'] = function (test) {
 //    var sponsor = tracing.sponsor;
 
 	var cr = s.characters();
-	var ar = Array('.', '\r', '\r', '\n', '!');
+	var ar = ['.', '\r', '\r', '\n', '\n', '!'];
 	cr.on('readable', function onReadable() {
 		var obj = cr.read();
 		log('readable:', obj);
 		test.equal(obj.value, ar[obj.pos]);
 	});
-    cr.write('.\r\r\n!');
+    cr.write('.\r\r\n\n!');
     cr.write(null);
 
 //    test.ok(tracing.eventLoop());
