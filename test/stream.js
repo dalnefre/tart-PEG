@@ -58,7 +58,7 @@ test['characters() reads individual characters'] = function (test) {
 };
 
 test['characters() can feed actor-based stream'] = function (test) {
-    test.expect(7);
+    test.expect(8);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
@@ -96,22 +96,35 @@ test['characters() can feed actor-based stream'] = function (test) {
     cr.on('readable', function onReadable() {
         var obj = cr.read();
         log('readable:', obj);
-        obj.next = sponsor(makeNext());
-        next(obj);
-        next = obj.next;
+        if (obj) {
+            obj.next = sponsor(makeNext());
+            next(obj);
+            next = obj.next;
+        } else {
+            next({ next: next });  // end of stream
+        }
     });
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
         if (first) {            // unless there are no more expected results
             test.equal(m.value, first);
             m.next(this.self);
+        } else {
+            test.equal(m.value, undefined);  // end of stream
         }
     });
     next(match);  // start reading the actor-based stream
     cr.write('.\r\r\n\n!');
     cr.write(null);
 
+/*
     test.ok(tracing.eventLoop());
+*/
+    test.ok(tracing.eventLoop({
+        count: 100,
+//        log: function (effect) { console.log('DEBUG', effect); },
+        fail: function (exception) { console.log('FAIL!', exception); }
+    }));
     test.done();
 };
 
