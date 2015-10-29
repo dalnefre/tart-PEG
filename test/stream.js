@@ -39,7 +39,7 @@ var log = console.log;
 var test = module.exports = {};   
 
 test['characters() reads individual characters'] = function (test) {
-    test.expect(5);
+    test.expect(6);
 //    var tracing = tart.tracing();
 //    var sponsor = tracing.sponsor;
 
@@ -57,19 +57,77 @@ test['characters() reads individual characters'] = function (test) {
     test.done();
 };
 
+test['characters() can feed actor-based stream'] = function (test) {
+    test.expect(7);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var cr = s.characters();
+    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
+    var makeNext = function makeNext() {
+        return function nextBeh(msg) {
+            if (typeof msg === 'function') {  // msg = customer
+                this.behavior = makeWait([msg]);
+            } else if (typeof msg === 'object') {  // msg = result
+                this.behavior = makeCache(msg);
+            }
+        };
+    };
+    var makeWait = function makeWait(waiting) {
+        return function waitBeh(msg) {
+            if (typeof msg === 'function') {  // msg = customer
+                waiting.push(msg);
+            } else if (typeof msg === 'object') {  // msg = result
+                this.behavior = makeCache(msg);
+                waiting.forEach(function (item, index, array) {
+                    item(msg);
+                });
+            }
+        };
+    };
+    var makeCache = function makeCache(result) {
+        return function cacheBeh(cust) {
+            if (typeof msg === 'function') {
+                cust(result);
+            }
+        };
+    };
+    var next = sponsor(makeNext());
+    cr.on('readable', function onReadable() {
+        var obj = cr.read();
+        log('readable:', obj);
+        obj.next = sponsor(makeNext());
+        next(obj);
+        next = obj.next;
+    });
+    var match = sponsor(function matchBeh(m) {
+        var first = ar.shift();  // consume first expected result value
+        if (first) {            // unless there are no more expected results
+            test.equal(m.value, first);
+            m.next(this.self);
+        }
+    });
+    next(match);  // start reading the actor-based stream
+    cr.write('.\r\r\n\n!');
+    cr.write(null);
+
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
 test['countRowCol() handles different line endings'] = function (test) {
-    test.expect(20);
+    test.expect(24);
 
     var cr = s.characters();
     var rc = s.countRolCol();
     var ar = [
-	    { value:'.', pos:0, row:0, col:0 }, 
-	    { value:'\r', pos:1, row:0, col:1 }, 
-	    { value:'\r', pos:2, row:1, col:0 }, 
-	    { value:'\n', pos:3, row:1, col:1 }, 
-	    { value:'\n', pos:4, row:2, col:0 }, 
-	    { value:'!', pos:5, row:3, col:0 }
-	];
+        { value:'.', pos:0, row:0, col:0 }, 
+        { value:'\r', pos:1, row:0, col:1 }, 
+        { value:'\r', pos:2, row:1, col:0 }, 
+        { value:'\n', pos:3, row:1, col:1 }, 
+        { value:'\n', pos:4, row:2, col:0 }, 
+        { value:'!', pos:5, row:3, col:0 }
+    ];
     var i = 0;
     rc.on('readable', function onReadable() {
         var expect = ar[i++];
