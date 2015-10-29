@@ -60,3 +60,30 @@ s.characters = function characters() {
     };
     return ts;
 };
+
+s.countRowCol = function countRowCol() {
+    log('stream:', stream);
+    var ts = new stream.Transform({ objectMode: true });
+    log('ts:', ts);
+    var row = 0;
+    var col = 0;
+    var prev;
+    ts._transform = function _transform(obj, _ignored_, callback) {
+        log('_transform:', obj, callback);
+        if ((prev === '\n') 
+        ||  ((prev === '\r') && (obj.value !== '\n'))) {
+            row += 1;
+            col = 0;
+        }
+        obj.row = row;
+        obj.col = col;
+        ts.push(obj);
+        col += 1;
+        prev = obj.value;
+    };
+    ts._flush = function _flush(callback) {
+        log('_flush:', callback);
+        callback();
+    };
+    return ts;
+};
