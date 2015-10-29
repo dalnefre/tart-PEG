@@ -43,24 +43,24 @@ test['empty string returns end marker'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-	var cust = sponsor(function (r) {
-		test.equal(0, r.pos);
-		test.strictEqual(undefined, r.token);
-	});
+    var cust = sponsor(function (r) {
+        test.equal(0, r.pos);
+        test.strictEqual(undefined, r.token);
+    });
 
-	var stream = sponsor(input.stringStream(''));
-	stream(cust);
+    var stream = sponsor(input.stringStream(''));
+    stream(cust);
     
     test.ok(tracing.eventLoop({
 /*
-		log: function (effect) {
-			console.log('DEBUG', effect);
-		},
+        log: function (effect) {
+            console.log('DEBUG', effect);
+        },
 */
-		fail: function (e) {
-			console.log('ERROR!', e);
-		}
-	}));
+        fail: function (e) {
+            console.log('ERROR!', e);
+        }
+    }));
     test.done();
 };
 
@@ -69,48 +69,48 @@ test['string stream counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-	var c0 = sponsor(function (r) {
-		log('c0:', r);
-		test.equal(0, r.pos);
-		test.equal('\r', r.token);
-		test.equal(0, r.row);
-		test.equal(0, r.col);
-		r.next(c1);
-	});
-	var c1 = sponsor(function (r) {
-		log('c1:', r);
-		test.equal(1, r.pos);
-		test.equal('\n', r.token);
-		test.equal(0, r.row);
-		test.equal(1, r.col);
-		r.next(c2);
-	});
-	var c2 = sponsor(function (r) {
-		log('c2:', r);
-		test.equal(2, r.pos);
-		test.equal('\n', r.token);
-		test.equal(1, r.row);
-		test.equal(0, r.col);
-		r.next(c3);
-	});
-	var c3 = sponsor(function (r) {
-		log('c3:', r);
-		test.equal(3, r.pos);
-		test.equal('\r', r.token);
-		test.equal(2, r.row);
-		test.equal(0, r.col);
-		r.next(c4);
-	});
-	var c4 = sponsor(function (r) {
-		log('c4:', r);
-		test.equal(4, r.pos);
-		test.strictEqual(undefined, r.token);
-		test.equal(3, r.row);
-		test.equal(0, r.col);
-	});
+    var c0 = sponsor(function (r) {
+        log('c0:', r);
+        test.equal(0, r.pos);
+        test.equal('\r', r.token);
+        test.equal(0, r.row);
+        test.equal(0, r.col);
+        r.next(c1);
+    });
+    var c1 = sponsor(function (r) {
+        log('c1:', r);
+        test.equal(1, r.pos);
+        test.equal('\n', r.token);
+        test.equal(0, r.row);
+        test.equal(1, r.col);
+        r.next(c2);
+    });
+    var c2 = sponsor(function (r) {
+        log('c2:', r);
+        test.equal(2, r.pos);
+        test.equal('\n', r.token);
+        test.equal(1, r.row);
+        test.equal(0, r.col);
+        r.next(c3);
+    });
+    var c3 = sponsor(function (r) {
+        log('c3:', r);
+        test.equal(3, r.pos);
+        test.equal('\r', r.token);
+        test.equal(2, r.row);
+        test.equal(0, r.col);
+        r.next(c4);
+    });
+    var c4 = sponsor(function (r) {
+        log('c4:', r);
+        test.equal(4, r.pos);
+        test.strictEqual(undefined, r.token);
+        test.equal(3, r.row);
+        test.equal(0, r.col);
+    });
 
-	var stream = sponsor(input.stringStream('\r\n\n\r'));
-	stream(c0);
+    var stream = sponsor(input.stringStream('\r\n\n\r'));
+    stream(c0);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -121,13 +121,13 @@ test['empty array returns end marker'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-	var cust = sponsor(function (r) {
-		test.equal(0, r.pos);
-		test.strictEqual(undefined, r.token);
-	});
+    var cust = sponsor(function (r) {
+        test.equal(0, r.pos);
+        test.strictEqual(undefined, r.token);
+    });
 
-	var stream = sponsor(input.arrayStream([]));
-	stream(cust);
+    var stream = sponsor(input.arrayStream([]));
+    stream(cust);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -138,36 +138,36 @@ test['array stream handles many types'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-	var c0 = sponsor(function (r) {
-		log('c0:', r);
-		test.equal(0, r.pos);
-		test.strictEqual(42, r.token);
-		r.next(c1);
-	});
-	var c1 = sponsor(function (r) {
-		log('c1:', r);
-		test.equal(1, r.pos);
-		test.strictEqual('foo', r.token);
-		r.next(c2);
-	});
-	var c2 = sponsor(function (r) {
-		log('c2:', r);
-		test.equal(2, r.pos);
-		test.strictEqual('object', typeof r.token);
-		r.next(c3);
-	});
-	var c3 = sponsor(function (r) {
-		log('c3:', r);
-		test.equal(3, r.pos);
-		test.strictEqual(undefined, r.token);
-	});
+    var c0 = sponsor(function (r) {
+        log('c0:', r);
+        test.equal(0, r.pos);
+        test.strictEqual(42, r.token);
+        r.next(c1);
+    });
+    var c1 = sponsor(function (r) {
+        log('c1:', r);
+        test.equal(1, r.pos);
+        test.strictEqual('foo', r.token);
+        r.next(c2);
+    });
+    var c2 = sponsor(function (r) {
+        log('c2:', r);
+        test.equal(2, r.pos);
+        test.strictEqual('object', typeof r.token);
+        r.next(c3);
+    });
+    var c3 = sponsor(function (r) {
+        log('c3:', r);
+        test.equal(3, r.pos);
+        test.strictEqual(undefined, r.token);
+    });
 
-	var stream = sponsor(input.arrayStream([
-		42,
-		'foo',
-		{}
-	]));
-	stream(c0);
+    var stream = sponsor(input.arrayStream([
+        42,
+        'foo',
+        {}
+    ]));
+    stream(c0);
     
     test.ok(tracing.eventLoop());
     test.done();

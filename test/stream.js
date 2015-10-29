@@ -30,7 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-//var tart = require('tart-tracing');
+var tart = require('tart-tracing');
 var s = require('../stream.js');
 
 var log = console.log;
@@ -48,7 +48,7 @@ test['characters() reads individual characters'] = function (test) {
     cr.on('readable', function onReadable() {
         var obj = cr.read();
         log('readable:', obj);
-        test.equal(obj.value, ar[obj.pos]);
+        test.equal(ar[obj.pos], obj.value);
     });
     cr.write('.\r\r\n\n!');
     cr.write(null);
@@ -60,12 +60,23 @@ test['characters() reads individual characters'] = function (test) {
 test['characters() can feed actor-based stream'] = function (test) {
     test.expect(8);
     var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
+    var sponsor = (function (sponsor) {  // wrap sponsor
+    	var n = 0;
+    	return function create(beh) {
+    		var a = sponsor(beh);
+    		var id = n++;
+    		a.toString = a.valueOf = a.inspect = function () {
+    			return '@' + id;
+    		};
+    		return a;
+    	};
+    })(tracing.sponsor);
 
     var cr = s.characters();
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
+            log('nextBeh:', msg);
             if (typeof msg === 'function') {  // msg = customer
                 this.behavior = makeWait([msg]);
             } else if (typeof msg === 'object') {  // msg = result
@@ -75,6 +86,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     };
     var makeWait = function makeWait(waiting) {
         return function waitBeh(msg) {
+            log('waitBeh:', msg, waiting);
             if (typeof msg === 'function') {  // msg = customer
                 waiting.push(msg);
             } else if (typeof msg === 'object') {  // msg = result
@@ -87,7 +99,8 @@ test['characters() can feed actor-based stream'] = function (test) {
     };
     var makeCache = function makeCache(result) {
         return function cacheBeh(cust) {
-            if (typeof msg === 'function') {
+            log('cacheBeh:', cust, result);
+            if (typeof cust === 'function') {
                 cust(result);
             }
         };
@@ -106,11 +119,12 @@ test['characters() can feed actor-based stream'] = function (test) {
     });
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
+        log('matchBeh:', m, first);
         if (first) {            // unless there are no more expected results
-            test.equal(m.value, first);
+            test.equal(first, m.value);
             m.next(this.self);
         } else {
-            test.equal(m.value, undefined);  // end of stream
+            test.equal(undefined, m.value);  // end of stream
         }
     });
     next(match);  // start reading the actor-based stream
@@ -132,7 +146,7 @@ test['countRowCol() handles different line endings'] = function (test) {
     test.expect(24);
 
     var cr = s.characters();
-    var rc = s.countRolCol();
+    var rc = s.countRowCol();
     var ar = [
         { value:'.', pos:0, row:0, col:0 }, 
         { value:'\r', pos:1, row:0, col:1 }, 
@@ -141,15 +155,14 @@ test['countRowCol() handles different line endings'] = function (test) {
         { value:'\n', pos:4, row:2, col:0 }, 
         { value:'!', pos:5, row:3, col:0 }
     ];
-    var i = 0;
     rc.on('readable', function onReadable() {
-        var expect = ar[i++];
+        var expect = ar.shift();
         var actual = rc.read();
         log('readable:', expect, actual);
-        test.equal(actual.value, expect.value);
-        test.equal(actual.pos, expect.pos);
-        test.equal(actual.row, expect.row);
-        test.equal(actual.col, expect.col);
+        test.equal(expect.value, actual.value);
+        test.equal(expect.pos, actual.pos);
+        test.equal(expect.row, actual.row);
+        test.equal(expect.col, actual.col);
     });
     cr.pipe(rc);
     cr.write('.\r\r\n\n!');
