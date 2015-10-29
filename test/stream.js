@@ -56,3 +56,33 @@ test['characters() reads individual characters'] = function (test) {
 //    test.ok(tracing.eventLoop());
     test.done();
 };
+
+test['countRowCol() handles different line endings'] = function (test) {
+    test.expect(20);
+
+	var cr = s.characters();
+	var rc = s.countRolCol();
+	var ar = [
+	    { value:'.', pos:0, row:0, col:0 }, 
+	    { value:'\r', pos:1, row:0, col:1 }, 
+	    { value:'\r', pos:2, row:1, col:0 }, 
+	    { value:'\n', pos:3, row:1, col:1 }, 
+	    { value:'\n', pos:4, row:2, col:0 }, 
+	    { value:'!', pos:5, row:3, col:0 }
+	];
+	var i = 0;
+	rc.on('readable', function onReadable() {
+	    var expect = ar[i++];
+		var actual = rc.read();
+		log('readable:', expect, actual);
+		test.equal(actual.value, expect.value);
+		test.equal(actual.pos, expect.pos);
+		test.equal(actual.row, expect.row);
+		test.equal(actual.col, expect.col);
+	});
+	cr.pipe(rc);
+    cr.write('.\r\r\n\n!');
+    cr.write(null);
+
+    test.done();
+};
