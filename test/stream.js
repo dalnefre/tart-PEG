@@ -64,14 +64,13 @@ test['characters() can feed actor-based stream'] = function (test) {
     	var n = 0;
     	return function create(beh) {
     		var a = sponsor(beh);
-    		var id = n++;
+    		var id = '@' + n++;
     		a.toString = a.inspect = function () {
-    			return '@' + id;
+    			return id;
     		};
     		return a;
     	};
     })(tracing.sponsor);
-    tracing.sponsor = sponsor;  // override factory method
 
     var cr = s.characters();
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
@@ -109,7 +108,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     var next = sponsor(makeNext());
     cr.on('readable', function onReadable() {
         var obj = cr.read();
-        log('readable:', obj);
+        log('readable:', obj, next);
         if (obj) {
             obj.next = sponsor(makeNext());
             next(obj);
@@ -118,9 +117,13 @@ test['characters() can feed actor-based stream'] = function (test) {
             next({ next: next });  // end of stream
         }
     });
+    cr.on('end', function onEnd() {
+        log('end:', next);
+    	next({ end: true, next: next });  // end of stream
+    });
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
-        log('matchBeh'+this.self+':', m, first);
+        log('matchBeh'+this.self+':', m, JSON.stringify(first));
         if (first) {            // unless there are no more expected results
             test.equal(first, m.value);
             m.next(this.self);

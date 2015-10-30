@@ -34,18 +34,16 @@ var s = module.exports;
 
 var stream = require('stream');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 s.characters = function characters() {
-    log('stream:', stream);
     var ts = new stream.Transform({ objectMode: true });
-    log('ts:', ts);
     var pos = 0;
     ts._transform = function _transform(chunk, encoding, callback) {
-        log('_transform:', chunk, encoding, callback);
+        log('chars_transform:', chunk, encoding, callback);
         var sa = chunk.toString(encoding).split('');
-        log('sa:', sa);
+        log('chars_sa:', sa);
         sa.forEach(function (ch) {
             ts.push({
                 pos: pos,
@@ -55,21 +53,19 @@ s.characters = function characters() {
         });
     };
     ts._flush = function _flush(callback) {
-        log('_flush:', callback);
+        log('chars_flush:', callback);
         callback();
     };
     return ts;
 };
 
 s.countRowCol = function countRowCol() {
-    log('stream:', stream);
     var ts = new stream.Transform({ objectMode: true });
-    log('ts:', ts);
     var row = 0;
     var col = 0;
     var prev;
     ts._transform = function _transform(obj, _ignored_, callback) {
-        log('_transform:', obj, callback);
+        log('count_transform:', obj, callback);
         if ((prev === '\n') 
         ||  ((prev === '\r') && (obj.value !== '\n'))) {
             row += 1;
@@ -77,12 +73,13 @@ s.countRowCol = function countRowCol() {
         }
         obj.row = row;
         obj.col = col;
+        log('count_obj:', obj);
         ts.push(obj);
         col += 1;
         prev = obj.value;
     };
     ts._flush = function _flush(callback) {
-        log('_flush:', callback);
+        log('count_flush:', callback);
         callback();
     };
     return ts;
