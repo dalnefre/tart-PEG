@@ -65,18 +65,19 @@ test['characters() can feed actor-based stream'] = function (test) {
     	return function create(beh) {
     		var a = sponsor(beh);
     		var id = n++;
-    		a.toString = a.valueOf = a.inspect = function () {
+    		a.toString = a.inspect = function () {
     			return '@' + id;
     		};
     		return a;
     	};
     })(tracing.sponsor);
+    tracing.sponsor = sponsor;  // override factory method
 
     var cr = s.characters();
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
-            log('nextBeh:', msg);
+            log('nextBeh'+this.self+':', msg);
             if (typeof msg === 'function') {  // msg = customer
                 this.behavior = makeWait([msg]);
             } else if (typeof msg === 'object') {  // msg = result
@@ -86,7 +87,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     };
     var makeWait = function makeWait(waiting) {
         return function waitBeh(msg) {
-            log('waitBeh:', msg, waiting);
+            log('waitBeh'+this.self+':', msg, waiting);
             if (typeof msg === 'function') {  // msg = customer
                 waiting.push(msg);
             } else if (typeof msg === 'object') {  // msg = result
@@ -99,7 +100,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     };
     var makeCache = function makeCache(result) {
         return function cacheBeh(cust) {
-            log('cacheBeh:', cust, result);
+            log('cacheBeh'+this.self+':', cust, result);
             if (typeof cust === 'function') {
                 cust(result);
             }
@@ -119,7 +120,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     });
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
-        log('matchBeh:', m, first);
+        log('matchBeh'+this.self+':', m, first);
         if (first) {            // unless there are no more expected results
             test.equal(first, m.value);
             m.next(this.self);
