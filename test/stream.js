@@ -59,16 +59,7 @@ test['characters() reads individual characters'] = function (test) {
 
 test['characters() can feed actor-based stream'] = function (test) {
     test.expect(8);
-    var annotate = (function (n) {
-    	return function annotate(actor) {
-    		var id = '<' + (n++) + '>';
-    		actor.toString = actor.inspect = function () {
-    			return id;
-    		};
-    		return actor;
-    	};
-    })(42);
-    var tracing = tart.tracing({ annotate: annotate });
+    var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
     var cr = s.characters();
