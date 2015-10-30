@@ -77,6 +77,7 @@ s.countRowCol = function countRowCol() {
         ts.push(obj);
         col += 1;
         prev = obj.value;
+        callback();
     };
     ts._flush = function _flush(callback) {
         log('count_flush:', callback);
