@@ -40,21 +40,20 @@ var test = module.exports = {};
 
 test['characters() reads individual characters'] = function (test) {
     test.expect(6);
-//    var tracing = tart.tracing();
-//    var sponsor = tracing.sponsor;
 
     var cr = s.characters();
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     cr.on('readable', function onReadable() {
         var obj = cr.read();
         log('readable:', obj);
-        test.equal(ar[obj.pos], obj.value);
+        if (obj) {
+            test.equal(ar[obj.pos], obj.value);
+        } else {
+            test.done();
+        }
     });
     cr.write('.\r\r\n\n!');
-    cr.write(null);
-
-//    test.ok(tracing.eventLoop());
-    test.done();
+    cr.end();
 };
 
 test['characters() can feed actor-based stream'] = function (test) {
@@ -109,7 +108,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     });
     cr.on('end', function onEnd() {
         log('end:', next);
-    	next({ end: true, next: next });  // end of stream
+        next({ end: true, next: next });  // end of stream
     });
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
@@ -123,7 +122,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     });
     next(match);  // start reading the actor-based stream
     cr.write('.\r\r\n\n!');
-    cr.write(null);
+    cr.end();
 
 /*
     test.ok(tracing.eventLoop());
@@ -152,6 +151,9 @@ test['countRowCol() handles different line endings'] = function (test) {
     rc.on('readable', function onReadable() {
         var expect = ar.shift();
         var actual = rc.read();
+        if (actual === null) {
+            return test.done();
+        }
         log('readable:', expect, actual);
         test.equal(expect.value, actual.value);
         test.equal(expect.pos, actual.pos);
@@ -160,7 +162,29 @@ test['countRowCol() handles different line endings'] = function (test) {
     });
     cr.pipe(rc);
     cr.write('.\r\r\n\n!');
-    cr.write(null);
+    cr.end();
+};
 
-    test.done();
+test['transform calls flush at end of stream'] = function (test) {
+    test.expect(4);
+
+    var ts = new require('stream').Transform({ objectMode: true });
+//    ts._transform = function _transform(chunk, encoding, callback) {
+    ts._transform = function _transform(obj, _ignored_, callback) {
+        log('_transform.obj:', obj);
+        test.equal('zero', obj.name);
+        test.equal(0, obj.pos);
+        log('_transform.callback:', callback);
+        test.ok(callback);
+        callback();
+    };
+    ts._flush = function _flush(callback) {
+        log('_flush.callback:', callback);
+        test.ok(callback);
+        test.done();
+        callback();
+    };
+
+    ts.write({ name:'zero', pos:0 });
+    ts.end();
 };

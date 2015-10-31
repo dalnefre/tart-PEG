@@ -41,7 +41,7 @@ s.characters = function characters() {
     var ts = new stream.Transform({ objectMode: true });
     var pos = 0;
     ts._transform = function _transform(chunk, encoding, callback) {
-        log('chars_transform:', chunk, encoding, callback);
+        log('chars_transform:', JSON.stringify(arguments));
         var sa = chunk.toString(encoding).split('');
         log('chars_sa:', sa);
         sa.forEach(function (ch) {
@@ -51,9 +51,10 @@ s.characters = function characters() {
             });
             pos += 1;
         });
+        callback();
     };
     ts._flush = function _flush(callback) {
-        log('chars_flush:', callback);
+        log('chars_flush:', JSON.stringify(arguments));
         callback();
     };
     return ts;
@@ -65,7 +66,7 @@ s.countRowCol = function countRowCol() {
     var col = 0;
     var prev;
     ts._transform = function _transform(obj, _ignored_, callback) {
-        log('count_transform:', obj, callback);
+        log('count_transform:', JSON.stringify(arguments));
         if ((prev === '\n') 
         ||  ((prev === '\r') && (obj.value !== '\n'))) {
             row += 1;
@@ -80,7 +81,7 @@ s.countRowCol = function countRowCol() {
         callback();
     };
     ts._flush = function _flush(callback) {
-        log('count_flush:', callback);
+        log('count_flush:', JSON.stringify(arguments));
         callback();
     };
     return ts;
