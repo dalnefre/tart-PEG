@@ -34,8 +34,8 @@ var s = module.exports;
 
 var stream = require('stream');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 s.characters = function characters() {
     var ts = new stream.Transform({ objectMode: true });
@@ -65,8 +65,8 @@ s.countRowCol = function countRowCol() {
     var row = 0;
     var col = 0;
     var prev;
-    ts._transform = function _transform(obj, _ignored_, callback) {
-        log('count_transform:', JSON.stringify(arguments));
+    var decorate = function decorate(obj) {
+        obj = obj || {};
         if ((prev === '\n') 
         ||  ((prev === '\r') && (obj.value !== '\n'))) {
             row += 1;
@@ -75,6 +75,11 @@ s.countRowCol = function countRowCol() {
         obj.row = row;
         obj.col = col;
         log('count_obj:', obj);
+        return obj;
+    };
+    ts._transform = function _transform(obj, _ignored_, callback) {
+        log('count_transform:', JSON.stringify(arguments));
+        obj = decorate(obj);
         ts.push(obj);
         col += 1;
         prev = obj.value;

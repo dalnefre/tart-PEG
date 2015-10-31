@@ -33,15 +33,39 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var s = require('../stream.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var test = module.exports = {};   
+
+test['transform calls flush at end of stream'] = function (test) {
+    test.expect(4);
+
+    var ts = new require('stream').Transform({ objectMode: true });
+//    ts._transform = function _transform(chunk, encoding, callback) {
+    ts._transform = function _transform(obj, _ignored_, callback) {
+        log('_transform:', JSON.stringify(arguments));
+        test.equal('zero', obj.name);
+        test.equal(0, obj.pos);
+        test.ok(callback);
+        callback();
+    };
+    ts._flush = function _flush(callback) {
+        log('_flush:', JSON.stringify(arguments));
+        test.ok(callback);
+        test.done();
+        callback();
+    };
+
+    ts.write({ name:'zero', pos:0 });
+    ts.end();
+};
 
 test['characters() reads individual characters'] = function (test) {
     test.expect(6);
 
-    var cr = s.characters();
+    var ws = s.characters();
+    var cr = ws;
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     cr.on('readable', function onReadable() {
         var obj = cr.read();
@@ -52,8 +76,37 @@ test['characters() reads individual characters'] = function (test) {
             test.done();
         }
     });
-    cr.write('.\r\r\n\n!');
-    cr.end();
+    ws.write('.\r\r\n\n!');
+    ws.end();
+};
+
+test['countRowCol() handles different line endings'] = function (test) {
+    test.expect(24);
+
+    var ws = s.characters();
+    var rc = ws.pipe(s.countRowCol());
+    var ar = [
+        { value:'.', pos:0, row:0, col:0 }, 
+        { value:'\r', pos:1, row:0, col:1 }, 
+        { value:'\r', pos:2, row:1, col:0 }, 
+        { value:'\n', pos:3, row:1, col:1 }, 
+        { value:'\n', pos:4, row:2, col:0 }, 
+        { value:'!', pos:5, row:3, col:0 }
+    ];
+    rc.on('readable', function onReadable() {
+        var expect = ar.shift();
+        var actual = rc.read();
+        log('readable:', expect, actual);
+        if (!actual) {
+        	return test.done();
+        }
+        test.equal(expect.value, actual.value);
+        test.equal(expect.pos, actual.pos);
+        test.equal(expect.row, actual.row);
+        test.equal(expect.col, actual.col);
+    });
+    ws.write('.\r\r\n\n!');
+    ws.end();
 };
 
 test['characters() can feed actor-based stream'] = function (test) {
@@ -61,7 +114,8 @@ test['characters() can feed actor-based stream'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var cr = s.characters();
+    var ws = s.characters();
+    var rs = ws; //ws.pipe(s.countRowCol());
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
@@ -95,8 +149,8 @@ test['characters() can feed actor-based stream'] = function (test) {
         };
     };
     var next = sponsor(makeNext());
-    cr.on('readable', function onReadable() {
-        var obj = cr.read();
+    rs.on('readable', function onReadable() {
+        var obj = rs.read();
         log('readable:', obj, next);
         if (obj) {
             obj.next = sponsor(makeNext());
@@ -106,23 +160,23 @@ test['characters() can feed actor-based stream'] = function (test) {
             next({ next: next });  // end of stream
         }
     });
-    cr.on('end', function onEnd() {
+/*
+    rs.on('end', function onEnd() {
         log('end:', next);
         next({ end: true, next: next });  // end of stream
     });
+*/
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
         log('matchBeh'+this.self+':', m, JSON.stringify(first));
-        if (first) {            // unless there are no more expected results
-            test.equal(first, m.value);
+        test.equal(first, m.value);
+        if (first !== undefined) {
             m.next(this.self);
-        } else {
-            test.equal(undefined, m.value);  // end of stream
         }
     });
     next(match);  // start reading the actor-based stream
-    cr.write('.\r\r\n\n!');
-    cr.end();
+    ws.write('.\r\r\n\n!');
+    ws.end();
 
 /*
     test.ok(tracing.eventLoop());
@@ -133,58 +187,4 @@ test['characters() can feed actor-based stream'] = function (test) {
         fail: function (exception) { console.log('FAIL!', exception); }
     }));
     test.done();
-};
-
-test['countRowCol() handles different line endings'] = function (test) {
-    test.expect(24);
-
-    var cr = s.characters();
-    var rc = s.countRowCol();
-    var ar = [
-        { value:'.', pos:0, row:0, col:0 }, 
-        { value:'\r', pos:1, row:0, col:1 }, 
-        { value:'\r', pos:2, row:1, col:0 }, 
-        { value:'\n', pos:3, row:1, col:1 }, 
-        { value:'\n', pos:4, row:2, col:0 }, 
-        { value:'!', pos:5, row:3, col:0 }
-    ];
-    rc.on('readable', function onReadable() {
-        var expect = ar.shift();
-        var actual = rc.read();
-        if (actual === null) {
-            return test.done();
-        }
-        log('readable:', expect, actual);
-        test.equal(expect.value, actual.value);
-        test.equal(expect.pos, actual.pos);
-        test.equal(expect.row, actual.row);
-        test.equal(expect.col, actual.col);
-    });
-    cr.pipe(rc);
-    cr.write('.\r\r\n\n!');
-    cr.end();
-};
-
-test['transform calls flush at end of stream'] = function (test) {
-    test.expect(4);
-
-    var ts = new require('stream').Transform({ objectMode: true });
-//    ts._transform = function _transform(chunk, encoding, callback) {
-    ts._transform = function _transform(obj, _ignored_, callback) {
-        log('_transform.obj:', obj);
-        test.equal('zero', obj.name);
-        test.equal(0, obj.pos);
-        log('_transform.callback:', callback);
-        test.ok(callback);
-        callback();
-    };
-    ts._flush = function _flush(callback) {
-        log('_flush.callback:', callback);
-        test.ok(callback);
-        test.done();
-        callback();
-    };
-
-    ts.write({ name:'zero', pos:0 });
-    ts.end();
 };
