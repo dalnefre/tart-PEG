@@ -43,6 +43,7 @@ var input = require('../input.js');
 //var log = console.log;
 var log = function () {};
 
+var pf = PEG.factory(sponsor);
 var ns = PEG.namespace(log);
 
 /*
@@ -50,57 +51,57 @@ Assign <- Name "=" Assign
         / Expr
 */
 ns.define('Assign',
-    sponsor(PEG.choice([
-        sponsor(PEG.sequence([
+    pf.choice([
+        pf.sequence([
             sponsor(ns.lookup('Name')),
-            sponsor(PEG.terminal('=')),
+            pf.terminal('='),
             sponsor(ns.lookup('Assign'))
-        ])),
+        ]),
         sponsor(ns.lookup('Expr'))
-    ]))
+    ])
 );
 
 /*
 Name   <- [a-zA-Z]
 */
 ns.define('Name',
-    sponsor(PEG.predicate(function (token) {
+    pf.predicate(function (token) {
         return /[a-zA-Z]/.test(token);
-    }))
+    })
 );
 
 /*
 Expr   <- Term ([-+] Term)*
 */
 ns.define('Expr',
-    sponsor(PEG.sequence([
+    pf.sequence([
         sponsor(ns.lookup('Term')),
-        sponsor(PEG.zeroOrMore(
-            sponsor(PEG.sequence([
-                sponsor(PEG.predicate(function (token) {
+        pf.zeroOrMore(
+            pf.sequence([
+                pf.predicate(function (token) {
                     return /[-+]/.test(token);
-                })),
+                }),
                 sponsor(ns.lookup('Term'))
-            ]))
-        ))
-    ]))
+            ])
+        )
+    ])
 );
 
 /*
 Term   <- Factor ([/*] Factor)*
 */
 ns.define('Term',
-    sponsor(PEG.sequence([
+    pf.sequence([
         sponsor(ns.lookup('Factor')),
-        sponsor(PEG.zeroOrMore(
-            sponsor(PEG.sequence([
-                sponsor(PEG.predicate(function (token) {
+        pf.zeroOrMore(
+            pf.sequence([
+                pf.predicate(function (token) {
                     return /[/*]/.test(token);
-                })),
+                }),
                 sponsor(ns.lookup('Factor'))
-            ]))
-        ))
-    ]))
+            ])
+        )
+    ])
 );
 
 /*
@@ -109,19 +110,19 @@ Factor <- "(" Assign ")"
         / [0-9]+
 */
 ns.define('Factor',
-    sponsor(PEG.choice([
-        sponsor(PEG.sequence([
-            sponsor(PEG.terminal('(')),
+    pf.choice([
+        pf.sequence([
+            pf.terminal('('),
             sponsor(ns.lookup('Assign')),
-            sponsor(PEG.terminal(')'))
-        ])),
+            pf.terminal(')')
+        ]),
         sponsor(ns.lookup('Name')),
-        sponsor(PEG.oneOrMore(
-            sponsor(PEG.predicate(function (token) {
+        pf.oneOrMore(
+            pf.predicate(function (token) {
                 return /[0-9]/.test(token);
-            }))
-        ))
-    ]))
+            })
+        )
+    ])
 );
 
 var ok = sponsor(function okBeh(m) {
