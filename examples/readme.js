@@ -44,7 +44,7 @@ var input = require('../input.js');
 var log = function () {};
 
 var pf = PEG.factory(sponsor);
-var ns = PEG.namespace(log);
+var ns = pf.namespace(log);
 
 /*
 Assign <- Name "=" Assign
@@ -53,11 +53,11 @@ Assign <- Name "=" Assign
 ns.define('Assign',
     pf.choice([
         pf.sequence([
-            sponsor(ns.lookup('Name')),
+            ns.call('Name'),
             pf.terminal('='),
-            sponsor(ns.lookup('Assign'))
+            ns.call('Assign')
         ]),
-        sponsor(ns.lookup('Expr'))
+        ns.call('Expr')
     ])
 );
 
@@ -75,13 +75,13 @@ Expr   <- Term ([-+] Term)*
 */
 ns.define('Expr',
     pf.sequence([
-        sponsor(ns.lookup('Term')),
+        ns.call('Term'),
         pf.zeroOrMore(
             pf.sequence([
                 pf.predicate(function (token) {
                     return /[-+]/.test(token);
                 }),
-                sponsor(ns.lookup('Term'))
+                ns.call('Term')
             ])
         )
     ])
@@ -92,13 +92,13 @@ Term   <- Factor ([/*] Factor)*
 */
 ns.define('Term',
     pf.sequence([
-        sponsor(ns.lookup('Factor')),
+        ns.call('Factor'),
         pf.zeroOrMore(
             pf.sequence([
                 pf.predicate(function (token) {
                     return /[/*]/.test(token);
                 }),
-                sponsor(ns.lookup('Factor'))
+                ns.call('Factor')
             ])
         )
     ])
@@ -113,10 +113,10 @@ ns.define('Factor',
     pf.choice([
         pf.sequence([
             pf.terminal('('),
-            sponsor(ns.lookup('Assign')),
+            ns.call('Assign'),
             pf.terminal(')')
         ]),
-        sponsor(ns.lookup('Name')),
+        ns.call('Name'),
         pf.oneOrMore(
             pf.predicate(function (token) {
                 return /[0-9]/.test(token);
@@ -132,7 +132,7 @@ var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
 });
 
-var start = sponsor(ns.lookup('Assign'));
-var matcher = sponsor(PEG.start(start, ok, fail));
+var start = ns.call('Assign');
+var matcher = pf.matcher(start, ok, fail);
 var stream = sponsor(input.stringStream('x=y=10-2/3+4*5/(6-7)'));
 stream(matcher);
