@@ -375,7 +375,7 @@ PEG.memoize = PEG.packrat = function packratPtrn(pattern, name, log) {
 
 PEG.namespace = function namespace(log) {
     var ns = {};
-    var ruleNamed = [];
+    var ruleNamed = {};
     log = log || defaultLog;
     
     var defaultTransform = function ruleValue(name, value, r) {
@@ -511,4 +511,56 @@ PEG.start = function start(pattern, ok, fail) {
             fail: fail
         });
     };
+};
+
+PEG.factory = function factory(sponsor) {
+    var kit = {
+        fail: sponsor(PEG.fail),
+        empty: sponsor(PEG.empty)
+    };
+    kit.dot = kit.any = kit.anything = sponsor(PEG.anything);
+    kit.term = kit.terminal = function aTerminal(token) {
+        return sponsor(PEG.terminal(token));
+    };
+    kit.if = kit.cond = kit.predicate = function aPredicate(predicate) {
+        return sponsor(PEG.predicate(predicate));
+    };
+    kit.not = function aNot(pattern) {
+        return sponsor(PEG.not(pattern));
+    };
+    kit.follow = function aFollow(pattern) {
+        return sponsor(PEG.follow(pattern));
+    };
+    kit.seq = kit.sequence = function aSequence(list) {
+        return sponsor(PEG.sequence(list));
+    };
+    kit.alt = kit.choice = function aChoice(list) {
+        return sponsor(PEG.choice(list));
+    };
+    kit.star = kit.zeroOrMore = function aZeroOrMore(pattern) {
+        return sponsor(PEG.zeroOrMore(pattern));
+    };
+    kit.plus = kit.oneOrMore = function aOneOrMore(pattern) {
+        return sponsor(PEG.oneOrMore(pattern));
+    };
+    kit.opt = kit.optional = kit.question = kit.zeroOrOne = function aZeroOrOne(pattern) {
+        return sponsor(PEG.zeroOrOne(pattern));
+    };
+    kit.like = kit.object = function anObject(expect) {
+        return sponsor(PEG.object(expect));
+    };
+    kit.memo = kit.memoize = kit.packrat = function aPackrat(pattern, name, log) {
+        return sponsor(PEG.packrat(pattern, name, log));
+    };
+    kit.scope = kit.namespace = function aNamespace(log) {
+        var ns = PEG.namespace(log);
+        ns.call = function aCall(name) {
+            return sponsor(ns.lookup(name));
+        };
+        return ns;
+    };
+    kit.matcher = kit.match = kit.start = function aMatcher(pattern, ok, fail) {
+        return sponsor(PEG.start(pattern, ok, fail));
+    };
+    return kit;
 };
