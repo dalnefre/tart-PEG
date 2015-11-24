@@ -552,7 +552,7 @@ PEG.factory = function factory(sponsor) {
     kit.memo = kit.memoize = kit.packrat = function aPackrat(pattern, name, log) {
         return sponsor(PEG.packrat(pattern, name, log));
     };
-    kit.scope = kit.namespace = function aNamespace(log) {
+    kit.scope = kit.namespace = function newNamespace(log) {
         var ns = PEG.namespace(log);
         ns.call = function aCall(name) {
             return sponsor(ns.lookup(name));
