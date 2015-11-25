@@ -135,7 +135,7 @@ var stringStream = input.stringStream = function stringStream(seq, prev) {
     });
 };
 
-var fromReadable = input.fromReadable = function (sponsor, readable) {
+var fromReadable = input.fromReadable = function fromReadable(sponsor, readable) {
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
             log('nextBeh'+this.self+':', msg);
