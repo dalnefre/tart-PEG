@@ -172,3 +172,36 @@ test['array stream handles many types'] = function (test) {
     test.ok(tracing.eventLoop());
     test.done();
 };
+
+test['actor-based stream from readable'] = function (test) {
+    test.expect(8);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var s = require('../stream.js');
+    var ws = s.characters();
+    var rs = ws; //ws.pipe(s.countRowCol());
+    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
+    var next = input.fromReadable(rs);
+    var match = sponsor(function matchBeh(m) {
+        var first = ar.shift();  // consume first expected result value
+        log('matchBeh'+this.self+':', m, JSON.stringify(first));
+        test.equal(first, m.value);
+        if (first !== undefined) {
+            m.next(this.self);
+        }
+    });
+    next(match);  // start reading the actor-based stream
+    ws.write('.\r\r\n\n!');
+    ws.end();
+
+/*
+    test.ok(tracing.eventLoop());
+*/
+    test.ok(tracing.eventLoop({
+        count: 100,
+//        log: function (effect) { console.log('DEBUG', effect); },
+        fail: function (exception) { console.log('FAIL!', exception); }
+    }));
+    test.done();
+};
