@@ -182,7 +182,7 @@ test['actor-based stream from readable'] = function (test) {
     var ws = s.characters();
     var rs = ws; //ws.pipe(s.countRowCol());
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
-    var next = input.fromReadable(rs);
+    var next = input.fromReadable(sponsor, rs);
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
         log('matchBeh'+this.self+':', m, JSON.stringify(first));
