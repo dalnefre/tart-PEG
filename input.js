@@ -134,3 +134,57 @@ var stringStream = input.stringStream = function stringStream(seq, prev) {
         }
     });
 };
+
+var fromReadable = input.fromReadable = function (sponsor, readable) {
+    var makeNext = function makeNext() {
+        return function nextBeh(msg) {
+            log('nextBeh'+this.self+':', msg);
+            if (typeof msg === 'function') {  // msg = customer
+                this.behavior = makeWait([msg]);
+            } else if (typeof msg === 'object') {  // msg = result
+                this.behavior = makeCache(msg);
+            }
+        };
+    };
+    var makeWait = function makeWait(waiting) {
+        return function waitBeh(msg) {
+            log('waitBeh'+this.self+':', msg, waiting);
+            if (typeof msg === 'function') {  // msg = customer
+                waiting.push(msg);
+            } else if (typeof msg === 'object') {  // msg = result
+                this.behavior = makeCache(msg);
+                waiting.forEach(function (item, index, array) {
+                    item(msg);
+                });
+            }
+        };
+    };
+    var makeCache = function makeCache(result) {
+        return function cacheBeh(cust) {
+            log('cacheBeh'+this.self+':', cust, result);
+            if (typeof cust === 'function') {
+                cust(result);
+            }
+        };
+    };
+
+    var next = sponsor(makeNext());
+    readable.on('readable', function onReadable() {
+        var obj = readable.read();
+        log('readable:', obj, next);
+        if (obj) {
+            obj.next = sponsor(makeNext());
+            next(obj);
+            next = obj.next;
+        } else {
+            next({ next: next });  // end of stream
+        }
+    });
+/*
+    readable.on('end', function onEnd() {
+        log('end:', next);
+        next({ end: true, next: next });  // end of stream
+    });
+*/
+    return next;
+};
