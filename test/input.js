@@ -64,12 +64,12 @@ test['empty string returns end marker'] = function (test) {
     test.done();
 };
 
-test['string stream counts lines'] = function (test) {
-    test.expect(21);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-
-    var c0 = sponsor(function (r) {
+var multilineFixture = function multilineFixture(sponsor) {
+    var fixture = {
+        expect: 20,
+        source: '\r\n\n\r'
+    };
+    var c0 = fixture.c0 = sponsor(function (r) {
         log('c0:', r);
         test.equal(0, r.pos);
         test.equal('\r', r.token);
@@ -77,7 +77,7 @@ test['string stream counts lines'] = function (test) {
         test.equal(0, r.col);
         r.next(c1);
     });
-    var c1 = sponsor(function (r) {
+    var c1 = fixture.c1 = sponsor(function (r) {
         log('c1:', r);
         test.equal(1, r.pos);
         test.equal('\n', r.token);
@@ -85,7 +85,7 @@ test['string stream counts lines'] = function (test) {
         test.equal(1, r.col);
         r.next(c2);
     });
-    var c2 = sponsor(function (r) {
+    var c2 = fixture.c2 = sponsor(function (r) {
         log('c2:', r);
         test.equal(2, r.pos);
         test.equal('\n', r.token);
@@ -93,7 +93,7 @@ test['string stream counts lines'] = function (test) {
         test.equal(0, r.col);
         r.next(c3);
     });
-    var c3 = sponsor(function (r) {
+    var c3 = fixture.c3 = sponsor(function (r) {
         log('c3:', r);
         test.equal(3, r.pos);
         test.equal('\r', r.token);
@@ -101,16 +101,23 @@ test['string stream counts lines'] = function (test) {
         test.equal(0, r.col);
         r.next(c4);
     });
-    var c4 = sponsor(function (r) {
+    var c4 = fixture.c4 = sponsor(function (r) {
         log('c4:', r);
         test.equal(4, r.pos);
         test.strictEqual(undefined, r.token);
         test.equal(3, r.row);
         test.equal(0, r.col);
     });
+    return fixture;
+};
+test['string stream counts lines'] = function (test) {
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var fixture = multilineFixture(sponsor);
+    test.expect(fixture.expect + 1);
 
-    var stream = sponsor(input.stringStream('\r\n\n\r'));
-    stream(c0);
+    var stream = sponsor(input.stringStream(fixture.source));
+    stream(fixture.c0);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -203,5 +210,18 @@ test['actor-based stream from readable'] = function (test) {
 //        log: function (effect) { console.log('DEBUG', effect); },
         fail: function (exception) { console.log('FAIL!', exception); }
     }));
+    test.done();
+};
+
+test['string helper counts lines'] = function (test) {
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var fixture = multilineFixture(sponsor);
+    test.expect(fixture.expect + 1);
+
+    var stream = input.fromString(sponsor, fixture.source);
+    stream(fixture.c0);
+    
+    test.ok(tracing.eventLoop());
     test.done();
 };
