@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var input = module.exports;
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var end = input.end = {
     next: function next(cust) {
@@ -144,6 +144,7 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
             } else if (typeof msg === 'object') {  // msg = result
                 this.behavior = makeCache(msg);
             }
+            log(this.self+'.behavior', this.behavior);
         };
     };
     var makeWait = function makeWait(waiting) {
@@ -174,18 +175,23 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
         log('readable:', obj, next);
         if (obj) {
             obj.next = sponsor(makeNext());
+            log('readable-next:', obj);
             next(obj);
             next = obj.next;
         } else {
-            next({ next: next });  // end of stream
+            obj = { next: next };
+            log('readable-end:', obj);
+            next(obj);  // end of stream
         }
     });
 /*
+*/
     readable.on('end', function onEnd() {
         log('end:', next);
-        next({ end: true, next: next });  // end of stream
+        var obj = { end: true, next: next };
+        log('end-end:', obj);
+        next(obj);  // end of stream
     });
-*/
     return next;
 };
 
@@ -193,6 +199,7 @@ var fromString = input.fromString = function fromString(sponsor, seq) {
     var s = require('./stream.js');
     var ws = s.characters();
     var rs = ws.pipe(s.countRowCol()); //ws;
+    var next = input.fromReadable(sponsor, rs);
     ws.end(seq);
-    return input.fromReadable(sponsor, rs);
+    return next;
 };

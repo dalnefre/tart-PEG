@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var input = require('../input.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var test = module.exports = {};   
 
@@ -64,7 +64,7 @@ test['empty string returns end marker'] = function (test) {
     test.done();
 };
 
-var multilineFixture = function multilineFixture(sponsor) {
+var multilineFixture = function multilineFixture(test, sponsor) {
     var fixture = {
         expect: 20,
         source: '\r\n\n\r'
@@ -113,7 +113,7 @@ var multilineFixture = function multilineFixture(sponsor) {
 test['string stream counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var fixture = multilineFixture(sponsor);
+    var fixture = multilineFixture(test, sponsor);
     test.expect(fixture.expect + 1);
 
     var stream = sponsor(input.stringStream(fixture.source));
@@ -188,8 +188,8 @@ test['actor-based stream from readable'] = function (test) {
     var s = require('../stream.js');
     var ws = s.characters();
     var rs = ws; //ws.pipe(s.countRowCol());
-    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var next = input.fromReadable(sponsor, rs);
+    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
         log('matchBeh'+this.self+':', m, JSON.stringify(first));
@@ -198,9 +198,8 @@ test['actor-based stream from readable'] = function (test) {
             m.next(this.self);
         }
     });
+    ws.end('.\r\r\n\n!');
     next(match);  // start reading the actor-based stream
-    ws.write('.\r\r\n\n!');
-    ws.end();
 
 /*
     test.ok(tracing.eventLoop());
@@ -210,18 +209,27 @@ test['actor-based stream from readable'] = function (test) {
 //        log: function (effect) { console.log('DEBUG', effect); },
         fail: function (exception) { console.log('FAIL!', exception); }
     }));
+    log('test:', 'eventLoop() completed.');
     test.done();
 };
 
 test['string helper counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var fixture = multilineFixture(sponsor);
+    var fixture = multilineFixture(test, sponsor);
     test.expect(fixture.expect + 1);
 
     var stream = input.fromString(sponsor, fixture.source);
     stream(fixture.c0);
     
+/*
     test.ok(tracing.eventLoop());
+*/
+    test.ok(tracing.eventLoop({
+        count: 100,
+//        log: function (effect) { console.log('DEBUG', effect); },
+        fail: function (exception) { console.log('FAIL!', exception); }
+    }));
+	log('test:', 'eventLoop() completed.');
     test.done();
 };
