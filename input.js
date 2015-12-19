@@ -143,6 +143,8 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
                 this.behavior = makeWait([msg]);
             } else if (typeof msg === 'object') {  // msg = result
                 this.behavior = makeCache(msg);
+            } else {
+                log(this.self+' IGNORED', typeof cust);
             }
             log(this.self+'.behavior', this.behavior);
         };
@@ -157,6 +159,8 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
                 waiting.forEach(function (item, index, array) {
                     item(msg);
                 });
+            } else {
+                log(this.self+' IGNORED', typeof cust);
             }
         };
     };
@@ -165,6 +169,8 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
             log('cacheBeh'+this.self+':', cust, result);
             if (typeof cust === 'function') {
                 cust(result);
+            } else {
+                log(this.self+' IGNORED', typeof cust);
             }
         };
     };

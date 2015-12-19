@@ -213,6 +213,18 @@ test['actor-based stream from readable'] = function (test) {
     test.done();
 };
 
+var multiEventLoop = function multiEventLoop(eventLoop, test, n) {
+    var ok = eventLoop();
+    log('multiEventLoop:', n, ok);
+    if (n <= 0) {
+        test.ok(ok);
+        test.done();
+    } else {
+        setImmediate(function () {
+            multiEventLoop(test, n - 1);
+        });
+    }
+};
 test['string helper counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -223,13 +235,19 @@ test['string helper counts lines'] = function (test) {
     stream(fixture.c0);
     
 /*
-    test.ok(tracing.eventLoop());
-*/
     test.ok(tracing.eventLoop({
         count: 100,
 //        log: function (effect) { console.log('DEBUG', effect); },
         fail: function (exception) { console.log('FAIL!', exception); }
     }));
-	log('test:', 'eventLoop() completed.');
+    log('test:', 'eventLoop() completed.');
     test.done();
+*/
+    multiEventLoop(function eventLoop() {
+        return tracing.eventLoop({
+            count: 100,
+//            log: function (effect) { console.log('DEBUG', effect); },
+            fail: function (exception) { console.log('FAIL!', exception); }
+        });
+    }, test, 3);
 };
