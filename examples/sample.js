@@ -64,9 +64,14 @@ var exprSource = ''
 + '        / [0-9]+\n';
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
 var source = fileSource;
-var stream = sponsor(
+/*
+var next = sponsor(
     require('../input.js').stringStream(source)
 );
+*/
+var stream = require('../stream.js').characters();
+var next = input.fromReadable(sponsor, stream);
+stream.end(source);
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));
@@ -80,7 +85,7 @@ var fail = sponsor(function failBeh(m) {
 
 var start = sponsor(ns.lookup('Grammar'));
 var matcher = sponsor(PEG.start(start, ok, fail));
-stream(matcher);
+next(matcher);
 
 tracing.eventLoop({
 /*
