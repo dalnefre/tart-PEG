@@ -39,9 +39,21 @@ var log = console.log;
 
 var PEG = require('../PEG.js');
 
+/*
 var ns = require('../grammar.js').build(sponsor, log);
-
 require('../reducePEG.js').transform(ns);
+*/
+var pf = PEG.factory(sponsor);
+var ns = pf.namespace(log);
+ns.define('Grammar',
+    pf.sequence([
+        pf.oneOrMore(
+            pf.predicate(function (token) {
+                return / \t\r\n/.test(token);
+            })
+        )
+    ])
+);
 
 var simpleSource = ''
 + '\r\n# comment\n';
@@ -63,7 +75,7 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
-var source = objectSource; //fileSource;
+var source = simpleSource; //fileSource;
 /*
 var next = sponsor(
     require('../input.js').stringStream(source)
