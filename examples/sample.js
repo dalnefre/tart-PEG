@@ -34,8 +34,8 @@ var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var PEG = require('../PEG.js');
 
@@ -63,14 +63,14 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
-var source = fileSource;
+var source = objectSource; //fileSource;
 /*
 var next = sponsor(
     require('../input.js').stringStream(source)
 );
 */
 var stream = require('../stream.js').characters();
-var next = input.fromReadable(sponsor, stream);
+var next = require('../input.js').fromReadable(sponsor, stream);
 stream.end(source);
 
 var ok = sponsor(function okBeh(m) {
