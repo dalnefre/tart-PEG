@@ -66,7 +66,7 @@ var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {
-    console.log('error', e);
+    console.log('error', m, e);
     m.fail({
         start: m.input,
         end: m.input,
@@ -75,7 +75,7 @@ var error = function error(m, e) {
 };
 
 PEG.fail = function failBeh(m) {
-    log('failBeh:', m);
+    log('failBeh'+this.self+':', m);
     m.fail({
         start: m.input,
         end: m.input
@@ -83,7 +83,7 @@ PEG.fail = function failBeh(m) {
 };
 
 PEG.empty = function emptyBeh(m) {
-    log('emptyBeh:', m);
+    log('emptyBeh'+this.self+':', m);
     m.ok({
         start: m.input,
         end: m.input,
@@ -93,9 +93,9 @@ PEG.empty = function emptyBeh(m) {
 
 PEG.predicate = function predicatePtrn(predicate) {
     return function predicateBeh(m) {
-        log('predicateBeh:', m);
+        log('predicateBeh'+this.self+':', m);
         try {
-            var token = m.input.token;
+            var token = m.input.value;
             if (token !== undefined) {
                 if (predicate(token)) {
                     m.input.next(this.sponsor(function readBeh(input) {
@@ -108,7 +108,10 @@ PEG.predicate = function predicatePtrn(predicate) {
                     return;
                 }
             }
-            PEG.fail(m);
+            m.fail({
+                start: m.input,
+                end: m.input
+            });
         } catch (e) {
             error(m, e);
         }
@@ -127,7 +130,7 @@ PEG.terminal = function terminalPtrn(expect) {
 
 PEG.not = function notPtrn(pattern) {
     return function notBeh(m) {
-        log('notBeh:', m);
+        log('notBeh'+this.self+':', m);
         try {
             var result = {
                 start: m.input,
@@ -150,7 +153,7 @@ PEG.not = function notPtrn(pattern) {
 
 PEG.follow = function followPtrn(pattern) {
     return function followBeh(m) {
-        log('followBeh:', m);
+        log('followBeh'+this.self+':', m);
         try {
             var result = {
                 start: m.input,
@@ -173,18 +176,18 @@ PEG.follow = function followPtrn(pattern) {
 
 var andThen = function andPtrn(first, rest) {
     return function andBeh(m) {
-        log('andBeh:', m);
+        log('andBeh'+this.self+':', m);
         var failure = this.sponsor(function failBeh(r) {
-//            log('failBeh:', r, m);
+//            log('failBeh'+this.self+':', r, m);
             m.fail({
                 start: m.input,
                 end: r.end
             });
         });
         var next = this.sponsor(function nextBeh(r) {
-            log('nextBeh:', r, m);
+            log('nextBeh'+this.self+':', r, m);
             var success = this.sponsor(function okBeh(rr) {
-//                log('okBeh:', rr, r, m);
+//                log('okBeh'+this.self+':', rr, r, m);
                 rr.value.unshift(r.value);  // mutate rr.value
                 m.ok({
                     start: m.input,
@@ -222,9 +225,9 @@ PEG.sequence = function sequencePtrn(list) {
 
 var orElse = function orPtrn(first, rest) {
     return function orBeh(m) {
-        log('orBeh:', m);
+        log('orBeh'+this.self+':', m);
         var next = this.sponsor(function nextBeh(r) {
-            log('nextBeh:', r, m);
+            log('nextBeh'+this.self+':', r, m);
             rest({
                 input: m.input,
                 ok: m.ok,
@@ -255,7 +258,7 @@ PEG.choice = function choicePtrn(list) {
 
 PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
     return function zeroOrMoreBeh(m) {
-        log('zeroOrMoreBeh:', m);
+        log('zeroOrMoreBeh'+this.self+':', m);
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
             list.push(r.value);  // mutate list
@@ -282,7 +285,7 @@ PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
 
 PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
     return function oneOrMoreBeh(m) {
-        log('oneOrMoreBeh:', m);
+        log('oneOrMoreBeh'+this.self+':', m);
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
             list.push(r.value);  // mutate list
@@ -309,7 +312,7 @@ PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
 
 PEG.question = PEG.optional = PEG.zeroOrOne = function zeroOrOnePtrn(pattern) {
     return function zeroOrOneBeh(m) {
-        log('zeroOrOneBeh:', m);
+        log('zeroOrOneBeh'+this.self+':', m);
         pattern({
             input: m.input,
             ok: this.sponsor(function oneBeh(r) {

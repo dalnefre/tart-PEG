@@ -73,16 +73,16 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
-var source = allSource; //fileSource;
+var source = fileSource; //allSource;
 
+/*
 var next = sponsor(
     require('../input.js').stringStream(source)
 );
-/*
+*/
 var stream = require('../stream.js').characters();
 var next = require('../input.js').fromReadable(sponsor, stream);
 stream.end(source);
-*/
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));

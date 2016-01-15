@@ -149,7 +149,7 @@ Use `sponsor(behavior)` to create a pattern-matching actor.
 
 A location within a stream is represented with an object like this:
 
-  * `token`: _Object_ Token at current position, if any.
+  * `value`: _Object_ Token at current position, if any.
   * `pos`: _Number_ Position in the stream (zero-based).
   * `next`: _Actor_ Actor used to access the next stream position.
 

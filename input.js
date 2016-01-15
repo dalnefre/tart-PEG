@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var input = module.exports;
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var end = input.end = {
     next: function next(cust) {
@@ -75,7 +75,8 @@ var arrayStream = input.arrayStream = function arrayStream(seq, pos) {
         log('arrayStream:', pos, JSON.stringify(token));
         if (pos < seq.length) {
             cust({
-                token: seq[pos],
+                token: seq[pos],  // [DEPRECATED]
+                value: seq[pos],
                 pos: pos,
                 next: this.sponsor(arrayStream(seq, pos + 1))
             });
@@ -105,14 +106,15 @@ var stringStream = input.stringStream = function stringStream(seq, prev) {
         var col = prev.col + 1;
         var token = seq[pos];
         log('stringStream:', pos, JSON.stringify(token), row, col);
-        if ((prev.token === '\n')
-        ||  ((prev.token === '\r') && (token !== '\n'))) {
+        if ((prev.value === '\n')
+        ||  ((prev.value === '\r') && (token !== '\n'))) {
             row += 1;
             col = 0;
         }
         if (token) {
             var curr = {
-                token: token,
+                token: token,  // [DEPRECATED]
+                value: token,
                 row: row,
                 col: col,
                 pos: pos
