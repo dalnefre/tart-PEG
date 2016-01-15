@@ -49,6 +49,7 @@ var indent = function indent() {
  */
 generate.text = function text(grammar, width, source) {
     indentWidth = width || indentWidth;
+    source = source || '';
     var s = '';
 
     s += '/* Generated PEG grammar */\n';

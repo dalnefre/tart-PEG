@@ -34,27 +34,25 @@ var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var PEG = require('../PEG.js');
 
-/*
 var ns = require('../grammar.js').build(sponsor, log);
 require('../reducePEG.js').transform(ns);
-*/
+/*
 var pf = PEG.factory(sponsor);
 var ns = pf.namespace(log);
 ns.define('Grammar',
-    pf.sequence([
-        pf.oneOrMore(
-            pf.predicate(function (token) {
-                return / \t\r\n/.test(token);
-            })
-        )
-    ])
+    pf.star(
+        pf.any
+    )
 );
+*/
 
+var allSource = ''
++ 'ALL <- .*\n';
 var simpleSource = ''
 + '\r\n# comment\n';
 var objectSource = ''
@@ -75,15 +73,16 @@ var exprSource = ''
 + '        / Name\n'
 + '        / [0-9]+\n';
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
-var source = simpleSource; //fileSource;
-/*
+var source = allSource; //fileSource;
+
 var next = sponsor(
     require('../input.js').stringStream(source)
 );
-*/
+/*
 var stream = require('../stream.js').characters();
 var next = require('../input.js').fromReadable(sponsor, stream);
 stream.end(source);
+*/
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));

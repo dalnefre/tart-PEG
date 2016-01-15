@@ -5,85 +5,86 @@ var grammar = module.exports;
 var PEG = require("./PEG.js");
 
 grammar.build = function build(sponsor, log) {
-  var ns = PEG.namespace(log);
+  var pf = PEG.factory(sponsor);
+  var ns = pf.namespace(log);
 
 /*
 Grammar     <- _ Rule+ EOF
 */
   ns.define("Grammar",
-    sponsor(PEG.sequence([
-      sponsor(ns.lookup("_")),
-      sponsor(PEG.plus(
-        sponsor(ns.lookup("Rule"))
-      )),
-      sponsor(ns.lookup("EOF"))
-    ]))
+    pf.seq([
+      ns.call("_"),
+      pf.plus(
+        ns.call("Rule")
+      ),
+      ns.call("EOF")
+    ])
   );
 
 /*
 Rule        <- Name LEFTARROW Expression
 */
   ns.define("Rule",
-    sponsor(PEG.sequence([
-      sponsor(ns.lookup("Name")),
-      sponsor(ns.lookup("LEFTARROW")),
-      sponsor(ns.lookup("Expression"))
-    ]))
+    pf.seq([
+      ns.call("Name"),
+      ns.call("LEFTARROW"),
+      ns.call("Expression")
+    ])
   );
 
 /*
 Expression  <- Sequence (SLASH Sequence)*
 */
   ns.define("Expression",
-    sponsor(PEG.sequence([
-      sponsor(ns.lookup("Sequence")),
-      sponsor(PEG.star(
-        sponsor(PEG.sequence([
-          sponsor(ns.lookup("SLASH")),
-          sponsor(ns.lookup("Sequence"))
-        ]))
-      ))
-    ]))
+    pf.seq([
+      ns.call("Sequence"),
+      pf.star(
+        pf.seq([
+          ns.call("SLASH"),
+          ns.call("Sequence")
+        ])
+      )
+    ])
   );
 
 /*
 Sequence    <- Prefix*
 */
   ns.define("Sequence",
-    sponsor(PEG.star(
-      sponsor(ns.lookup("Prefix"))
-    ))
+    pf.star(
+      ns.call("Prefix")
+    )
   );
 
 /*
 Prefix      <- (AND / NOT)? Suffix
 */
   ns.define("Prefix",
-    sponsor(PEG.sequence([
-      sponsor(PEG.optional(
-        sponsor(PEG.choice([
-          sponsor(ns.lookup("AND")),
-          sponsor(ns.lookup("NOT"))
-        ]))
-      )),
-      sponsor(ns.lookup("Suffix"))
-    ]))
+    pf.seq([
+      pf.opt(
+        pf.alt([
+          ns.call("AND"),
+          ns.call("NOT")
+        ])
+      ),
+      ns.call("Suffix")
+    ])
   );
 
 /*
 Suffix      <- Primary (QUESTION / STAR / PLUS)?
 */
   ns.define("Suffix",
-    sponsor(PEG.sequence([
-      sponsor(ns.lookup("Primary")),
-      sponsor(PEG.optional(
-        sponsor(PEG.choice([
-          sponsor(ns.lookup("QUESTION")),
-          sponsor(ns.lookup("STAR")),
-          sponsor(ns.lookup("PLUS"))
-        ]))
-      ))
-    ]))
+    pf.seq([
+      ns.call("Primary"),
+      pf.opt(
+        pf.alt([
+          ns.call("QUESTION"),
+          ns.call("STAR"),
+          ns.call("PLUS")
+        ])
+      )
+    ])
   );
 
 /*
@@ -95,40 +96,40 @@ Primary     <- Name !LEFTARROW
              / DOT
 */
   ns.define("Primary",
-    sponsor(PEG.choice([
-      sponsor(PEG.sequence([
-        sponsor(ns.lookup("Name")),
-        sponsor(PEG.not(
-          sponsor(ns.lookup("LEFTARROW"))
-        ))
-      ])),
-      sponsor(PEG.sequence([
-        sponsor(ns.lookup("OPEN")),
-        sponsor(ns.lookup("Expression")),
-        sponsor(ns.lookup("CLOSE"))
-      ])),
-      sponsor(ns.lookup("Literal")),
-      sponsor(ns.lookup("Class")),
-      sponsor(ns.lookup("Object")),
-      sponsor(ns.lookup("DOT"))
-    ]))
+    pf.alt([
+      pf.seq([
+        ns.call("Name"),
+        pf.not(
+          ns.call("LEFTARROW")
+        )
+      ]),
+      pf.seq([
+        ns.call("OPEN"),
+        ns.call("Expression"),
+        ns.call("CLOSE")
+      ]),
+      ns.call("Literal"),
+      ns.call("Class"),
+      ns.call("Object"),
+      ns.call("DOT")
+    ])
   );
 
 /*
 Name        <- [a-zA-Z_] [a-zA-Z_0-9]* _
 */
   ns.define("Name",
-    sponsor(PEG.sequence([
-      sponsor(PEG.predicate(function (token) {
+    pf.seq([
+      pf.if(function cond(token) {
         return /[a-zA-Z_]/.test(token);
-      })),
-      sponsor(PEG.star(
-        sponsor(PEG.predicate(function (token) {
+      }),
+      pf.star(
+        pf.if(function cond(token) {
           return /[a-zA-Z_0-9]/.test(token);
-        }))
-      )),
-      sponsor(ns.lookup("_"))
-    ]))
+        })
+      ),
+      ns.call("_")
+    ])
   );
 
 /*
@@ -136,67 +137,67 @@ Literal     <- "\"" (!"\"" Character)+ "\"" _
              / "'" (!"'" Character)+ "'" _
 */
   ns.define("Literal",
-    sponsor(PEG.choice([
-      sponsor(PEG.sequence([
-        sponsor(PEG.terminal("\"")),
-        sponsor(PEG.plus(
-          sponsor(PEG.sequence([
-            sponsor(PEG.not(
-              sponsor(PEG.terminal("\""))
-            )),
-            sponsor(ns.lookup("Character"))
-          ]))
-        )),
-        sponsor(PEG.terminal("\"")),
-        sponsor(ns.lookup("_"))
-      ])),
-      sponsor(PEG.sequence([
-        sponsor(PEG.terminal("'")),
-        sponsor(PEG.plus(
-          sponsor(PEG.sequence([
-            sponsor(PEG.not(
-              sponsor(PEG.terminal("'"))
-            )),
-            sponsor(ns.lookup("Character"))
-          ]))
-        )),
-        sponsor(PEG.terminal("'")),
-        sponsor(ns.lookup("_"))
-      ]))
-    ]))
+    pf.alt([
+      pf.seq([
+        pf.term("\""),
+        pf.plus(
+          pf.seq([
+            pf.not(
+              pf.term("\"")
+            ),
+            ns.call("Character")
+          ])
+        ),
+        pf.term("\""),
+        ns.call("_")
+      ]),
+      pf.seq([
+        pf.term("'"),
+        pf.plus(
+          pf.seq([
+            pf.not(
+              pf.term("'")
+            ),
+            ns.call("Character")
+          ])
+        ),
+        pf.term("'"),
+        ns.call("_")
+      ])
+    ])
   );
 
 /*
 Class       <- "[" (!"]" Range)+ "]" _
 */
   ns.define("Class",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("[")),
-      sponsor(PEG.plus(
-        sponsor(PEG.sequence([
-          sponsor(PEG.not(
-            sponsor(PEG.terminal("]"))
-          )),
-          sponsor(ns.lookup("Range"))
-        ]))
-      )),
-      sponsor(PEG.terminal("]")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("["),
+      pf.plus(
+        pf.seq([
+          pf.not(
+            pf.term("]")
+          ),
+          ns.call("Range")
+        ])
+      ),
+      pf.term("]"),
+      ns.call("_")
+    ])
   );
 
 /*
 Range       <- Character "-" Character / Character
 */
   ns.define("Range",
-    sponsor(PEG.choice([
-      sponsor(PEG.sequence([
-        sponsor(ns.lookup("Character")),
-        sponsor(PEG.terminal("-")),
-        sponsor(ns.lookup("Character"))
-      ])),
-      sponsor(ns.lookup("Character"))
-    ]))
+    pf.alt([
+      pf.seq([
+        ns.call("Character"),
+        pf.term("-"),
+        ns.call("Character")
+      ]),
+      ns.call("Character")
+    ])
   );
 
 /*
@@ -205,247 +206,250 @@ Character   <- "\\" [nrt'"\[\]\\]
              / !"\\" .
 */
   ns.define("Character",
-    sponsor(PEG.choice([
-      sponsor(PEG.sequence([
-        sponsor(PEG.terminal("\\")),
-        sponsor(PEG.predicate(function (token) {
+    pf.alt([
+      pf.seq([
+        pf.term("\\"),
+        pf.if(function cond(token) {
           return /[nrt'\"\[\]\\]/.test(token);
-        }))
-      ])),
-      sponsor(PEG.sequence([
-        sponsor(PEG.terminal("\\")),
-        sponsor(PEG.terminal("u")),
-        sponsor(PEG.predicate(function (token) {
+        })
+      ]),
+      pf.seq([
+        pf.term("\\"),
+        pf.term("u"),
+        pf.if(function cond(token) {
           return /[0-9a-fA-F]/.test(token);
-        })),
-        sponsor(PEG.predicate(function (token) {
+        }),
+        pf.if(function cond(token) {
           return /[0-9a-fA-F]/.test(token);
-        })),
-        sponsor(PEG.predicate(function (token) {
+        }),
+        pf.if(function cond(token) {
           return /[0-9a-fA-F]/.test(token);
-        })),
-        sponsor(PEG.predicate(function (token) {
+        }),
+        pf.if(function cond(token) {
           return /[0-9a-fA-F]/.test(token);
-        }))
-      ])),
-      sponsor(PEG.sequence([
-        sponsor(PEG.not(
-          sponsor(PEG.terminal("\\"))
-        )),
-        sponsor(PEG.dot)
-      ]))
-    ]))
+        })
+      ]),
+      pf.seq([
+        pf.not(
+          pf.term("\\")
+        ),
+        pf.any
+      ])
+    ])
   );
 
 /*
 Object      <- LBRACE (Property (COMMA Property)*)? RBRACE
 */
   ns.define("Object",
-    sponsor(PEG.sequence([
-      sponsor(ns.lookup("LBRACE")),
-      sponsor(PEG.optional(
-        sponsor(PEG.sequence([
-          sponsor(ns.lookup("Property")),
-          sponsor(PEG.star(
-            sponsor(PEG.sequence([
-              sponsor(ns.lookup("COMMA")),
-              sponsor(ns.lookup("Property"))
-            ]))
-          ))
-        ]))
-      )),
-      sponsor(ns.lookup("RBRACE"))
-    ]))
+    pf.seq([
+      ns.call("LBRACE"),
+      pf.opt(
+        pf.seq([
+          ns.call("Property"),
+          pf.star(
+            pf.seq([
+              ns.call("COMMA"),
+              ns.call("Property")
+            ])
+          )
+        ])
+      ),
+      ns.call("RBRACE")
+    ])
   );
 
 /*
 Property    <- Name COLON Literal
+
 */
   ns.define("Property",
-    sponsor(PEG.sequence([
-      sponsor(ns.lookup("Name")),
-      sponsor(ns.lookup("COLON")),
-      sponsor(ns.lookup("Literal"))
-    ]))
+    pf.seq([
+      ns.call("Name"),
+      ns.call("COLON"),
+      ns.call("Literal")
+    ])
   );
 
 /*
 DOT         <- "." _
+
 */
   ns.define("DOT",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal(".")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("."),
+      ns.call("_")
+    ])
   );
 
 /*
 LEFTARROW   <- "<" "-" _
 */
   ns.define("LEFTARROW",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("<")),
-      sponsor(PEG.terminal("-")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("<"),
+      pf.term("-"),
+      ns.call("_")
+    ])
   );
 
 /*
 SLASH       <- "/" _
 */
   ns.define("SLASH",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("/")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("/"),
+      ns.call("_")
+    ])
   );
 
 /*
 AND         <- "&" _
 */
   ns.define("AND",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("&")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("&"),
+      ns.call("_")
+    ])
   );
 
 /*
 NOT         <- "!" _
 */
   ns.define("NOT",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("!")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("!"),
+      ns.call("_")
+    ])
   );
 
 /*
 QUESTION    <- "?" _
 */
   ns.define("QUESTION",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("?")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("?"),
+      ns.call("_")
+    ])
   );
 
 /*
 STAR        <- "*" _
 */
   ns.define("STAR",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("*")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("*"),
+      ns.call("_")
+    ])
   );
 
 /*
 PLUS        <- "+" _
 */
   ns.define("PLUS",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("+")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("+"),
+      ns.call("_")
+    ])
   );
 
 /*
 OPEN        <- "(" _
 */
   ns.define("OPEN",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("(")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("("),
+      ns.call("_")
+    ])
   );
 
 /*
 CLOSE       <- ")" _
 */
   ns.define("CLOSE",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal(")")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term(")"),
+      ns.call("_")
+    ])
   );
 
 /*
 LBRACE      <- "{" _
 */
   ns.define("LBRACE",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("{")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("{"),
+      ns.call("_")
+    ])
   );
 
 /*
 RBRACE      <- "}" _
 */
   ns.define("RBRACE",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("}")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term("}"),
+      ns.call("_")
+    ])
   );
 
 /*
 COLON       <- ":" _
 */
   ns.define("COLON",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal(":")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term(":"),
+      ns.call("_")
+    ])
   );
 
 /*
 COMMA       <- "," _
+
 */
   ns.define("COMMA",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal(",")),
-      sponsor(ns.lookup("_"))
-    ]))
+    pf.seq([
+      pf.term(","),
+      ns.call("_")
+    ])
   );
 
 /*
 _           <- (Space / Comment)*   # optional whitespace
 */
   ns.define("_",
-    sponsor(PEG.star(
-      sponsor(PEG.choice([
-        sponsor(ns.lookup("Space")),
-        sponsor(ns.lookup("Comment"))
-      ]))
-    ))
+    pf.star(
+      pf.alt([
+        ns.call("Space"),
+        ns.call("Comment")
+      ])
+    )
   );
 
 /*
 Comment     <- "#" (!EOL .)*
 */
   ns.define("Comment",
-    sponsor(PEG.sequence([
-      sponsor(PEG.terminal("#")),
-      sponsor(PEG.star(
-        sponsor(PEG.sequence([
-          sponsor(PEG.not(
-            sponsor(ns.lookup("EOL"))
-          )),
-          sponsor(PEG.dot)
-        ]))
-      ))
-    ]))
+    pf.seq([
+      pf.term("#"),
+      pf.star(
+        pf.seq([
+          pf.not(
+            ns.call("EOL")
+          ),
+          pf.any
+        ])
+      )
+    ])
   );
 
 /*
 Space       <- [ \t-\r]
 */
   ns.define("Space",
-    sponsor(PEG.predicate(function (token) {
+    pf.if(function cond(token) {
       return /[ \t-\r]/.test(token);
-    }))
+    })
   );
 
 /*
@@ -453,24 +457,24 @@ EOL         <- "\n"
              / "\r" "\n"?
 */
   ns.define("EOL",
-    sponsor(PEG.choice([
-      sponsor(PEG.terminal("\n")),
-      sponsor(PEG.sequence([
-        sponsor(PEG.terminal("\r")),
-        sponsor(PEG.optional(
-          sponsor(PEG.terminal("\n"))
-        ))
-      ]))
-    ]))
+    pf.alt([
+      pf.term("\n"),
+      pf.seq([
+        pf.term("\r"),
+        pf.opt(
+          pf.term("\n")
+        )
+      ])
+    ])
   );
 
 /*
 EOF         <- !.
 */
   ns.define("EOF",
-    sponsor(PEG.not(
-      sponsor(PEG.dot)
-    ))
+    pf.not(
+      pf.any
+    )
   );
 
   return ns;  // return grammar namespace
