@@ -30,9 +30,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+/*
 var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
+*/
+var tart = require('tart');
+var sponsor = tart.minimal({
+    fail: function (e) { console.log('ERROR!', e); }
+});
 
 //var log = console.log;
 var log = function () {};
@@ -80,9 +86,12 @@ var next = sponsor(
     require('../input.js').stringStream(source)
 );
 */
+/*
 var stream = require('../stream.js').characters();
 var next = require('../input.js').fromReadable(sponsor, stream);
 stream.end(source);
+*/
+var next = require('../input.js').fromString(sponsor, source);
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));
@@ -98,13 +107,9 @@ var start = sponsor(ns.lookup('Grammar'));
 var matcher = sponsor(PEG.start(start, ok, fail));
 next(matcher);
 
-tracing.eventLoop({
 /*
-    log: function (effect) {
-        console.log('DEBUG', effect);
-    },
-*/
-    fail: function (e) {
-        console.log('ERROR!', e);
-    }
+tracing.eventLoop({
+//    log: function (effect) { console.log('DEBUG', effect); },
+    fail: function (e) { console.log('ERROR!', e); }
 });
+*/
