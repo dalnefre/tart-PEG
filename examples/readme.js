@@ -134,13 +134,5 @@ var fail = sponsor(function failBeh(m) {
 
 var start = ns.call('Assign');
 var matcher = pf.matcher(start, ok, fail);
-/*
-//var stream = sponsor(input.stringStream('x=y=10-2/3+4*5/(6-7)'));
-var stream = input.fromString(sponsor, 'x=y=10-2/3+4*5/(6-7)');
-stream(matcher);
-*/
-var stream = require('../stream.js').characters();
-var next = input.fromReadable(sponsor, stream);
+var next = input.fromString(sponsor, 'x=y=10-2/3+4*5/(6-7)');
 next(matcher);
-stream.write('x=y=10-2/3+4*5/(6-7)');
-stream.end();
