@@ -36,7 +36,7 @@ var input = require('../input.js');
 var log = console.log;
 //var log = function () {};
 
-var test = module.exports = {};   
+var test = module.exports = {};
 
 test['empty string returns end marker'] = function (test) {
     test.expect(3);
@@ -50,7 +50,7 @@ test['empty string returns end marker'] = function (test) {
 
     var stream = sponsor(input.stringStream(''));
     stream(cust);
-    
+
     test.ok(tracing.eventLoop({
 /*
         log: function (effect) {
@@ -66,13 +66,13 @@ test['empty string returns end marker'] = function (test) {
 
 var multilineFixture = function multilineFixture(test, sponsor) {
     var fixture = {
-        expect: 20,
+        expect: 17,
         source: '\r\n\n\r'
     };
     var c0 = fixture.c0 = sponsor(function (r) {
         log('c0:', r);
         test.equal(0, r.pos);
-        test.equal('\r', r.token);
+        test.equal('\r', r.value);
         test.equal(0, r.row);
         test.equal(0, r.col);
         r.next(c1);
@@ -80,7 +80,7 @@ var multilineFixture = function multilineFixture(test, sponsor) {
     var c1 = fixture.c1 = sponsor(function (r) {
         log('c1:', r);
         test.equal(1, r.pos);
-        test.equal('\n', r.token);
+        test.equal('\n', r.value);
         test.equal(0, r.row);
         test.equal(1, r.col);
         r.next(c2);
@@ -88,7 +88,7 @@ var multilineFixture = function multilineFixture(test, sponsor) {
     var c2 = fixture.c2 = sponsor(function (r) {
         log('c2:', r);
         test.equal(2, r.pos);
-        test.equal('\n', r.token);
+        test.equal('\n', r.value);
         test.equal(1, r.row);
         test.equal(0, r.col);
         r.next(c3);
@@ -96,17 +96,17 @@ var multilineFixture = function multilineFixture(test, sponsor) {
     var c3 = fixture.c3 = sponsor(function (r) {
         log('c3:', r);
         test.equal(3, r.pos);
-        test.equal('\r', r.token);
+        test.equal('\r', r.value);
         test.equal(2, r.row);
         test.equal(0, r.col);
         r.next(c4);
     });
     var c4 = fixture.c4 = sponsor(function (r) {
         log('c4:', r);
-        test.equal(4, r.pos);
-        test.strictEqual(undefined, r.token);
-        test.equal(3, r.row);
-        test.equal(0, r.col);
+        // test.equal(4, r.pos);
+        test.strictEqual(undefined, r.value);
+        // test.equal(3, r.row);
+        // test.equal(0, r.col);
     });
     return fixture;
 };
@@ -118,7 +118,7 @@ test['string stream counts lines'] = function (test) {
 
     var stream = sponsor(input.stringStream(fixture.source));
     stream(fixture.c0);
-    
+
     test.ok(tracing.eventLoop());
     test.done();
 };
@@ -135,7 +135,7 @@ test['empty array returns end marker'] = function (test) {
 
     var stream = sponsor(input.arrayStream([]));
     stream(cust);
-    
+
     test.ok(tracing.eventLoop());
     test.done();
 };
@@ -175,7 +175,7 @@ test['array stream handles many types'] = function (test) {
         {}
     ]));
     stream(c0);
-    
+
     test.ok(tracing.eventLoop());
     test.done();
 };
@@ -213,15 +213,15 @@ test['actor-based stream from readable'] = function (test) {
     test.done();
 };
 
-var multiEventLoop = function multiEventLoop(eventLoop, test, n) {
-    var ok = eventLoop();
+var multiEventLoop = function multiEventLoop(syncEventLoop, test, n) {
+    var ok = syncEventLoop();
     log('multiEventLoop:', n, ok);
     if (n <= 0) {
         test.ok(ok);
         test.done();
     } else {
         setImmediate(function () {
-            multiEventLoop(test, n - 1);
+            multiEventLoop(syncEventLoop, test, n - 1);
         });
     }
 };
@@ -233,16 +233,7 @@ test['string helper counts lines'] = function (test) {
 
     var stream = input.fromString(sponsor, fixture.source);
     stream(fixture.c0);
-    
-/*
-    test.ok(tracing.eventLoop({
-        count: 100,
-//        log: function (effect) { console.log('DEBUG', effect); },
-        fail: function (exception) { console.log('FAIL!', exception); }
-    }));
-    log('test:', 'eventLoop() completed.');
-    test.done();
-*/
+
     multiEventLoop(function eventLoop() {
         return tracing.eventLoop({
             count: 100,
