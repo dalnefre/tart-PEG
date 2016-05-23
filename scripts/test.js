@@ -4,7 +4,7 @@ test.js - test script
 
 The MIT License (MIT)
 
-Copyright (c) 2013 Tristan Slominski
+Copyright (c) 2013-2016 Tristan Slominski
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -30,5 +30,26 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+/*
+    Usage: npm test [-- testFile testFile2]
+    Examples:
+        npm test
+        npm test -- input
+        npm test -- input.js
+        npm test -- input named.js
+*/
+
+var path = require("path");
 var reporter = require('nodeunit').reporters.default;
-reporter.run(['test']);
+
+var TEST_DIR = "test";
+
+var tests = [TEST_DIR];
+if (process.argv.length > 2)
+{
+    tests = process.argv.slice(2)
+            .map(test => path.join(TEST_DIR, test))
+            .map(p => path.extname(p) == ".js" ? p : `${p}.js`);
+}
+
+reporter.run(tests);
