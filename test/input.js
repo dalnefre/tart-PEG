@@ -32,6 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var tart = require('tart-tracing');
 var input = require('../input.js');
+var multiEventLoop = require('../testFixture.js').multiEventLoop;
 
 var log = console.log;
 //var log = function () {};
@@ -213,18 +214,6 @@ test['actor-based stream from readable'] = function (test) {
     test.done();
 };
 
-var multiEventLoop = function multiEventLoop(syncEventLoop, test, n) {
-    var ok = syncEventLoop();
-    log('multiEventLoop:', n, ok);
-    if (n <= 0) {
-        test.ok(ok);
-        test.done();
-    } else {
-        setImmediate(function () {
-            multiEventLoop(syncEventLoop, test, n - 1);
-        });
-    }
-};
 test['string helper counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
