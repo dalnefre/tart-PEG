@@ -30,18 +30,37 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-/*
 var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
-*/
+/*
 var tart = require('tart');
 var sponsor = tart.minimal({
     fail: function (e) { console.log('ERROR!', e); }
 });
+*/
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
+
+var asyncRepeat = function asyncRepeat(n, action, callback) {
+    callback = callback || function callback(error, result) {
+        log('asyncRepeat callback:', error, result);
+    };
+    try {
+        var result = action();
+        log('asyncRepeat:', n, result);
+        if (n > 1) {
+            setImmediate(function () {
+                asyncRepeat(n - 1, action, callback);
+            });
+        } else {
+            callback(false, result);
+        }
+    } catch(ex) {
+        callback(ex);
+    }
+};
 
 var PEG = require('../PEG.js');
 
@@ -109,7 +128,15 @@ next(matcher);
 
 /*
 tracing.eventLoop({
-//    log: function (effect) { console.log('DEBUG', effect); },
-    fail: function (e) { console.log('ERROR!', e); }
+    fail: function (error) { console.log('FAIL!', error); }
 });
 */
+asyncRepeat(3,
+    function eventLoop() {
+        return tracing.eventLoop({
+//            count: 10000,
+//            log: function (effect) { console.log('DEBUG', effect); },
+            fail: function (error) { console.log('FAIL!', error); }
+        });
+    }
+);
