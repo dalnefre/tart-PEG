@@ -1,6 +1,6 @@
 /*
 
-testFixture.js - fixtures to support unit testing
+fixture.js - fixtures to bridge between JS events and actor events
 
 The MIT License (MIT)
 
@@ -35,15 +35,21 @@ var fixture = module.exports;
 //fixture.log = console.log;
 fixture.log = function () {};
 
-fixture.multiEventLoop = function multiEventLoop(syncEventLoop, test, n) {
-    var ok = syncEventLoop();
-    fixture.log('multiEventLoop:', n, ok);
-    if (n <= 0) {
-        test.ok(ok);
-        test.done();
-    } else {
-        setImmediate(function () {
-            fixture.multiEventLoop(syncEventLoop, test, n - 1);
-        });
+fixture.asyncRepeat = function asyncRepeat(n, action, callback) {
+    callback = callback || function callback(error, result) {
+        fixture.log('asyncRepeat callback:', error, result);
+    };
+    try {
+        var result = action();
+        fixture.log('asyncRepeat:', n, result);
+        if (n > 1) {
+            setImmediate(function () {
+                fixture.asyncRepeat(n - 1, action, callback);
+            });
+        } else {
+            callback(false, result);
+        }
+    } catch(ex) {
+        callback(ex);
     }
 };

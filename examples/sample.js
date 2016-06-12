@@ -40,27 +40,8 @@ var sponsor = tart.minimal({
 });
 */
 
-var log = console.log;
-//var log = function () {};
-
-var asyncRepeat = function asyncRepeat(n, action, callback) {
-    callback = callback || function callback(error, result) {
-        log('asyncRepeat callback:', error, result);
-    };
-    try {
-        var result = action();
-        log('asyncRepeat:', n, result);
-        if (n > 1) {
-            setImmediate(function () {
-                asyncRepeat(n - 1, action, callback);
-            });
-        } else {
-            callback(false, result);
-        }
-    } catch(ex) {
-        callback(ex);
-    }
-};
+//var log = console.log;
+var log = function () {};
 
 var PEG = require('../PEG.js');
 
@@ -126,12 +107,7 @@ var start = sponsor(ns.lookup('Grammar'));
 var matcher = sponsor(PEG.start(start, ok, fail));
 next(matcher);
 
-/*
-tracing.eventLoop({
-    fail: function (error) { console.log('FAIL!', error); }
-});
-*/
-asyncRepeat(3,
+require('../fixture.js').asyncRepeat(3,
     function eventLoop() {
         return tracing.eventLoop({
 //            count: 10000,

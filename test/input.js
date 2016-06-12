@@ -32,10 +32,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var tart = require('tart-tracing');
 var input = require('../input.js');
-var multiEventLoop = require('../testFixture.js').multiEventLoop;
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var test = module.exports = {};
 
@@ -223,11 +222,18 @@ test['string helper counts lines'] = function (test) {
     var stream = input.fromString(sponsor, fixture.source);
     stream(fixture.c0);
 
-    multiEventLoop(function eventLoop() {
-        return tracing.eventLoop({
-            count: 100,
-//            log: function (effect) { console.log('DEBUG', effect); },
-            fail: function (exception) { console.log('FAIL!', exception); }
-        });
-    }, test, 3);
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+                count: 100,
+//                log: function (effect) { console.log('DEBUG', effect); },
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            test.ok(!error && result);
+            test.done();
+        }
+    );
+
 };
