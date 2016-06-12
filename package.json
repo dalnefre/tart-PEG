@@ -6,6 +6,7 @@
     "inject-examples": "node scripts/injectExamples.js",
     "readme": "node examples/readme.js",
     "sample": "node examples/sample.js",
+    "generate-PEG": "node examples/generatePEG.js",
     "humus": "node examples/humus.js",
     "test": "node scripts/test.js"
   },
