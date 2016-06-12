@@ -1,6 +1,6 @@
 {
   "name": "tart-PEG",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Parsing Expression Grammar (PEG) tools (tart module)",
   "scripts": {
     "inject-examples": "node scripts/injectExamples.js",

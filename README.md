@@ -4,8 +4,6 @@ tart-PEG
 Parsing Expression Grammar (PEG) tools 
 ([tart](https://github.com/organix/tartjs) module) 
 
-(See [OLD.md](OLD.md) for documentation of the deprecated API)
-
 ## Usage
 
 To run the below example run:
@@ -28,64 +26,65 @@ var input = require('../input.js');
 //var log = console.log;
 var log = function () {};
 
-var ns = PEG.namespace(log);
+var pf = PEG.factory(sponsor);
+var ns = pf.namespace(log);
 
 /*
 Assign <- Name "=" Assign
         / Expr
 */
 ns.define('Assign',
-    sponsor(PEG.choice([
-        sponsor(PEG.sequence([
-            sponsor(ns.lookup('Name')),
-            sponsor(PEG.terminal('=')),
-            sponsor(ns.lookup('Assign'))
-        ])),
-        sponsor(ns.lookup('Expr'))
-    ]))
+    pf.choice([
+        pf.sequence([
+            ns.call('Name'),
+            pf.terminal('='),
+            ns.call('Assign')
+        ]),
+        ns.call('Expr')
+    ])
 );
 
 /*
 Name   <- [a-zA-Z]
 */
 ns.define('Name',
-    sponsor(PEG.predicate(function (token) {
+    pf.predicate(function (token) {
         return /[a-zA-Z]/.test(token);
-    }))
+    })
 );
 
 /*
 Expr   <- Term ([-+] Term)*
 */
 ns.define('Expr',
-    sponsor(PEG.sequence([
-        sponsor(ns.lookup('Term')),
-        sponsor(PEG.zeroOrMore(
-            sponsor(PEG.sequence([
-                sponsor(PEG.predicate(function (token) {
+    pf.sequence([
+        ns.call('Term'),
+        pf.zeroOrMore(
+            pf.sequence([
+                pf.predicate(function (token) {
                     return /[-+]/.test(token);
-                })),
-                sponsor(ns.lookup('Term'))
-            ]))
-        ))
-    ]))
+                }),
+                ns.call('Term')
+            ])
+        )
+    ])
 );
 
 /*
 Term   <- Factor ([/*] Factor)*
 */
 ns.define('Term',
-    sponsor(PEG.sequence([
-        sponsor(ns.lookup('Factor')),
-        sponsor(PEG.zeroOrMore(
-            sponsor(PEG.sequence([
-                sponsor(PEG.predicate(function (token) {
+    pf.sequence([
+        ns.call('Factor'),
+        pf.zeroOrMore(
+            pf.sequence([
+                pf.predicate(function (token) {
                     return /[/*]/.test(token);
-                })),
-                sponsor(ns.lookup('Factor'))
-            ]))
-        ))
-    ]))
+                }),
+                ns.call('Factor')
+            ])
+        )
+    ])
 );
 
 /*
@@ -94,19 +93,19 @@ Factor <- "(" Assign ")"
         / [0-9]+
 */
 ns.define('Factor',
-    sponsor(PEG.choice([
-        sponsor(PEG.sequence([
-            sponsor(PEG.terminal('(')),
-            sponsor(ns.lookup('Assign')),
-            sponsor(PEG.terminal(')'))
-        ])),
-        sponsor(ns.lookup('Name')),
-        sponsor(PEG.oneOrMore(
-            sponsor(PEG.predicate(function (token) {
+    pf.choice([
+        pf.sequence([
+            pf.terminal('('),
+            ns.call('Assign'),
+            pf.terminal(')')
+        ]),
+        ns.call('Name'),
+        pf.oneOrMore(
+            pf.predicate(function (token) {
                 return /[0-9]/.test(token);
-            }))
-        ))
-    ]))
+            })
+        )
+    ])
 );
 
 var ok = sponsor(function okBeh(m) {
@@ -116,10 +115,10 @@ var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
 });
 
-var start = sponsor(ns.lookup('Assign'));
-var matcher = sponsor(PEG.start(start, ok, fail));
-var stream = sponsor(input.stringStream('x=y=10-2/3+4*5/(6-7)'));
-stream(matcher);
+var start = ns.call('Assign');
+var matcher = pf.matcher(start, ok, fail);
+var next = input.fromString(sponsor, 'x=y=10-2/3+4*5/(6-7)');
+next(matcher);
 
 ```
 
