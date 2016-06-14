@@ -126,25 +126,7 @@ next(matcher);
 
     npm test
 
-## Documentation
-
-The following are actor _behavior_ factories.
-Use `sponsor(behavior)` to create a pattern-matching actor.
-
-  * [PEG.fail](#pegfail)
-  * [PEG.empty](#pegempty)
-  * [PEG.anything](#peganything)
-  * [PEG.terminal(token)](#pegterminaltoken)
-  * [PEG.predicate(condition)](#pegpredicatecondition)
-  * [PEG.not(pattern)](#pegnotpattern)
-  * [PEG.follow(pattern)](#pegfollowpattern)
-  * [PEG.sequence(list)](#pegsequencelist)
-  * [PEG.choice(list)](#pegchoicelist)
-  * [PEG.zeroOrMore(pattern)](#pegzeroormorepattern)
-  * [PEG.oneOrMore(pattern)](#pegoneormorepattern)
-  * [PEG.zeroOrOne(pattern)](#pegzerooronepattern)
-  * [PEG.object(object)](#pegobjectobject)
-  * [PEG.memoize(pattern, \[name, \[log\]\])](#pegmemoizepattern-name-log)
+## Message Protocol
 
 A location within a stream is represented with an object like this:
 
@@ -169,6 +151,27 @@ with the following attributes:
   * `start`: _Object_ Stream location where matching began.
   * `end`: _Object_ Stream location where matching should continue.
   * `value`: _Any_ Result value, if any.
+
+## Actor Behaviors
+
+PEG parsing actors are created to check for a match at a given input position.
+Their _behavior_ is configured by one of the following factory methods.
+Use `sponsor(behavior)` to create a pattern-matching actor.
+
+  * [PEG.fail](#pegfail)
+  * [PEG.empty](#pegempty)
+  * [PEG.anything](#peganything)
+  * [PEG.terminal(token)](#pegterminaltoken)
+  * [PEG.predicate(condition)](#pegpredicatecondition)
+  * [PEG.not(pattern)](#pegnotpattern)
+  * [PEG.follow(pattern)](#pegfollowpattern)
+  * [PEG.sequence(list)](#pegsequencelist)
+  * [PEG.choice(list)](#pegchoicelist)
+  * [PEG.zeroOrMore(pattern)](#pegzeroormorepattern)
+  * [PEG.oneOrMore(pattern)](#pegoneormorepattern)
+  * [PEG.zeroOrOne(pattern)](#pegzerooronepattern)
+  * [PEG.object(object)](#pegobjectobject)
+  * [PEG.memoize(pattern, \[name, \[log\]\])](#pegmemoizepattern-name-log)
 
 ### PEG.fail
 
@@ -284,6 +287,66 @@ On success, the result `value` is the consumed input Token.
 
 Match and remember result if `pattern` matches.
 Subsequent attempts to match at the same position will immediately return the remembered result.
+
+## Utilities
+
+These utilities ease construction and use of PEG parsing actors.
+
+  * [PEG.namespace(\[log\])](#pegnamespacelog)
+  * [PEG.start(pattern, ok, fail)](#startpattern-ok-fail)
+  * [PEG.factory(sponsor)](#pegfactorysponsor)
+
+### PEG.namespace([log])
+
+  * `log`: _Function_ _(Default: `console.log`)_ Used to log informative messages.
+
+Establish a collection of related pattern actors which form a cohesive grammar.
+Pattern actors within the namespace my refer to each other by name.
+This allows for mutually recursive references within the grammar.
+A _namespace_ object is returned with the following attributes:
+
+  * `define`: _Function_ `function (name, pattern) {}`
+    Establishes a _name_ for this _pattern_ in the grammar namespace.
+  * `lookup`: _Function_ `function (name) {}`
+    Returns a behavior that matches the pattern with this _name_ in the grammar namespace.
+  * `transform`: _Function_ `function (name, transform) {}`
+    Establishes a result _transform_ function for the pattern with this _name_ in the grammar namespace.
+
+A result _transform_ function has the form `function (name, value, result) {}`
+and returns an new _result_ object with the following attributes:
+
+  * `name`: _String_ The name established for this _pattern_ in the grammar namespace.
+  * `value`: _Any_ Result value, if any.
+  * `start`: _Object_ _(Default: `result.start`)_ Stream location where matching began.
+  * `end`: _Object_ _(Default: `result.end`)_ Stream location where matching should continue.
+
+The default transform function simply injects the pattern name into the result.
+
+A _namespace_ object is configurable using the following additional attributes:
+
+  * `wrapper`: _Function_ `function (rule) {}`
+    Returns a behavior ...
+  * `transformWrapper`: _Function_ `function (rule) {}`
+    Returns a behavior ...
+  * `stackingWrapper`: _Function_ `function (pattern, rule) {}`
+    Returns a behavior ...
+
+Each of these has appropriate defaults which are designed to work together.
+Be careful if you choose override them.
+
+### PEG.start(pattern, ok, fail)
+
+  * `pattern`: _Actor_ The initial pattern for matching this grammar.
+  * `ok`: _Actor_ Send result message to this actor on success.
+  * `fail`: _Actor_ Send result message to this actor on failure.
+
+Returns a parser bootstrap behavior ...
+
+### PEG.factory(sponsor)
+
+  * `sponsor`: _Function_ The sponsor used to create actors.
+
+Returns a factory for creating pattern-matching actors with a common _sponsor_.
 
 ## Contributors
 
