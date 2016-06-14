@@ -353,7 +353,7 @@ and tries to match the `pattern` against it.
 
   * `sponsor`: _Function_ The sponsor used to create actors.
 
-Returns a factory for creating pattern-matching actors with a common _sponsor_.
+Returns a factory for creating pattern-matching actors with a common `sponsor`.
 The factory has helpers (and aliases) for nearly all of the [PEG methods](#actor-behaviors), including:
 
   * `fail`: _Actor_ with [PEG.fail](#pegfail) behavior.
@@ -384,7 +384,7 @@ The factory has helpers (and aliases) for nearly all of the [PEG methods](#actor
   * `namespace`|`scope`: _Function_ `function ([log]) {}` 
     augments [PEG.namespace(\[log\])](#pegnamespacelog) with:
     * `call`: _Function_ `function (name) {}`
-      Returns an _Actor_ that matches the pattern with this _name_.
+      Returns an _Actor_ that matches the pattern with this (late bound) _name_.
   * `start`|`match`|`matcher`: _Function_ `function (pattern, ok, fail)` 
     uses [PEG.start(pattern, ok, fail)](#pegstartpattern-ok-fail) behavior.
 
