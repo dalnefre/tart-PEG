@@ -4,6 +4,7 @@ tart-PEG
 Parsing Expression Grammar (PEG) tools 
 ([tart](https://github.com/organix/tartjs) module) 
 
+
 ## Usage
 
 To run the below example run:
@@ -122,9 +123,11 @@ next(matcher);
 
 ```
 
+
 ## Tests
 
     npm test
+
 
 ## Message Protocol
 
@@ -145,12 +148,13 @@ PEG parsing actors expect a message with the following attributes:
   * `ok`: _Actor_ Send result message to this actor on success.
   * `fail`: _Actor_ Send result message to this actor on failure.
 
-On success/failure the `ok`/`fail` actors expect a result message 
+On success/failure the `ok`/`fail` actors expect a _result_ message 
 with the following attributes:
 
   * `start`: _Object_ Stream location where matching began.
   * `end`: _Object_ Stream location where matching should continue.
   * `value`: _Any_ Result value, if any.
+
 
 ## Actor Behaviors
 
@@ -288,12 +292,13 @@ On success, the result `value` is the consumed input Token.
 Match and remember result if `pattern` matches.
 Subsequent attempts to match at the same position will immediately return the remembered result.
 
+
 ## Utilities
 
 These utilities ease construction and use of PEG parsing actors.
 
   * [PEG.namespace(\[log\])](#pegnamespacelog)
-  * [PEG.start(pattern, ok, fail)](#startpattern-ok-fail)
+  * [PEG.start(pattern, ok, fail)](#pegstartpattern-ok-fail)
   * [PEG.factory(sponsor)](#pegfactorysponsor)
 
 ### PEG.namespace([log])
@@ -340,13 +345,49 @@ Be careful if you choose override them.
   * `ok`: _Actor_ Send result message to this actor on success.
   * `fail`: _Actor_ Send result message to this actor on failure.
 
-Returns a parser bootstrap behavior ...
+Returns a parser bootstrap behavior 
+which receives an _input_ stream _Actor_ 
+and tries to match the `pattern` against it.
 
 ### PEG.factory(sponsor)
 
   * `sponsor`: _Function_ The sponsor used to create actors.
 
 Returns a factory for creating pattern-matching actors with a common _sponsor_.
+The factory has helpers (and aliases) for nearly all of the [PEG methods](#actor-behaviors), including:
+
+  * `fail`: _Actor_ with [PEG.fail](#pegfail) behavior.
+  * `empty`: _Actor_ with [PEG.empty](#pegempty) behavior.
+  * `anything`|`any`|`dot`: _Actor_ with [PEG.anything](#peganything) behavior.
+  * `terminal`|`term`: _Function_ `function (token) {}` 
+    uses [PEG.terminal(token)](#pegterminaltoken) behavior.
+  * `predicate`|`cond`|`if`: _Function_ `function (condition) {}` 
+    uses [PEG.predicate(condition)](#pegpredicatecondition) behavior.
+  * `not`: _Function_ `function (pattern) {}` 
+    uses [PEG.not(pattern)](#pegnotpattern) behavior.
+  * `follow`: _Function_ `function (pattern) {}` 
+    uses [PEG.follow(pattern)](#pegfollowpattern) behavior.
+  * `sequence`|`seq`: _Function_ `function (list) {}` 
+    uses [PEG.sequence(list)](#pegsequencelist) behavior.
+  * `choice`|`alt`: _Function_ `function (list) {}` 
+    uses [PEG.choice(list)](#pegchoicelist) behavior.
+  * `zeroOrMore`|`star`: _Function_ `function (pattern) {}` 
+    uses [PEG.zeroOrMore(pattern)](#pegzeroormorepattern) behavior.
+  * `oneOrMore`|`plus`: _Function_ `function (pattern) {}` 
+    uses [PEG.oneOrMore(pattern)](#pegoneormorepattern) behavior.
+  * `zeroOrOne`|`question`|`optional`|`opt`: _Function_ `function (pattern) {}` 
+    uses [PEG.zeroOrOne(pattern)](#pegzerooronepattern) behavior.
+  * `object`|`like`: _Function_ `function (object) {}` 
+    uses [PEG.object(object)](#pegobjectobject) behavior.
+  * `packrat`|`memoize`|`memo`: _Function_ `function (pattern, [name, [log]]) {}` 
+    uses [PEG.memoize(pattern,...)](#pegmemoizepattern-name-log) behavior.
+  * `namespace`|`scope`: _Function_ `function ([log]) {}` 
+    augments [PEG.namespace(\[log\])](#pegnamespacelog) with:
+    * `call`: _Function_ `function (name) {}`
+      Returns an _Actor_ that matches the pattern with this _name_.
+  * `start`|`match`|`matcher`: _Function_ `function (pattern, ok, fail)` 
+    uses [PEG.start(pattern, ok, fail)](#pegstartpattern-ok-fail) behavior.
+
 
 ## Contributors
 
