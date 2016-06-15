@@ -40,29 +40,16 @@ var log = console.log;
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-var fromStream = input.fromStream = function fromStream(sponsor, source) {
-    var s = require('./stream.js');
-    var ws = source.pipe(s.characters());
-    var rs = ws.pipe(s.countRowCol()); //ws;
-    var next = input.fromReadable(sponsor, rs);
-    return next;
-};
-
-var fromArray = input.fromArray = function fromArray(sponsor, source) {
-    var next = sponsor(input.arrayStream(source));
-    return next;
-};
-
 var humusTokens = require('./humusTokens.js').build(sponsor, log);
 require('./reduceTokens.js').transform(humusTokens);
 
 var humusSyntax = require('./humusSyntax.js').build(sponsor, log);
 //require('./reduceSyntax.js').transform(humusSyntax);
 
-/*
 var source = input.fromString(sponsor, 
     'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
 );
+/*
 var source = input.fromString(sponsor, 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
   + 'CREATE R WITH label_beh(println, #Right)\n'
@@ -70,10 +57,12 @@ var source = input.fromString(sponsor,
   + 'SEND #Hello TO R\n'
   + 'SEND #Hello TO L\n'
 );
-*/
 var source = input.fromStream(sponsor, 
-    require('fs').readFile('sample.hum', 'utf8')
+    require('fs').createReadStream('examples/sample.hum', {
+        encoding: 'utf8'
+    })
 );
+*/
 
 var parseTokens = function parseTokens(source) {
     var start = humusTokens.call('tokens');
@@ -181,3 +170,15 @@ tracing.eventLoop({
         console.log('ERROR!', e);
     }
 });
+
+/*
+require('../fixture.js').asyncRepeat(3,
+    function eventLoop() {
+        return tracing.eventLoop({
+//            count: 10000,
+//            log: function (effect) { console.log('DEBUG', effect); },
+            fail: function (error) { console.log('FAIL!', error); }
+        });
+    }
+);
+*/

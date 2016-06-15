@@ -211,3 +211,16 @@ var fromString = input.fromString = function fromString(sponsor, seq) {
     ws.end(seq);
     return next;
 };
+
+var fromStream = input.fromStream = function fromStream(sponsor, source) {
+    var s = require('./stream.js');
+    var ws = source.pipe(s.characters());
+    var rs = ws.pipe(s.countRowCol()); //ws;
+    var next = input.fromReadable(sponsor, rs);
+    return next;
+};
+
+var fromArray = input.fromArray = function fromArray(sponsor, source) {
+    var next = sponsor(input.arrayStream(source));
+    return next;
+};

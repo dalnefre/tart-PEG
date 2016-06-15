@@ -1,0 +1,57 @@
+#
+# Observer Pattern
+#
+
+LET end_beh = \msg.[
+	CASE msg OF
+	(#add, observer) : [
+		CREATE next WITH end_beh
+		BECOME subject_beh(observer, next)
+	]
+	(#cut, prev) : [
+		SEND (SELF, end_beh) TO prev
+	]
+	END
+]
+
+LET subject_beh(observer, next) = \msg.[
+	CASE msg OF
+	(#add, observer') : [
+		CREATE next' WITH subject_beh(observer, next)
+		BECOME subject_beh(observer', next')
+	]
+	(#rem, $observer) : [
+		BECOME pass_beh(next, next)
+		SEND (#cut, SELF) TO next
+	]
+	(#note, event) : [
+		SEND event TO observer
+		SEND msg TO next
+	]
+	(#cut, prev) : [
+		SEND (SELF, subject_beh(observer, next)) TO prev
+	]
+	_ : [ SEND msg TO next ]
+	END
+]
+
+LET pass_beh(auth, next) = \msg.[
+	CASE msg OF
+	($auth, beh) : [ BECOME beh ]
+	_ : [ SEND msg TO next ]
+	END
+]
+
+# Test Fixtures
+
+LET observer_beh(label) = \event.[ SEND (NOW, label, event) TO println ]
+CREATE s3 WITH end_beh
+CREATE o2 WITH observer_beh(#o2)
+CREATE s2 WITH subject_beh(o2, s3)
+CREATE o1 WITH observer_beh(#o1)
+CREATE s1 WITH subject_beh(o1, s2)
+# SEND (1000, (#note, #X), s1) TO timer
+# SEND (2000, (#rem, o1), s1) TO timer
+# SEND (3000, (#note, #Y), s1) TO timer
+SEND (#rem, o1) TO s1
+SEND (#note, #X) TO s1
