@@ -37,8 +37,83 @@ var sponsor = tracing.sponsor;
 var log = console.log;
 //var log = function () {};
 
-var PEG = require("../PEG.js");
+var PEG = require('../PEG.js');
+var input = require('../input.js');
 
+var fromStream = input.fromStream = function fromStream(sponsor, source) {
+    var s = require('./stream.js');
+    var ws = source.pipe(s.characters());
+    var rs = ws.pipe(s.countRowCol()); //ws;
+    var next = input.fromReadable(sponsor, rs);
+    return next;
+};
+
+var fromArray = input.fromArray = function fromArray(sponsor, source) {
+    var next = sponsor(input.arrayStream(source));
+    return next;
+};
+
+var humusTokens = require('./humusTokens.js').build(sponsor, log);
+require('./reduceTokens.js').transform(humusTokens);
+
+var humusSyntax = require('./humusSyntax.js').build(sponsor, log);
+//require('./reduceSyntax.js').transform(humusSyntax);
+
+/*
+var source = input.fromString(sponsor, 
+    'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
+);
+var source = input.fromString(sponsor, 
+    'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
+  + 'CREATE R WITH label_beh(println, #Right)\n'
+  + 'CREATE L WITH label_beh(println, #Left)\n'
+  + 'SEND #Hello TO R\n'
+  + 'SEND #Hello TO L\n'
+);
+*/
+var source = input.fromStream(sponsor, 
+    require('fs').readFile('sample.hum', 'utf8')
+);
+
+var parseTokens = function parseTokens(source) {
+    var start = humusTokens.call('tokens');
+    start({
+        input: source,
+        ok: sponsor(function okBeh(m) {
+            log('Tokens OK:', JSON.stringify(m, null, '  '));
+            parseSyntax(m.value);
+        }),
+        fail: sponsor(function failBeh(m) {
+            console.log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+        })
+    });
+};
+
+var dumpTokens = function dumpTokens(list) {
+    process.stdout.write('<TOKENS>\n');
+    for (var i = 0; i < list.length; ++i) {
+        process.stdout.write(JSON.stringify(list[i]) + '\n');
+    }
+    process.stdout.write('</TOKENS>\n');
+};
+
+var parseSyntax = function parseSyntax(tokens) {
+    dumpTokens(tokens);
+    var start = humusSyntax.call('humus');
+    start({
+        input: input.fromArray(sponsor, tokens),
+        ok: sponsor(function failBeh(m) {
+            console.log('Syntax FAIL:', JSON.stringify(m, null, '  '));
+        }),
+        fail: sponsor(function failBeh(m) {
+            console.log('Syntax FAIL:', JSON.stringify(m, null, '  '));
+        })
+    });
+};
+
+parseTokens(source);
+
+/*
 var parseTokens = function parseTokens(source) {
     var ns = require('./humusTokens.js').build(this.sponsor, log);
     require('./reduceTokens.js').transform(ns);
@@ -68,8 +143,7 @@ var parseSyntax = function parseSyntax(source) {
         process.stdout.write(JSON.stringify(list[i]) + '\n');
     }
     process.stdout.write('</TOKENS>\n');
-/*
-*/
+
     var ok = this.sponsor(function okBeh(m) {
         console.log('Syntax OK:', JSON.stringify(m, null, '  '));
     });
@@ -95,6 +169,7 @@ var labelSource =
 
 var parser = sponsor(parseTokens);
 parser(helloSource);
+*/
 
 tracing.eventLoop({
 /*
