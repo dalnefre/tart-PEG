@@ -345,9 +345,10 @@ Be careful if you choose override them.
   * `ok`: _Actor_ Send result message to this actor on success.
   * `fail`: _Actor_ Send result message to this actor on failure.
 
-Returns a parser bootstrap behavior 
-which receives an _input_ stream _Actor_ 
-and tries to match the `pattern` against it.
+Returns a parser bootstrap behavior. 
+Use an _Actor_ with this behavior as the customer 
+for reading from an actor-based _input_ stream. 
+This will start the `pattern` matching process. 
 
 ### PEG.factory(sponsor)
 
