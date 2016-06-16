@@ -45,12 +45,14 @@ var memo = input.memo = function memo(streamBeh) {
     var waiting = [];
     var result;
     var initBeh = function initBeh(cust) {
+        log('input.memo[init]:', cust);
         var stream = this.sponsor(streamBeh);
         waiting.push(cust);
         this.behavior = waitBeh;
         stream(this.self);
     };
     var waitBeh = function waitBeh(msg) {
+        log('input.memo[wait]:', cust);
         if (typeof msg === 'function') {
             waiting.push(msg);
         } else {
@@ -63,6 +65,7 @@ var memo = input.memo = function memo(streamBeh) {
         }
     };
     var cacheBeh = function cacheBeh(cust) {
+        log('input.memo[cache]:', cust, result);
         cust(result);
     };
     return initBeh;

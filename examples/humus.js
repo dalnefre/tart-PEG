@@ -40,10 +40,10 @@ var log = console.log;
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-var humusTokens = require('./humusTokens.js').build(sponsor, log);
+var humusTokens = require('./humusTokens.js').build(sponsor/*, log*/);
 require('./reduceTokens.js').transform(humusTokens);
 
-var humusSyntax = require('./humusSyntax.js').build(sponsor, log);
+var humusSyntax = require('./humusSyntax.js').build(sponsor/*, log*/);
 //require('./reduceSyntax.js').transform(humusSyntax);
 
 var source = input.fromString(sponsor, 
@@ -65,17 +65,19 @@ var source = input.fromStream(sponsor,
 */
 
 var parseTokens = function parseTokens(source) {
-    var start = humusTokens.call('tokens');
-    start({
-        input: source,
-        ok: sponsor(function okBeh(m) {
+    var start = sponsor(PEG.start(
+        humusTokens.call('tokens'),
+        sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
-            parseSyntax(m.value);
+            var tokens = m.value;
+            dumpTokens(tokens);
+//            parseSyntax(tokens);
         }),
-        fail: sponsor(function failBeh(m) {
+        sponsor(function failBeh(m) {
             console.log('Tokens FAIL:', JSON.stringify(m, null, '  '));
         })
-    });
+    ));
+    source(start);
 };
 
 var dumpTokens = function dumpTokens(list) {
@@ -87,7 +89,6 @@ var dumpTokens = function dumpTokens(list) {
 };
 
 var parseSyntax = function parseSyntax(tokens) {
-    dumpTokens(tokens);
     var start = humusSyntax.call('humus');
     start({
         input: input.fromArray(sponsor, tokens),
@@ -160,18 +161,14 @@ var parser = sponsor(parseTokens);
 parser(helloSource);
 */
 
-tracing.eventLoop({
 /*
-    log: function (effect) {
-        console.log('DEBUG', effect);
-    },
-*/
+tracing.eventLoop({
     fail: function (e) {
         console.log('ERROR!', e);
     }
 });
+*/
 
-/*
 require('../fixture.js').asyncRepeat(3,
     function eventLoop() {
         return tracing.eventLoop({
@@ -181,4 +178,3 @@ require('../fixture.js').asyncRepeat(3,
         });
     }
 );
-*/
