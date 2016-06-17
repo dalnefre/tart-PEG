@@ -86,10 +86,10 @@ var parseSyntax = function parseSyntax(tokens) {
         sponsor(function okBeh(m) {
             console.log('Syntax OK:', JSON.stringify(m, null, '  '));
         }),
-        fail: sponsor(function failBeh(m) {
+        sponsor(function failBeh(m) {
             console.log('Syntax FAIL:', JSON.stringify(m, null, '  '));
         })
-    });
+    ));
     source(start);
 };
 
@@ -103,7 +103,7 @@ var dumpTokens = function dumpTokens(list) {
 
 parseTokens(source);
 
-require('../fixture.js').asyncRepeat(3,
+require('../fixture.js').asyncRepeat(5,
     function eventLoop() {
         return tracing.eventLoop({
 //            count: 10000,

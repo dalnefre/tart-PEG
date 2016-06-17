@@ -61,8 +61,8 @@ On success/failure the ok/fail actors expect a result message with this format:
 
 */
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {
@@ -495,7 +495,7 @@ PEG.namespace = function namespace(log) {
 
     ns.wrapper = function wrapRule(rule) {
         return function wrapBeh(m) {
-//            log('wrapBeh:', rule, m);
+            log('wrapBeh:', rule, m);
             var transform = this.sponsor(ns.transformWrapper(rule));
             var stacking = this.sponsor(ns.stackingWrapper(transform, rule));
             this.behavior = PEG.memoize(stacking, rule.name, log);

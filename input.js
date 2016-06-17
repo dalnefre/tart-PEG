@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var input = module.exports;
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var end = input.end = {
     next: function next(cust) {
@@ -203,6 +203,7 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
         log('end-end:', obj);
         next(obj);  // end of stream
     });
+    log('fromReadable:', next);
     return next;
 };
 
@@ -212,6 +213,7 @@ var fromString = input.fromString = function fromString(sponsor, seq) {
     var rs = ws.pipe(s.countRowCol()); //ws;
     var next = input.fromReadable(sponsor, rs);
     ws.end(seq);
+    log('fromString:', next);
     return next;
 };
 
@@ -220,10 +222,14 @@ var fromStream = input.fromStream = function fromStream(sponsor, source) {
     var ws = source.pipe(s.characters());
     var rs = ws.pipe(s.countRowCol()); //ws;
     var next = input.fromReadable(sponsor, rs);
+    log('fromStream:', next);
     return next;
 };
 
 var fromArray = input.fromArray = function fromArray(sponsor, source) {
-    var next = sponsor(input.arrayStream(source));
+    var s = require('./stream.js');
+    var rs = s.arrayStream(source);
+    var next = input.fromReadable(sponsor, rs);
+    log('fromArray:', next);
     return next;
 };

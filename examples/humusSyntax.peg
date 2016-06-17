@@ -16,9 +16,9 @@ expr    <- 'LET' eqtn 'IN' expr
          / term ',' expr
          / term
 term    <- 'NEW' term
+         / '(' expr? ')'
          / const
          / call
-         / '(' expr? ')'
          / ident
 call    <- ident '(' expr? ')'
          / '(' expr ')' '(' expr? ')'
@@ -33,15 +33,15 @@ pterm   <- '_'
          / ident
 const   <- block
          / 'SELF'
+         / 'NIL'
+         / 'TRUE'
+         / 'FALSE'
+         / '?'
          / '\\' ptrn '.' expr
          / symbol
          / number
          / char
          / string
-         / 'NIL'
-         / 'TRUE'
-         / 'FALSE'
-         / '?'
 
 # Tokens
 ident   <- { type:'ident' }

@@ -145,8 +145,6 @@ term    <- 'NEW' term
         pf.term("NEW"),
         ns.call("term")
       ]),
-      ns.call("const"),
-      ns.call("call"),
       pf.seq([
         pf.term("("),
         pf.opt(
@@ -154,6 +152,8 @@ term    <- 'NEW' term
         ),
         pf.term(")")
       ]),
+      ns.call("const"),
+      ns.call("call"),
       ns.call("ident")
     ])
   );
@@ -267,6 +267,10 @@ const   <- block
     pf.alt([
       ns.call("block"),
       pf.term("SELF"),
+      pf.term("NIL"),
+      pf.term("TRUE"),
+      pf.term("FALSE"),
+      pf.term("?"),
       pf.seq([
         pf.term("\\"),
         ns.call("ptrn"),
@@ -276,11 +280,7 @@ const   <- block
       ns.call("symbol"),
       ns.call("number"),
       ns.call("char"),
-      ns.call("string"),
-      pf.term("NIL"),
-      pf.term("TRUE"),
-      pf.term("FALSE"),
-      pf.term("?")
+      ns.call("string")
     ])
   );
 
