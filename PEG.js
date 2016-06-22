@@ -61,8 +61,8 @@ On success/failure the ok/fail actors expect a result message with this format:
 
 */
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {

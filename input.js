@@ -52,7 +52,7 @@ var memo = input.memo = function memo(streamBeh) {
         stream(this.self);
     };
     var waitBeh = function waitBeh(msg) {
-        log('input.memo[wait]:', cust);
+        log('input.memo[wait]:', msg);
         if (typeof msg === 'function') {
             waiting.push(msg);
         } else {

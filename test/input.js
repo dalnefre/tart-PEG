@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var input = require('../input.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var test = module.exports = {};
 
@@ -108,6 +108,7 @@ var multilineFixture = function multilineFixture(test, sponsor) {
         // test.equal(3, r.row);
         // test.equal(0, r.col);
     });
+    log('multilineFixture:', fixture);
     return fixture;
 };
 test['string stream counts lines'] = function (test) {
@@ -146,32 +147,34 @@ var arrayFixture = function arrayFixture(test, sponsor) {
         source: [
             42,
             'foo',
+//            { type:'operator', name:'=' },
             {}
         ]
     };
     var c0 = fixture.c0 = sponsor(function (r) {
         log('c0:', r);
         test.equal(0, r.pos);
-        test.strictEqual(42, r.token);
+        test.strictEqual(42, r.value);
         r.next(c1);
     });
     var c1 = fixture.c1 = sponsor(function (r) {
         log('c1:', r);
         test.equal(1, r.pos);
-        test.strictEqual('foo', r.token);
+        test.strictEqual('foo', r.value);
         r.next(c2);
     });
     var c2 = fixture.c2 = sponsor(function (r) {
         log('c2:', r);
         test.equal(2, r.pos);
-        test.strictEqual('object', typeof r.token);
+        test.strictEqual('object', typeof r.value);
         r.next(c3);
     });
     var c3 = fixture.c3 = sponsor(function (r) {
         log('c3:', r);
         test.equal(3, r.pos);
-        test.strictEqual(undefined, r.token);
+        test.strictEqual(undefined, r.value);
     });
+    log('arrayFixture:', fixture);
     return fixture;
 };
 test['array stream handles many types'] = function (test) {
