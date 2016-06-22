@@ -140,41 +140,48 @@ test['empty array returns end marker'] = function (test) {
     test.done();
 };
 
-test['array stream handles many types'] = function (test) {
-    test.expect(9);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-
-    var c0 = sponsor(function (r) {
+var arrayFixture = function arrayFixture(test, sponsor) {
+    var fixture = {
+        expect: 9,
+        source: [
+            42,
+            'foo',
+            {}
+        ]
+    };
+    var c0 = fixture.c0 = sponsor(function (r) {
         log('c0:', r);
         test.equal(0, r.pos);
         test.strictEqual(42, r.token);
         r.next(c1);
     });
-    var c1 = sponsor(function (r) {
+    var c1 = fixture.c1 = sponsor(function (r) {
         log('c1:', r);
         test.equal(1, r.pos);
         test.strictEqual('foo', r.token);
         r.next(c2);
     });
-    var c2 = sponsor(function (r) {
+    var c2 = fixture.c2 = sponsor(function (r) {
         log('c2:', r);
         test.equal(2, r.pos);
         test.strictEqual('object', typeof r.token);
         r.next(c3);
     });
-    var c3 = sponsor(function (r) {
+    var c3 = fixture.c3 = sponsor(function (r) {
         log('c3:', r);
         test.equal(3, r.pos);
         test.strictEqual(undefined, r.token);
     });
+    return fixture;
+};
+test['array stream handles many types'] = function (test) {
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var fixture = arrayFixture(test, sponsor);
+    test.expect(fixture.expect);
 
-    var stream = sponsor(input.arrayStream([
-        42,
-        'foo',
-        {}
-    ]));
-    stream(c0);
+    var stream = sponsor(input.arrayStream(fixture.source));
+    stream(fixture.c0);
 
     test.ok(tracing.eventLoop());
     test.done();
