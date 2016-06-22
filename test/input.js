@@ -242,5 +242,28 @@ test['string helper counts lines'] = function (test) {
             test.done();
         }
     );
+};
 
+test['array helper handles many types'] = function (test) {
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var fixture = arrayFixture(test, sponsor);
+    test.expect(fixture.expect);
+
+    var stream = input.fromArray(sponsor, fixture.source);
+    stream(fixture.c0);
+
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+                count: 100,
+//                log: function (effect) { console.log('DEBUG', effect); },
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            test.ok(!error && result);
+            test.done();
+        }
+    );
 };
