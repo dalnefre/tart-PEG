@@ -71,7 +71,7 @@ var memo = input.memo = function memo(streamBeh) {
     return initBeh;
 };
 
-var arrayStream = input.arrayStream = function arrayStream(seq, pos) {
+var arrayStream = input.arrayStream = function arrayStream(seq, pos) {  // [DEPRECATED]
     pos = pos || 0;
     return input.memo(function streamBeh(cust) {
         var token = seq[pos];
@@ -95,7 +95,7 @@ var arrayStream = input.arrayStream = function arrayStream(seq, pos) {
     });
 };
 
-var stringStream = input.stringStream = function stringStream(seq, prev) {
+var stringStream = input.stringStream = function stringStream(seq, prev) {  // [DEPRECATED]
     log('stringStream(seq, prev):', JSON.stringify(seq), prev);
     prev = prev || {
         row: 0,
