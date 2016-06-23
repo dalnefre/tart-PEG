@@ -34,8 +34,8 @@ var s = module.exports;
 
 var stream = require('stream');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 s.characters = function characters() {
     var ts = new stream.Transform({ objectMode: true });
@@ -98,12 +98,12 @@ s.arrayStream = function arrayStream(list) {
     log('arrayStream:', list);
     var pos = 0;
     list.forEach(function (item) {
-        rs.push({
-            pos: pos,
-            value: item
-        });
+        var obj = { pos: pos, value: item };
+        rs.push(obj);
+        log('arrayStream.push:', obj);
         pos += 1;
     });
     rs.push(null);  // end stream
+    log('arrayStream.end');
     return rs;
 };

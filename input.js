@@ -227,9 +227,12 @@ var fromStream = input.fromStream = function fromStream(sponsor, source) {
 };
 
 var fromArray = input.fromArray = function fromArray(sponsor, source) {
+    var next = sponsor(input.arrayStream(source));
+/*
     var s = require('./stream.js');
     var rs = s.arrayStream(source);
     var next = input.fromReadable(sponsor, rs);
+*/
     log('fromArray:', next);
     return next;
 };
