@@ -31,6 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 "use strict";
 
 var tart = require('tart-tracing');
+var PEG = require('../PEG.js');
 var input = require('../input.js');
 
 var log = console.log;
@@ -38,6 +39,155 @@ var log = console.log;
 
 var test = module.exports = {};
 
+    
+test['empty source returns empty array'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var humusTokens = require('../examples/humusTokens.js').build(sponsor/*, log*/);
+//    require('../examples/reduceTokens.js').transform(humusTokens);  // add reduction transforms
+    var source = input.fromString(sponsor, 
+        ''
+    );
+
+    var start = sponsor(PEG.start(
+        humusTokens.call('tokens'),
+        sponsor(function okBeh(m) {
+            log('Tokens OK:', JSON.stringify(m, null, '  '));
+            test.strictEqual(3, m.value.length);
+            var tokens = m.value[1];
+            test.strictEqual(0, tokens.length);
+        }),
+        sponsor(function failBeh(m) {
+            log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+            test.ok(false);
+        })
+    ));
+    source(start);
+
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+                count: 100,
+//                log: function (effect) { console.log('DEBUG', effect); },
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            test.ok(!error && result);
+            test.done();
+        }
+    );
+};
+
+test['transformed simple source returns token array'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var humusTokens = require('../examples/humusTokens.js').build(sponsor/*, log*/);
+    require('../examples/reduceTokens.js').transform(humusTokens);  // add reduction transforms
+    var source = input.fromString(sponsor,
+        'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
+    );
+
+    var start = sponsor(PEG.start(
+        humusTokens.call('tokens'),
+        sponsor(function okBeh(m) {
+            log('Tokens OK:', JSON.stringify(m, null, '  '));
+            var tokens = m.value;
+            test.strictEqual(14, tokens.length);
+        }),
+        sponsor(function failBeh(m) {
+            log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+            test.ok(false);
+        })
+    ));
+    source(start);
+
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+//                count: 100,
+//                log: function (effect) { console.log('DEBUG', effect); },
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            test.ok(!error && result);
+            test.done();
+        }
+    );
+};
+
+/*
+Tokens OK: {
+  "start": {
+    "pos": 0,
+    "value": "S",
+    "row": 0,
+    "col": 0
+  },
+  "end": {},
+  "value": [
+    "SEND",
+    "(",
+    {
+      "type": "symbol",
+      "value": "Hello"
+    },
+    ",",
+    {
+      "type": "string",
+      "value": "World"
+    },
+    ",",
+    {
+      "type": "char",
+      "value": "\n"
+    },
+    ",",
+    {
+      "type": "symbol",
+      "value": "#"
+    },
+    ",",
+    {
+      "type": "number",
+      "sign": "-",
+      "radix": 16,
+      "digits": "2a",
+      "value": -42
+    },
+    ")",
+    "TO",
+    {
+      "type": "ident",
+      "value": "println"
+    }
+  ]
+}
+*/
+
+/*
+<TOKENS>
+"SEND"
+"("
+{"type":"symbol","value":"Hello"}
+","
+{"type":"string","value":"World"}
+","
+{"type":"char","value":"\n"}
+","
+{"type":"symbol","value":"#"}
+","
+{"type":"number","sign":"-","radix":16,"digits":"2a","value":-42}
+")"
+"TO"
+{"type":"ident","value":"println"}
+</TOKENS>
+*/
+
+/*
 test['empty string returns end marker'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
@@ -52,14 +202,8 @@ test['empty string returns end marker'] = function (test) {
     stream(cust);
 
     test.ok(tracing.eventLoop({
-/*
-        log: function (effect) {
-            console.log('DEBUG', effect);
-        },
-*/
-        fail: function (e) {
-            console.log('ERROR!', e);
-        }
+//        log: function (effect) { console.log('DEBUG', effect); },
+        fail: function (e) { console.log('ERROR!', e); }
     }));
     test.done();
 };
@@ -211,9 +355,6 @@ test['actor-based stream from readable'] = function (test) {
     ws.end('.\r\r\n\n!');
     next(match);  // start reading the actor-based stream
 
-/*
-    test.ok(tracing.eventLoop());
-*/
     test.ok(tracing.eventLoop({
         count: 100,
 //        log: function (effect) { console.log('DEBUG', effect); },
@@ -270,73 +411,9 @@ test['array helper handles many types'] = function (test) {
         }
     );
 };
+*/
 
-var source = input.fromString(sponsor, 
-    'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
-);
 /*
-Tokens OK: {
-  "start": {
-    "pos": 0,
-    "value": "S",
-    "row": 0,
-    "col": 0
-  },
-  "end": {},
-  "value": [
-    "SEND",
-    "(",
-    {
-      "type": "symbol",
-      "value": "Hello"
-    },
-    ",",
-    {
-      "type": "string",
-      "value": "World"
-    },
-    ",",
-    {
-      "type": "char",
-      "value": "\n"
-    },
-    ",",
-    {
-      "type": "symbol",
-      "value": "#"
-    },
-    ",",
-    {
-      "type": "number",
-      "sign": "-",
-      "radix": 16,
-      "digits": "2a",
-      "value": -42
-    },
-    ")",
-    "TO",
-    {
-      "type": "ident",
-      "value": "println"
-    }
-  ]
-}
-<TOKENS>
-"SEND"
-"("
-{"type":"symbol","value":"Hello"}
-","
-{"type":"string","value":"World"}
-","
-{"type":"char","value":"\n"}
-","
-{"type":"symbol","value":"#"}
-","
-{"type":"number","sign":"-","radix":16,"digits":"2a","value":-42}
-")"
-"TO"
-{"type":"ident","value":"println"}
-</TOKENS>
 Syntax OK: {
   "start": {
     "token": "SEND",
