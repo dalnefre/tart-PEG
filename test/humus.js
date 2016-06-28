@@ -39,13 +39,13 @@ var log = console.log;
 
 var test = module.exports = {};
 
-    
+
+/*
 test['empty source returns empty array'] = function (test) {
-    test.expect(3);
+    test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var humusTokens = require('../examples/humusTokens.js').build(sponsor/*, log*/);
-//    require('../examples/reduceTokens.js').transform(humusTokens);  // add reduction transforms
+    var humusTokens = require('../examples/humusTokens.js').build(sponsor);
     var source = input.fromString(sponsor, 
         ''
     );
@@ -54,8 +54,11 @@ test['empty source returns empty array'] = function (test) {
         humusTokens.call('tokens'),
         sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
-            test.strictEqual(3, m.value.length);
-            var tokens = m.value[1];
+            var v = m.value;
+            test.strictEqual('tokens', v.name);
+            v = v.value;
+            test.strictEqual(3, v.length);
+            var tokens = v[1];
             test.strictEqual(0, tokens.length);
         }),
         sponsor(function failBeh(m) {
@@ -74,6 +77,52 @@ test['empty source returns empty array'] = function (test) {
             });
         },
         function callback(error, result) {
+            log('asyncRepeat callback:', error, result);
+            test.ok(!error && result);
+            test.done();
+        }
+    );
+};
+*/
+
+test['blank source returns empty array'] = function (test) {
+    test.expect(4);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var humusTokens = require('../examples/humusTokens.js').build(sponsor/*, log*/);
+//    require('../examples/reduceTokens.js').transform(humusTokens);  // add reduction transforms
+    var source = input.fromString(sponsor, 
+        '\r'
+    );
+
+    var start = sponsor(PEG.start(
+        humusTokens.call('tokens'),
+        sponsor(function okBeh(m) {
+            log('Tokens OK:', JSON.stringify(m, null, '  '));
+            var v = m.value;
+            test.strictEqual('tokens', v.name);
+            v = v.value;
+            test.strictEqual(3, v.length);
+            var tokens = v[1];
+            test.strictEqual(0, tokens.length);
+        }),
+        sponsor(function failBeh(m) {
+            log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+            test.ok(false);
+        })
+    ));
+    source(start);
+
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+                count: 100,
+//                log: function (effect) { console.log('DEBUG', effect); },
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            log('asyncRepeat callback:', error, result);
             test.ok(!error && result);
             test.done();
         }
@@ -113,6 +162,7 @@ test['transformed simple source returns token array'] = function (test) {
             });
         },
         function callback(error, result) {
+            log('asyncRepeat callback:', error, result);
             test.ok(!error && result);
             test.done();
         }

@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var input = require('../input.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var test = module.exports = {};
 
