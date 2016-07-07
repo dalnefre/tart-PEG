@@ -59,7 +59,6 @@ test['object matches empty expected object'] = function (test) {
         { type:'name', value:'answer' }
     ];
     var matcher = sponsor(PEG.start(start, ok, fail));
-//    var stream = sponsor(input.arrayStream(source));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
     
@@ -87,7 +86,6 @@ test['object matches single expected property'] = function (test) {
         { type:'name', value:'answer' }
     ];
     var matcher = sponsor(PEG.start(start, ok, fail));
-//    var stream = sponsor(input.arrayStream(source));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
     
@@ -115,7 +113,6 @@ test['object matches all expected properties'] = function (test) {
         { type:'name', value:'answer' }
     ];
     var matcher = sponsor(PEG.start(start, ok, fail));
-//    var stream = sponsor(input.arrayStream(source));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
     
@@ -142,7 +139,6 @@ test['object fails to match on missing property'] = function (test) {
         { type:'name', value:'answer' }
     ];
     var matcher = sponsor(PEG.start(start, ok, fail));
-//    var stream = sponsor(input.arrayStream(source));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
     
@@ -178,7 +174,6 @@ test['object sequence matches object-list source'] = function (test) {
         { type:'number', value:'42' }
     ];
     var matcher = sponsor(PEG.start(start, ok, fail));
-//    var stream = sponsor(input.arrayStream(source));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
     
