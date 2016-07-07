@@ -40,7 +40,7 @@ var input = require('../input.js');
 var log = function () {};
 
 test['object sequence matches object-list source'] = function (test) {
-    test.expect(5);
+    test.expect(6);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
@@ -63,10 +63,12 @@ test['object sequence matches object-list source'] = function (test) {
 
     var ok = sponsor(function okBeh(r) {
         log('OK:', JSON.stringify(r, null, 2));
-        test.equal(3, r.value.length);
-        test.equal('name', r.value[0].type);
-        test.equal('operator', r.value[1].type);
-        test.equal('number', r.value[2].type);
+        var v = r.value;
+        test.equal('objects', v.name);
+        test.equal(3, v.value.length);
+        test.equal('name', v.value[0].type);
+        test.equal('operator', v.value[1].type);
+        test.equal('number', v.value[2].type);
     });
     var fail = sponsor(function failBeh(r) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
