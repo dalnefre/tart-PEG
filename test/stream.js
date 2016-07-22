@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var s = require('../stream.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var test = module.exports = {};   
 
@@ -107,6 +107,32 @@ test['countRowCol() handles different line endings'] = function (test) {
     });
     ws.write('.\r\r\n\n!');
     ws.end();
+};
+
+test['arrayStream() provides objects'] = function (test) {
+    test.expect(24);
+
+    var ar = [
+        { value:'.', pos:0, row:0, col:0 }, 
+        { value:'\r', pos:1, row:0, col:1 }, 
+        { value:'\r', pos:2, row:1, col:0 }, 
+        { value:'\n', pos:3, row:1, col:1 }, 
+        { value:'\n', pos:4, row:2, col:0 }, 
+        { value:'!', pos:5, row:3, col:0 }
+    ];
+    var rs = s.arrayStream(ar);
+    rs.on('readable', function onReadable() {
+        var expect = ar.shift();
+        var actual = rs.read();
+        log('readable:', expect, actual);
+        if (!actual) {
+        	return test.done();
+        }
+        test.equal(expect.value, actual.value);
+        test.equal(expect.pos, actual.pos);
+        test.equal(expect.row, actual.row);
+        test.equal(expect.col, actual.col);
+    });
 };
 
 test['characters() can feed actor-based stream'] = function (test) {

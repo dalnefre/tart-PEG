@@ -34,8 +34,8 @@ var s = module.exports;
 
 var stream = require('stream');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 s.characters = function characters() {
     var ts = new stream.Transform({ objectMode: true });
