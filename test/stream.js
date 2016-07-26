@@ -100,10 +100,10 @@ test['countRowCol() handles different line endings'] = function (test) {
         if (!actual) {
         	return test.done();
         }
-        test.equal(expect.value, actual.value);
-        test.equal(expect.pos, actual.pos);
-        test.equal(expect.row, actual.row);
-        test.equal(expect.col, actual.col);
+        test.strictEqual(expect.value, actual.value);
+        test.strictEqual(expect.pos, actual.pos);
+        test.strictEqual(expect.row, actual.row);
+        test.strictEqual(expect.col, actual.col);
     });
     ws.write('.\r\r\n\n!');
     ws.end();
@@ -122,16 +122,18 @@ test['arrayStream() provides objects'] = function (test) {
     ];
     var rs = s.arrayStream(ar);
     rs.on('readable', function onReadable() {
-        var expect = ar.shift();
-        var actual = rs.read();
-        log('readable:', expect, actual);
-        if (!actual) {
+        var object = rs.read();
+        log('readable object:', object);
+        if (!object) {
         	return test.done();
         }
-        test.equal(expect.value, actual.value);
-        test.equal(expect.pos, actual.pos);
-        test.equal(expect.row, actual.row);
-        test.equal(expect.col, actual.col);
+        var expect = ar.shift();
+        var actual = object.value;
+        log('readable:', expect, actual);
+        test.strictEqual(expect.value, actual.value);
+        test.strictEqual(expect.pos, actual.pos);
+        test.strictEqual(expect.row, actual.row);
+        test.strictEqual(expect.col, actual.col);
     });
 };
 
