@@ -67,14 +67,13 @@ test['characters() reads individual characters'] = function (test) {
     var ws = s.characters();
     var cr = ws;
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
-    cr.on('readable', function onReadable() {
-        var obj = cr.read();
-        log('readable:', obj);
-        if (obj) {
-            test.equal(ar[obj.pos], obj.value);
-        } else {
-            test.done();
-        }
+    cr.on('data', function onData(obj) {
+        log('data:', obj);
+        test.equal(ar[obj.pos], obj.value);
+    });
+    cr.on('end', function onEnd() {
+        log('end.');
+        test.done();
     });
     ws.write('.\r\r\n\n!');
     ws.end();
@@ -84,6 +83,7 @@ test['countRowCol() handles different line endings'] = function (test) {
     test.expect(24);
 
     var ws = s.characters();
+    ws.end('.\r\r\n\n!');
     var rc = ws.pipe(s.countRowCol());
     var ar = [
         { value:'.', pos:0, row:0, col:0 }, 
@@ -93,20 +93,18 @@ test['countRowCol() handles different line endings'] = function (test) {
         { value:'\n', pos:4, row:2, col:0 }, 
         { value:'!', pos:5, row:3, col:0 }
     ];
-    rc.on('readable', function onReadable() {
+    rc.on('data', function onData(actual) {
         var expect = ar.shift();
-        var actual = rc.read();
-        log('readable:', expect, actual);
-        if (!actual) {
-        	return test.done();
-        }
+        log('data:', expect, actual);
         test.strictEqual(expect.value, actual.value);
         test.strictEqual(expect.pos, actual.pos);
         test.strictEqual(expect.row, actual.row);
         test.strictEqual(expect.col, actual.col);
     });
-    ws.write('.\r\r\n\n!');
-    ws.end();
+    rs.on('end', function onEnd() {
+        log('end.');
+    	test.done();
+    });
 };
 
 test['arrayStream() provides objects'] = function (test) {
@@ -121,19 +119,19 @@ test['arrayStream() provides objects'] = function (test) {
         { value:'!', pos:5, row:3, col:0 }
     ];
     var rs = s.arrayStream(ar);
-    rs.on('readable', function onReadable() {
-        var object = rs.read();
-        log('readable object:', object);
-        if (!object) {
-        	return test.done();
-        }
+    rs.on('data', function onData(object) {
+        log('data object:', object);
         var expect = ar.shift();
         var actual = object.value;
-        log('readable:', expect, actual);
+        log('data:', expect, actual);
         test.strictEqual(expect.value, actual.value);
         test.strictEqual(expect.pos, actual.pos);
         test.strictEqual(expect.row, actual.row);
         test.strictEqual(expect.col, actual.col);
+    });
+    rs.on('end', function onEnd() {
+        log('end.');
+    	test.done();
     });
 };
 
@@ -177,6 +175,7 @@ test['characters() can feed actor-based stream'] = function (test) {
         };
     };
     var next = sponsor(makeNext());
+/*
     rs.on('readable', function onReadable() {
         var obj = rs.read();
         log('readable:', obj, next);
@@ -188,12 +187,17 @@ test['characters() can feed actor-based stream'] = function (test) {
             next({ next: next });  // end of stream
         }
     });
-/*
+*/
+    rs.on('data', function onData(obj) {
+        log('data:', obj, next);
+        obj.next = sponsor(makeNext());
+        next(obj);
+        next = obj.next;
+    });
     rs.on('end', function onEnd() {
         log('end:', next);
         next({ end: true, next: next });  // end of stream
     });
-*/
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
         log('matchBeh'+this.self+':', m, JSON.stringify(first));
