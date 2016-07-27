@@ -181,6 +181,7 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
     };
 
     var next = sponsor(makeNext());
+/*
     readable.on('readable', function onReadable() {
         var obj = readable.read();
         log('readable:', obj, next);
@@ -195,12 +196,18 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
             next(obj);  // end of stream
         }
     });
-/*
 */
+    readable.on('data', function onData(obj) {
+        log('data:', obj, next);
+        obj.next = sponsor(makeNext());
+        log('data-obj:', obj);
+        next(obj);
+        next = obj.next;
+    });
     readable.on('end', function onEnd() {
         log('end:', next);
         var obj = { end: true, next: next };
-        log('end-end:', obj);
+        log('end-obj:', obj);
         next(obj);  // end of stream
     });
     log('fromReadable:', next);
