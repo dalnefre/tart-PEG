@@ -1,0 +1,13 @@
+#
+# LISP-family language grammar
+# (based on http://www.vpri.org/pdf/tr2010003_PEG.pdf)
+#
+
+sexpr   <- _ (list / atom)
+list    <- '(' sexpr* _ ')'
+atom    <- (number / symbol)
+number  <- [0-9]+
+symbol  <- [-+a-zA-Z0-9!$%&*./:<=>?@\\^_|~]+
+_       <- ([ \t-\r]+ / comment)*
+comment <- ';' (!eol .)*
+eol     <- '\n' / '\r' '\n'?
