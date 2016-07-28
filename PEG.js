@@ -32,35 +32,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var PEG = module.exports;
 
-/*
-THIS IS AN ALTERNATIVE IMPLEMENTATION OF THE PATTERNS IN 'index.js'
-USING THE ACTOR-BASED INPUT STREAM API/PROTOCOL DEFINED IN 'input.js'
-
-A location within a stream is represented with an object like this:
-{
-    token: <current token, if any>,
-    pos: <0-based position in the stream>,
-    row: <0-based line location (character streams only)>,
-    col: <0-based position on the line (character streams only)>,
-    next: <actor used to advance the stream>
-}
-
-PEG parsing actors expect a message with this format:
-{
-    input: { <input stream location> },
-    ok: <success actor>,
-    fail: <failure actor>
-}
-
-On success/failure the ok/fail actors expect a result message with this format:
-{
-    start: { <stream start location> },
-    end: { <stream end location> },
-    value: <semantic value, if any>
-}
-
-*/
-
 //var log = console.log;
 var log = function () {};
 var defaultLog = log;
