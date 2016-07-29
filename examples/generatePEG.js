@@ -48,8 +48,8 @@ var PEG = require('../PEG.js');
 var ns = require('../grammar.js').build(sponsor, log);
 require('../reducePEG.js').transform(ns);
 
-var source = require('fs').readFileSync('grammar.peg', 'utf8');
-//var source = require('fs').readFileSync('examples/humusSyntax.peg', 'utf8');
+//var source = require('fs').readFileSync('grammar.peg', 'utf8');
+var source = require('fs').readFileSync('examples/LISP.peg', 'utf8');
 
 var next = require('../input.js').fromString(sponsor, source);
 
