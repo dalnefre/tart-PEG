@@ -45,11 +45,42 @@ var log = function () {};
 
 var PEG = require('../PEG.js');
 
+/*
+var pf = PEG.factory(sponsor);
+var ns = pf.namespace(log);
+ns.define('Grammar',
+    pf.star(
+        pf.any
+    )
+);
+*/
 var ns = require('../grammar.js').build(sponsor, log);
 require('../reducePEG.js').transform(ns);
 
-//var source = require('fs').readFileSync('grammar.peg', 'utf8');
-var source = require('fs').readFileSync('examples/LISP.peg', 'utf8');
+var allSource = ''
++ 'ALL <- .*\n';
+var simpleSource = ''
++ '\r\n# comment\n';
+var objectSource = ''
++ 'IGNORE <- { type:\'name\', value:\'_\' }';
+var stringSource = ''
++ 'STRING <- \'One\' "Two" Three [Four] [Five]+ [Six]*';
+var commentSource = ''
++ 'Comment <- [#] (!EOL .)* EOL\r'
++ "EOL <- '\\n'\n" 
++ '     / "\\r" "\\n"?\r\n';
+var exprSource = ''
++ 'Assign <- Name "=" Assign\n'
++ '        / Expr\n'
++ 'Name   <- [a-zA-Z]\n'
++ 'Expr   <- Term ([-+] Term)*\n'
++ 'Term   <- Factor ([/*] Factor)*\n'
++ 'Factor <- "(" Assign ")"\n'
++ '        / Name\n'
++ '        / [0-9]+\n';
+var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
+//var fileSource = require('fs').readFileSync('examples/LISP.peg', 'utf8');
+var source = fileSource; //allSource;
 
 var next = require('../input.js').fromString(sponsor, source);
 
