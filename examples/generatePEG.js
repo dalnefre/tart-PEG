@@ -85,6 +85,8 @@ var source = fileSource; //allSource;
 
 var next = require('../input.js').fromString(sponsor, source);
 */
+var source = '';  // FIXME: can't put source in comments while streaming  :-(
+process.stdin.setEncoding('utf8');
 var next = require('../input.js').fromStream(sponsor, process.stdin);
 
 var ok = sponsor(function okBeh(m) {
