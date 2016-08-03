@@ -57,6 +57,7 @@ ns.define('Grammar',
 var ns = require('../grammar.js').build(sponsor, log);
 require('../reducePEG.js').transform(ns);
 
+/*
 var allSource = ''
 + 'ALL <- .*\n';
 var simpleSource = ''
@@ -83,6 +84,8 @@ var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
 var source = fileSource; //allSource;
 
 var next = require('../input.js').fromString(sponsor, source);
+*/
+var next = require('../input.js').fromStream(sponsor, process.stdin);
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));
