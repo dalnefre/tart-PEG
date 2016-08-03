@@ -384,6 +384,7 @@ The factory has helpers (and aliases) for nearly all of the [PEG methods](#actor
     uses [PEG.memoize(pattern,...)](#pegmemoizepattern-name-log) behavior.
   * `namespace`|`scope`: _Function_ `function ([log]) {}` 
     augments [PEG.namespace(\[log\])](#pegnamespacelog) with:
+    * `factory`: _Object_ The factory that created this namespace
     * `call`: _Function_ `function (name) {}`
       Returns an _Actor_ that matches the pattern with this (late bound) _name_.
   * `start`|`match`|`matcher`: _Function_ `function (pattern, ok, fail)` 
