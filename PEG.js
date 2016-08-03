@@ -528,6 +528,7 @@ PEG.factory = function factory(sponsor) {
     };
     kit.scope = kit.namespace = function newNamespace(log) {
         var ns = PEG.namespace(log);
+        ns.factory = kit;
         ns.call = function aCall(name) {
             return sponsor(ns.lookup(name));
         };
