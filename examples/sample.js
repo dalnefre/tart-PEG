@@ -40,10 +40,11 @@ var log = function () {};
 var PEG = require('../PEG.js');
 
 var ns = require('./LISP.js').build(sponsor, log);
-//require('./reduceLISP.js').transform(ns);
+require('./reduceLISP.js').transform(ns);
 
-var source = '(CAR ( LIST 0 1)\t)';
 /*
+var source = '(CAR ( LIST 0 1)\t)';
+*/
 var source = ''
 + '; Fibonacci example from http://www.vpri.org/pdf/tr2010003_PEG.pdf\n'
 + '(define nfibs\n'
@@ -53,7 +54,6 @@ var source = ''
 + '      (+ 1 (+ (nfibs (- n 1)) (nfibs (- n 2)))))))\n'
 + '(print (nfibs 32))\n'
 + '; expected result: 2178309\n';
-*/
 
 /*
 var next = sponsor(
@@ -69,6 +69,7 @@ var next = require('../input.js').fromString(sponsor, source);
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));
+    process.stdout.write(JSON.stringify(m.value, null, '  ')+'\n');
 });
 var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
