@@ -37,14 +37,18 @@ var stream = require('stream');
 //var log = console.log;
 var log = function () {};
 
-s.characters = function characters() {
+s.characters = function characters(keepCharacters) {
     var ts = new stream.Transform({ objectMode: true });
     var pos = 0;
+    ts.allCharacters = '';
     ts._transform = function _transform(chunk, encoding, callback) {
         log('chars_transform:', JSON.stringify(arguments));
         var sa = chunk.toString(encoding).split('');
         log('chars_sa:', sa);
         sa.forEach(function (ch) {
+            if (keepCharacters) {
+                ts.allCharacters += ch;
+            }
             ts.push({
                 pos: pos,
                 value: ch

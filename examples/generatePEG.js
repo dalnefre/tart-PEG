@@ -39,6 +39,8 @@ var sponsor = tart.minimal({
     fail: function (e) { console.log('ERROR!', e); }
 });
 */
+var stream = require('../stream.js');
+var input = require('../input.js');
 
 //var log = console.log;
 var log = function () {};
@@ -82,17 +84,22 @@ var exprSource = ''
 var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
 //var fileSource = require('fs').readFileSync('examples/LISP.peg', 'utf8');
 var source = fileSource; //allSource;
-
-var next = require('../input.js').fromString(sponsor, source);
 */
-var source = '';  // FIXME: can't put source in comments while streaming  :-(
+
+var cs = stream.characters(true);
+/*
+var next = input.fromReadable(sponsor,
+    cs.pipe(stream.countRowCol()));
+cs.end(source);
+*/
 process.stdin.setEncoding('utf8');
-var next = require('../input.js').fromStream(sponsor, process.stdin);
+var next = input.fromReadable(sponsor,
+    process.stdin.pipe(cs).pipe(stream.countRowCol()));
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));
     process.stdout.write(
-        require('../generate.js').text(m.value, 2, source)
+        require('../generate.js').text(m.value, 2, cs.allCharacters)
     );
 });
 var fail = sponsor(function failBeh(m) {
