@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var s = require('../stream.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var test = module.exports = {};   
 
@@ -101,7 +101,7 @@ test['countRowCol() handles different line endings'] = function (test) {
         test.strictEqual(expect.row, actual.row);
         test.strictEqual(expect.col, actual.col);
     });
-    rs.on('end', function onEnd() {
+    rc.on('end', function onEnd() {
         log('end.');
     	test.done();
     });
@@ -136,12 +136,12 @@ test['arrayStream() provides objects'] = function (test) {
 };
 
 test['characters() can feed actor-based stream'] = function (test) {
-    test.expect(8);
+    test.expect(7);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
     var ws = s.characters();
-    var rs = ws; //ws.pipe(s.countRowCol());
+    var rs = ws.pipe(s.countRowCol()); //ws;
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
@@ -175,19 +175,6 @@ test['characters() can feed actor-based stream'] = function (test) {
         };
     };
     var next = sponsor(makeNext());
-/*
-    rs.on('readable', function onReadable() {
-        var obj = rs.read();
-        log('readable:', obj, next);
-        if (obj) {
-            obj.next = sponsor(makeNext());
-            next(obj);
-            next = obj.next;
-        } else {
-            next({ next: next });  // end of stream
-        }
-    });
-*/
     rs.on('data', function onData(obj) {
         log('data:', obj, next);
         obj.next = sponsor(makeNext());
