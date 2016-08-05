@@ -191,7 +191,7 @@ test['array stream handles many types'] = function (test) {
 };
 
 test['actor-based stream from readable'] = function (test) {
-    test.expect(8);
+    test.expect(7);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
