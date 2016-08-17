@@ -97,6 +97,69 @@ test['object sequence matches object-list source'] = function (test) {
     );
 };
 
+test['PEG stream generates token objects'] = function (test) {
+    test.expect(5);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var pf = PEG.factory(sponsor);
+    var ns = pf.namespace(log);
+/*
+Token   <- Space* (!Space .)*
+*/
+    ns.define('Token',
+        pf.seq([
+            pf.star(
+                ns.call('Space')
+            ),
+            pf.star(
+                pf.seq([
+                    pf.not(
+                        ns.call('Space')
+                    ),
+                    pf.any
+                ])
+            )
+        ])
+    );
+/*
+Space   <- [ \t-\r]
+*/
+    ns.define('Space',
+        pf.if(function cond(token) {
+            return /[ \t-\r]/.test(token);
+        })
+    );
+
+    var source = input.fromString(sponsor, 'This is a TEST!');
+    var pattern = ns.call('Token');
+    var stream = input.fromPEG(sponsor, source, pattern);
+
+    var c_n = 0;  // expected position counter
+    var cust = sponsor(function (r) {
+        log('cust n:', c_n);
+        log('cust r:', JSON.stringify(r, null, 2));
+        test.equal(c_n, r.pos);
+        c_n += 1;  // update expected position
+        r.next(cust);
+    });
+
+    stream(cust);  // begin reading from token stream
+
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            log('asyncRepeat callback:', error, result);
+            test.ok(!error && result);
+            test.done();
+        }
+    );
+};
+
 /*
     var pf = PEG.factory(sponsor);
     var ns = pf.namespace(log);
