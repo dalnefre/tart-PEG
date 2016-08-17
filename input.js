@@ -34,8 +34,8 @@ var input = module.exports;
 
 var PEG = require('./PEG.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var end = input.end = {
     next: function next(cust) {
@@ -247,15 +247,16 @@ var fromArray = input.fromArray = function fromArray(sponsor, source) {
 };
 
 var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
+    var stream = require('stream');
     var rs = new stream.Readable({ objectMode: true });
     var pos = 0;
     var ok = sponsor(function okBeh(r) {
         log('fromPEG.OK:', JSON.stringify(r, null, 2));
         r.pos = pos;
+        r.next = fromPEG(this.sponsor, r.end, pattern);  // FIXME: r.end is not an actor!
         rs.push(r);
         log('fromPEG.push:', r);
         pos += 1;
-        r.next(this.sponsor(PEG.start(pattern, ok, fail)));  // parse next token
     });
     var fail = sponsor(function failBeh(r) {
         console.log('fromPEG.FAIL:', JSON.stringify(r, null, 2));

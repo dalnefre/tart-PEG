@@ -36,8 +36,8 @@ var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 test['object sequence matches object-list source'] = function (test) {
     test.expect(6);
@@ -133,7 +133,7 @@ Space   <- [ \t-\r]
 
     var source = input.fromString(sponsor, 'This is a TEST!');
     var pattern = ns.call('Token');
-    var stream = input.fromPEG(sponsor, source, pattern);
+    var tokens = input.fromPEG(sponsor, source, pattern);
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
@@ -144,7 +144,7 @@ Space   <- [ \t-\r]
         r.next(cust);
     });
 
-    stream(cust);  // begin reading from token stream
+    tokens(cust);  // begin reading from token stream
 
     require('../fixture.js').asyncRepeat(3,
         function action() {
