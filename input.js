@@ -32,6 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var input = module.exports;
 
+var PEG = require('./PEG.js');
+
 //var log = console.log;
 var log = function () {};
 
@@ -241,5 +243,30 @@ var fromArray = input.fromArray = function fromArray(sponsor, source) {
     var next = input.fromReadable(sponsor, rs);
 */
     log('fromArray:', next);
+    return next;
+};
+
+var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
+    var rs = new stream.Readable({ objectMode: true });
+    var pos = 0;
+    var ok = sponsor(function okBeh(r) {
+        log('fromPEG.OK:', JSON.stringify(r, null, 2));
+        r.pos = pos;
+        rs.push(r);
+        log('fromPEG.push:', r);
+        pos += 1;
+        r.next(this.sponsor(PEG.start(pattern, ok, fail)));  // parse next token
+    });
+    var fail = sponsor(function failBeh(r) {
+        console.log('fromPEG.FAIL:', JSON.stringify(r, null, 2));
+        rs.push(null);  // end stream
+        log('fromPEG.end');
+    });
+
+    var start = sponsor(PEG.start(pattern, ok, fail));
+    source(start);
+
+    var next = input.fromReadable(sponsor, rs);
+    log('fromPEG:', next);
     return next;
 };
