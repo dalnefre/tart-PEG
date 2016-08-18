@@ -253,10 +253,14 @@ var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
     var ok = sponsor(function okBeh(r) {
         log('fromPEG.OK:', JSON.stringify(r, null, 2));
         r.pos = pos;
-        r.next = fromPEG(this.sponsor, r.end, pattern);  // FIXME: r.end is not an actor!
         rs.push(r);
         log('fromPEG.push:', r);
         pos += 1;
+        pattern({  // try to match the next token
+            input: r.end,
+            ok: ok,  // this.self
+            fail: fail
+        });
     });
     var fail = sponsor(function failBeh(r) {
         console.log('fromPEG.FAIL:', JSON.stringify(r, null, 2));
