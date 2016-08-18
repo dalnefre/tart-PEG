@@ -263,7 +263,7 @@ var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
         });
     });
     var fail = sponsor(function failBeh(r) {
-        console.log('fromPEG.FAIL:', JSON.stringify(r, null, 2));
+        log('fromPEG.FAIL:', JSON.stringify(r, null, 2));
         rs.push(null);  // end stream
         log('fromPEG.end');
     });
