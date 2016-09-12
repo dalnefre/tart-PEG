@@ -87,6 +87,7 @@ var arrayStream = input.arrayStream = function arrayStream(seq, pos) {  // [DEPR
             });
         } else {
             var end = {
+                end: true,
                 pos: pos
             };
             end.next = this.sponsor(function endBeh(cust) {

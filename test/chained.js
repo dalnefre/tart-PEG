@@ -105,14 +105,14 @@ test['PEG stream generates token objects'] = function (test) {
     var pf = PEG.factory(sponsor);
     var ns = pf.namespace(log);
 /*
-Token   <- Space* (!Space .)*
+Token   <- Space* (!Space .)+
 */
     ns.define('Token',
         pf.seq([
             pf.star(
                 ns.call('Space')
             ),
-            pf.star(
+            pf.plus(
                 pf.seq([
                     pf.not(
                         ns.call('Space')
@@ -131,20 +131,47 @@ Space   <- [ \t-\r]
         })
     );
 
-    var source = input.fromString(sponsor, 'This is a TEST!');
+//    var source = input.fromString(sponsor, 'This is a TEST!');
+    var source = input.fromString(sponsor, 'X YZ');
     var pattern = ns.call('Token');
+//    var pattern = pf.star(pf.any);  // _ <- .*
     var tokens = input.fromPEG(sponsor, source, pattern);
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
-        log('cust n:', c_n);
-        log('cust r:', JSON.stringify(r, null, 2));
-        test.equal(c_n, r.pos);
-        c_n += 1;  // update expected position
-        r.next(cust);
+//        log('cust r:', JSON.stringify(r, null, 2));
+        log('cust r:', r);
+        if (!((r.value === undefined) || r.end)) {
+			log('cust n:', c_n);
+			test.equal(c_n, r.pos);
+	        c_n += 1;  // update expected position
+    	    r.next(cust);
+    	}
     });
 
     tokens(cust);  // begin reading from token stream
+//    source(cust);
+/*
+    var ok = sponsor(function okBeh(r) {
+        log('OK:', r);
+        var v = r.value;
+        log('OK.value:', JSON.stringify(v, null, 2));
+        pattern({
+        	input: r.end,
+        	ok: ok,
+        	fail: fail
+        });  // look for next match
+    });
+    var fail = sponsor(function failBeh(r) {
+        console.log('FAIL:', JSON.stringify(r, null, 2));
+    });
+    var start = pf.start(
+        pattern,
+        ok,
+        fail
+    );
+    source(start);
+*/
 
     require('../fixture.js').asyncRepeat(3,
         function action() {

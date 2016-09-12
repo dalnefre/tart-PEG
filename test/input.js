@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var input = require('../input.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var test = module.exports = {};
 
@@ -147,8 +147,7 @@ var arrayFixture = function arrayFixture(test, sponsor) {
         source: [
             42,
             'foo',
-//            { type:'operator', name:'=' },
-            {}
+            { type:'operator', name:'=' }
         ]
     };
     var c0 = fixture.c0 = sponsor(function (r) {
@@ -171,7 +170,7 @@ var arrayFixture = function arrayFixture(test, sponsor) {
     });
     var c3 = fixture.c3 = sponsor(function (r) {
         log('c3:', r);
-        test.equal(3, r.pos);
+        test.equal(true, r.end);  // end-of-stream
         test.strictEqual(undefined, r.value);
     });
     log('arrayFixture:', fixture);
@@ -241,6 +240,7 @@ test['string helper counts lines'] = function (test) {
             });
         },
         function callback(error, result) {
+        	log('callback:', error, result);
             test.ok(!error && result);
             test.done();
         }
