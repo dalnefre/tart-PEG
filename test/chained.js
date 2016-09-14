@@ -97,6 +97,77 @@ test['object sequence matches object-list source'] = function (test) {
     );
 };
 
+test['input.fromPEG() unit test with mock source'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+	/* input source consists of two tokens ['P', 'Q'] */
+	var source = (function (sponsor) {
+		var s0 = sponsor(function (cust) {
+			log('s0:', cust);
+			if (typeof cust === 'function') {
+				cust({
+					pos: 0,
+					value: 'P',
+					next: s1
+				});
+			}
+		});
+		var s1 = sponsor(function (cust) {
+			log('s1:', cust);
+			if (typeof cust === 'function') {
+				cust({
+					pos: 1,
+					value: 'Q',
+					next: sZ
+				});
+			}
+		});
+		var sZ = sponsor(function (cust) {
+			log('sZ:', cust);
+			if (typeof cust === 'function') {
+				cust({
+					end: true,
+					next: sZ
+				});
+			}
+		});
+		return s0;
+	})(sponsor);
+
+    var pattern = pf.any;  // match any single token, but not end-of-input
+
+    var tokens = input.fromPEG(sponsor, source, pattern);
+
+    var c_n = 0;  // expected position counter
+    var cust = sponsor(function (r) {
+//        log('cust r:', JSON.stringify(r, null, 2));
+        log('cust r:', r);
+        if (!((r.value === undefined) || r.end)) {
+			log('cust n:', c_n);
+			test.equal(c_n, r.pos);
+			c_n += 1;  // update expected position
+			r.next(cust);
+		}
+    });
+
+    tokens(cust);  // begin reading from token stream
+
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            log('asyncRepeat callback:', error, result);
+            test.ok(!error && result);
+            test.done();
+        }
+    );
+};
+
 test['PEG stream generates token objects'] = function (test) {
     test.expect(5);
     var tracing = tart.tracing();
@@ -144,10 +215,10 @@ Space   <- [ \t-\r]
         if (!((r.value === undefined) || r.end)) {
 			log('cust n:', c_n);
 			test.equal(c_n, r.pos);
-	        c_n += 1;  // update expected position
-    	    r.next(cust);
-    	}
-    });
+			c_n += 1;  // update expected position
+			r.next(cust);
+		}
+	});
 
     tokens(cust);  // begin reading from token stream
 //    source(cust);
