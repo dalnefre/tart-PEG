@@ -102,10 +102,13 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
+    var pf = PEG.factory(sponsor);
+    var ns = pf.namespace(log);
+
     /* input source consists of two tokens ['P', 'Q'] */
     var source = (function (sponsor) {
         var s0 = sponsor(function (cust) {
-            log('s0:', cust);
+            log('s0:'+this.self+'', cust);
             if (typeof cust === 'function') {
                 cust({
                     pos: 0,
@@ -115,7 +118,7 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
             }
         });
         var s1 = sponsor(function (cust) {
-            log('s1:', cust);
+            log('s1'+this.self+':', cust);
             if (typeof cust === 'function') {
                 cust({
                     pos: 1,
@@ -125,7 +128,7 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
             }
         });
         var sZ = sponsor(function (cust) {
-            log('sZ:', cust);
+            log('sZ'+this.self+':', cust);
             if (typeof cust === 'function') {
                 cust({
                     end: true,
@@ -142,10 +145,10 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
-//        log('cust r:', JSON.stringify(r, null, 2));
-        log('cust r:', r);
-        if (!((r.value === undefined) || r.end)) {
-            log('cust n:', c_n);
+//        log('cust'+this.self+' r:', JSON.stringify(r, null, 2));
+        log('cust'+this.self+' r:', r);
+        if (r.value !== undefined) {
+            log('cust'+this.self+' n:', c_n);
             test.equal(c_n, r.pos);
             c_n += 1;  // update expected position
             r.next(cust);
@@ -210,10 +213,10 @@ Space   <- [ \t-\r]
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
-//        log('cust r:', JSON.stringify(r, null, 2));
-        log('cust r:', r);
-        if (!((r.value === undefined) || r.end)) {
-            log('cust n:', c_n);
+//        log('cust'+this.self+' r:', JSON.stringify(r, null, 2));
+        log('cust'+this.self+' r:', r);
+        if (r.value !== undefined) {
+            log('cust'+this.self+' n:', c_n);
             test.equal(c_n, r.pos);
             c_n += 1;  // update expected position
             r.next(cust);
