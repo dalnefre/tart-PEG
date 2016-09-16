@@ -240,7 +240,7 @@ test['string helper counts lines'] = function (test) {
             });
         },
         function callback(error, result) {
-        	log('callback:', error, result);
+            log('callback:', error, result);
             test.ok(!error && result);
             test.done();
         }

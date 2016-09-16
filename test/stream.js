@@ -103,7 +103,7 @@ test['countRowCol() handles different line endings'] = function (test) {
     });
     rc.on('end', function onEnd() {
         log('end.');
-    	test.done();
+        test.done();
     });
 };
 
@@ -131,7 +131,7 @@ test['arrayStream() provides objects'] = function (test) {
     });
     rs.on('end', function onEnd() {
         log('end.');
-    	test.done();
+        test.done();
     });
 };
 

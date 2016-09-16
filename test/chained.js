@@ -102,39 +102,39 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-	/* input source consists of two tokens ['P', 'Q'] */
-	var source = (function (sponsor) {
-		var s0 = sponsor(function (cust) {
-			log('s0:', cust);
-			if (typeof cust === 'function') {
-				cust({
-					pos: 0,
-					value: 'P',
-					next: s1
-				});
-			}
-		});
-		var s1 = sponsor(function (cust) {
-			log('s1:', cust);
-			if (typeof cust === 'function') {
-				cust({
-					pos: 1,
-					value: 'Q',
-					next: sZ
-				});
-			}
-		});
-		var sZ = sponsor(function (cust) {
-			log('sZ:', cust);
-			if (typeof cust === 'function') {
-				cust({
-					end: true,
-					next: sZ
-				});
-			}
-		});
-		return s0;
-	})(sponsor);
+    /* input source consists of two tokens ['P', 'Q'] */
+    var source = (function (sponsor) {
+        var s0 = sponsor(function (cust) {
+            log('s0:', cust);
+            if (typeof cust === 'function') {
+                cust({
+                    pos: 0,
+                    value: 'P',
+                    next: s1
+                });
+            }
+        });
+        var s1 = sponsor(function (cust) {
+            log('s1:', cust);
+            if (typeof cust === 'function') {
+                cust({
+                    pos: 1,
+                    value: 'Q',
+                    next: sZ
+                });
+            }
+        });
+        var sZ = sponsor(function (cust) {
+            log('sZ:', cust);
+            if (typeof cust === 'function') {
+                cust({
+                    end: true,
+                    next: sZ
+                });
+            }
+        });
+        return s0;
+    })(sponsor);
 
     var pattern = pf.any;  // match any single token, but not end-of-input
 
@@ -145,11 +145,11 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
 //        log('cust r:', JSON.stringify(r, null, 2));
         log('cust r:', r);
         if (!((r.value === undefined) || r.end)) {
-			log('cust n:', c_n);
-			test.equal(c_n, r.pos);
-			c_n += 1;  // update expected position
-			r.next(cust);
-		}
+            log('cust n:', c_n);
+            test.equal(c_n, r.pos);
+            c_n += 1;  // update expected position
+            r.next(cust);
+        }
     });
 
     tokens(cust);  // begin reading from token stream
@@ -213,12 +213,12 @@ Space   <- [ \t-\r]
 //        log('cust r:', JSON.stringify(r, null, 2));
         log('cust r:', r);
         if (!((r.value === undefined) || r.end)) {
-			log('cust n:', c_n);
-			test.equal(c_n, r.pos);
-			c_n += 1;  // update expected position
-			r.next(cust);
-		}
-	});
+            log('cust n:', c_n);
+            test.equal(c_n, r.pos);
+            c_n += 1;  // update expected position
+            r.next(cust);
+        }
+    });
 
     tokens(cust);  // begin reading from token stream
 //    source(cust);
@@ -228,9 +228,9 @@ Space   <- [ \t-\r]
         var v = r.value;
         log('OK.value:', JSON.stringify(v, null, 2));
         pattern({
-        	input: r.end,
-        	ok: ok,
-        	fail: fail
+            input: r.end,
+            ok: ok,
+            fail: fail
         });  // look for next match
     });
     var fail = sponsor(function failBeh(r) {

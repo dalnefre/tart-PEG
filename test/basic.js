@@ -55,9 +55,9 @@ test['empty pattern returns empty list'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(''));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(''));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -78,9 +78,9 @@ test['anything fails on end-of-input'] = function (test) {
         test.equal(0, r.end.pos);
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(''));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(''));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -102,9 +102,9 @@ test['terminal period matches period'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('.'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('.'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -125,9 +125,9 @@ test['terminal period fails on space'] = function (test) {
         test.equal(0, r.end.pos);
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' '));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' '));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -150,9 +150,9 @@ test['not-anything matches end-of-input'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(''));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(''));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -175,9 +175,9 @@ test['follow period matches without advancing'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('.'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('.'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -199,9 +199,9 @@ test['empty sequence acts like empty pattern'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' '));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' '));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -235,9 +235,9 @@ test['sequence matches period + space 2x'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('.\r\n'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('.\r\n'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
 //    test.ok(tracing.eventLoop({
@@ -267,9 +267,9 @@ test['empty choice acts like fail pattern'] = function (test) {
         test.equal(0, r.end.pos);
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' '));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' '));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -296,9 +296,9 @@ test['plus/minus choice matches plus'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('+'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('+'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -325,9 +325,9 @@ test['plus/minus choice matches minus'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('-'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('-'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -353,9 +353,9 @@ test['plus/minus choice fails on star'] = function (test) {
         test.equal(0, r.end.pos);
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('*'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('*'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -380,9 +380,9 @@ test['zeroOrMore matches nothing'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('. \r\n'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('. \r\n'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop({ count: 100 }));
     test.done();
@@ -408,9 +408,9 @@ test['zeroOrMore matches single space'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' '));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' '));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -438,9 +438,9 @@ test['zeroOrMore matches whitespace 3x'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' \r\n.'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' \r\n.'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -464,9 +464,9 @@ test['oneOrMore fails on nothing'] = function (test) {
         test.equal(0, r.end.pos);
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('. \r\n'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('. \r\n'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -492,9 +492,9 @@ test['oneOrMore matches single space'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' '));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' '));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -522,9 +522,9 @@ test['oneOrMore matches whitespace 3x'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' \r\n.'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' \r\n.'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -549,9 +549,9 @@ test['zeroOrOne matches nothing'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream('. \r\n'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream('. \r\n'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
@@ -577,9 +577,9 @@ test['zeroOrOne matches single space'] = function (test) {
         console.log('FAIL:', JSON.stringify(r, null, 2));
     });
 
-	var matcher = sponsor(PEG.start(start, ok, fail));
-	var stream = sponsor(input.stringStream(' \r\n.'));
-	stream(matcher);
+    var matcher = sponsor(PEG.start(start, ok, fail));
+    var stream = sponsor(input.stringStream(' \r\n.'));
+    stream(matcher);
     
     test.ok(tracing.eventLoop());
     test.done();
