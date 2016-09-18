@@ -183,23 +183,8 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
         };
     };
 
-    var next = sponsor(makeNext());
-/*
-    readable.on('readable', function onReadable() {
-        var obj = readable.read();
-        log('readable:', obj, next);
-        if (obj) {
-            obj.next = sponsor(makeNext());
-            log('readable-next:', obj);
-            next(obj);
-            next = obj.next;
-        } else {
-            obj = { next: next };
-            log('readable-end:', obj);
-            next(obj);  // end of stream
-        }
-    });
-*/
+    var source = sponsor(makeNext());
+    var next = source;
     readable.on('data', function onData(obj) {
         log('data:', obj, next);
         obj.next = sponsor(makeNext());
@@ -213,8 +198,8 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
         log('end-obj:', obj);
         next(obj);  // end of stream
     });
-    log('fromReadable:', next);
-    return next;
+    log('fromReadable:', source);
+    return source;
 };
 
 var fromString = input.fromString = function fromString(sponsor, seq) {
