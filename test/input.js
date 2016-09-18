@@ -143,7 +143,7 @@ test['empty array returns end marker'] = function (test) {
 
 var arrayFixture = function arrayFixture(test, sponsor) {
     var fixture = {
-        expect: 9,
+        expect: 8,
         source: [
             42,
             'foo',
@@ -170,7 +170,6 @@ var arrayFixture = function arrayFixture(test, sponsor) {
     });
     var c3 = fixture.c3 = sponsor(function (r) {
         log('c3:', r);
-        test.equal(true, r.end);  // end-of-stream
         test.strictEqual(undefined, r.value);
     });
     log('arrayFixture:', fixture);

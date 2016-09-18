@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var s = require('../stream.js');
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var test = module.exports = {};   
 
@@ -136,13 +136,10 @@ test['arrayStream() provides objects'] = function (test) {
 };
 
 test['characters() can feed actor-based stream'] = function (test) {
-    test.expect(7);
+    test.expect(8);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var ws = s.characters();
-    var rs = ws.pipe(s.countRowCol()); //ws;
-    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
             log('nextBeh'+this.self+':', msg);
@@ -174,7 +171,10 @@ test['characters() can feed actor-based stream'] = function (test) {
             }
         };
     };
-    var next = sponsor(makeNext());
+    var source = sponsor(makeNext());
+    var next = source;
+    var ws = s.characters();
+    var rs = ws.pipe(s.countRowCol()); //ws;
     rs.on('data', function onData(obj) {
         log('data:', obj, next);
         obj.next = sponsor(makeNext());
@@ -185,6 +185,13 @@ test['characters() can feed actor-based stream'] = function (test) {
         log('end:', next);
         next({ end: true, next: next });  // end of stream
     });
+    ws.write('.\r\r\n\n!');
+    ws.end();
+/*
+	source = require('input').fromString(sponsor, '.\r\r\n\n!');
+*/
+
+    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var match = sponsor(function matchBeh(m) {
         var first = ar.shift();  // consume first expected result value
         log('matchBeh'+this.self+':', m, JSON.stringify(first));
@@ -193,17 +200,31 @@ test['characters() can feed actor-based stream'] = function (test) {
             m.next(this.self);
         }
     });
-    next(match);  // start reading the actor-based stream
-    ws.write('.\r\r\n\n!');
-    ws.end();
+    source(match);  // start reading the actor-based stream
 
 /*
     test.ok(tracing.eventLoop());
 */
+/*
     test.ok(tracing.eventLoop({
         count: 100,
 //        log: function (effect) { console.log('DEBUG', effect); },
         fail: function (exception) { console.log('FAIL!', exception); }
     }));
     test.done();
+*/
+    require('../fixture.js').asyncRepeat(3,
+        function action() {
+            return tracing.eventLoop({
+                count: 100,
+//                log: function (effect) { console.log('DEBUG', effect); },
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            log('callback:', error, result);
+            test.ok(!error && result);
+            test.done();
+        }
+    );
 };

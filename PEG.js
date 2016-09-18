@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var PEG = module.exports;
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 var defaultLog = log;
 
 var error = function error(m, e) {
