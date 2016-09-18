@@ -140,6 +140,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
+/*
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
             log('nextBeh'+this.self+':', msg);
@@ -187,9 +188,8 @@ test['characters() can feed actor-based stream'] = function (test) {
     });
     ws.write('.\r\r\n\n!');
     ws.end();
-/*
-	source = require('input').fromString(sponsor, '.\r\r\n\n!');
 */
+	var source = require('../input.js').fromString(sponsor, '.\r\r\n\n!');
 
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var match = sponsor(function matchBeh(m) {
