@@ -59,6 +59,7 @@ s.characters = function characters(keepCharacters) {
     };
     ts._flush = function _flush(callback) {
         log('chars_flush:', JSON.stringify(arguments));
+        ts.push(null);  // end stream
         callback();
     };
     return ts;
@@ -91,6 +92,7 @@ s.countRowCol = function countRowCol() {
     };
     ts._flush = function _flush(callback) {
         log('count_flush:', JSON.stringify(arguments));
+        ts.push(null);  // end stream
         callback();
     };
     return ts;

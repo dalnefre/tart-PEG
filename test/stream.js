@@ -108,15 +108,15 @@ test['countRowCol() handles different line endings'] = function (test) {
 };
 
 test['arrayStream() provides objects'] = function (test) {
-    test.expect(24);
+    test.expect(18);
 
     var ar = [
-        { value:'.', pos:0, row:0, col:0 }, 
-        { value:'\r', pos:1, row:0, col:1 }, 
-        { value:'\r', pos:2, row:1, col:0 }, 
-        { value:'\n', pos:3, row:1, col:1 }, 
-        { value:'\n', pos:4, row:2, col:0 }, 
-        { value:'!', pos:5, row:3, col:0 }
+        { value:'.', row:0, col:0 }, 
+        { value:'\r', row:0, col:1 }, 
+        { value:'\r', row:1, col:0 }, 
+        { value:'\n', row:1, col:1 }, 
+        { value:'\n', row:2, col:0 }, 
+        { value:'!', row:3, col:0 }
     ];
     var rs = s.arrayStream(ar);
     rs.on('data', function onData(object) {
@@ -125,7 +125,6 @@ test['arrayStream() provides objects'] = function (test) {
         var actual = object.value;
         log('data:', expect, actual);
         test.strictEqual(expect.value, actual.value);
-        test.strictEqual(expect.pos, actual.pos);
         test.strictEqual(expect.row, actual.row);
         test.strictEqual(expect.col, actual.col);
     });
@@ -140,7 +139,6 @@ test['characters() can feed actor-based stream'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-/*
     var makeNext = function makeNext() {
         return function nextBeh(msg) {
             log('nextBeh'+this.self+':', msg);
@@ -184,12 +182,13 @@ test['characters() can feed actor-based stream'] = function (test) {
     });
     rs.on('end', function onEnd() {
         log('end:', next);
-        next({ end: true, next: next });  // end of stream
+        next({ next: next });  // end of stream
     });
     ws.write('.\r\r\n\n!');
     ws.end();
-*/
+/*
     var source = require('../input.js').fromString(sponsor, '.\r\r\n\n!');
+*/
 
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var match = sponsor(function matchBeh(m) {

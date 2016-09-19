@@ -194,7 +194,7 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
     });
     readable.on('end', function onEnd() {
         log('end:', next);
-        var obj = { end: true, next: next };
+        var obj = { next: next };  // FIXME: should we include .pos?
         log('end-obj:', obj);
         next(obj);  // end of stream
     });
