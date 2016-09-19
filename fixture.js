@@ -53,3 +53,19 @@ fixture.asyncRepeat = function asyncRepeat(n, action, callback) {
         callback(ex);
     }
 };
+
+fixture.testEventLoop = function testEventLoop(test, n, eventLoop, log) {
+    log = log || fixture.log;
+    fixture.asyncRepeat(n,
+        function action() {
+            return eventLoop({
+              fail: function (error) { console.log('FAIL!', error); }
+            });
+        },
+        function callback(error, result) {
+            log('asyncRepeat('+n+'):', error, result);
+            test.ok(!error && result);
+            test.done();
+        }
+    );
+};

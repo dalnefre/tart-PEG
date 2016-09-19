@@ -61,9 +61,8 @@ test['object matches empty expected object'] = function (test) {
     var matcher = sponsor(PEG.start(start, ok, fail));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
-    
-    test.ok(tracing.eventLoop());
-    test.done();
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['object matches single expected property'] = function (test) {
@@ -88,9 +87,8 @@ test['object matches single expected property'] = function (test) {
     var matcher = sponsor(PEG.start(start, ok, fail));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
-    
-    test.ok(tracing.eventLoop());
-    test.done();
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['object matches all expected properties'] = function (test) {
@@ -115,9 +113,8 @@ test['object matches all expected properties'] = function (test) {
     var matcher = sponsor(PEG.start(start, ok, fail));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
-    
-    test.ok(tracing.eventLoop());
-    test.done();
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['object fails to match on missing property'] = function (test) {
@@ -141,9 +138,8 @@ test['object fails to match on missing property'] = function (test) {
     var matcher = sponsor(PEG.start(start, ok, fail));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
-    
-    test.ok(tracing.eventLoop());
-    test.done();
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['object sequence matches object-list source'] = function (test) {
@@ -176,7 +172,6 @@ test['object sequence matches object-list source'] = function (test) {
     var matcher = sponsor(PEG.start(start, ok, fail));
     var stream = input.fromArray(sponsor, source);
     stream(matcher);
-    
-    test.ok(tracing.eventLoop());
-    test.done();
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
