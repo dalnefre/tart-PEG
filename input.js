@@ -34,8 +34,8 @@ var input = module.exports;
 
 var PEG = require('./PEG.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var end = input.end = {
     next: function next(cust) {

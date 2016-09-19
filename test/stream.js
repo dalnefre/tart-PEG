@@ -33,8 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart-tracing');
 var s = require('../stream.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var test = module.exports = {};   
 
@@ -189,7 +189,7 @@ test['characters() can feed actor-based stream'] = function (test) {
     ws.write('.\r\r\n\n!');
     ws.end();
 */
-	var source = require('../input.js').fromString(sponsor, '.\r\r\n\n!');
+    var source = require('../input.js').fromString(sponsor, '.\r\r\n\n!');
 
     var ar = ['.', '\r', '\r', '\n', '\n', '!'];
     var match = sponsor(function matchBeh(m) {
@@ -202,29 +202,5 @@ test['characters() can feed actor-based stream'] = function (test) {
     });
     source(match);  // start reading the actor-based stream
 
-/*
-    test.ok(tracing.eventLoop());
-*/
-/*
-    test.ok(tracing.eventLoop({
-        count: 100,
-//        log: function (effect) { console.log('DEBUG', effect); },
-        fail: function (exception) { console.log('FAIL!', exception); }
-    }));
-    test.done();
-*/
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-                count: 100,
-//                log: function (effect) { console.log('DEBUG', effect); },
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };

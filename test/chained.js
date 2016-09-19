@@ -36,8 +36,8 @@ var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 test['object sequence matches object-list source'] = function (test) {
     test.expect(6);
@@ -81,20 +81,7 @@ test['object sequence matches object-list source'] = function (test) {
     );
     source(start);
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-//                count: 100,
-//                log: function (effect) { console.log('DEBUG', effect); },
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['input.fromPEG() unit test with mock source'] = function (test) {
@@ -157,18 +144,7 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
 
     tokens(cust);  // begin reading from token stream
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['PEG stream generates token objects'] = function (test) {
@@ -250,18 +226,7 @@ Space   <- [ \t-\r]
     source(start);
 */
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 /*
