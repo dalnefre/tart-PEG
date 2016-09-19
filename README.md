@@ -137,7 +137,7 @@ A location within a stream is represented with an object like this:
   * `pos`: _Number_ Position in the stream (zero-based).
   * `next`: _Actor_ Actor used to access the next stream position.
 
-Line-oriented character stream have these additional attributes:
+Line-oriented character streams have these additional attributes:
 
   * `row`: _Number_ Line offset (zero-based).
   * `col`: _Number_ Position within the line (zero-based).
