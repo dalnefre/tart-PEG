@@ -44,14 +44,12 @@ test['empty string returns end marker'] = function (test) {
     var sponsor = tracing.sponsor;
 
     var cust = sponsor(function (r) {
-    	log('cust:', r);
+        log('cust:', r);
         test.strictEqual(0, r.pos);
         test.strictEqual(undefined, r.token);
     });
 
     var stream = input.fromSequence(sponsor, '');
-//    var stream = input.fromString(sponsor, '');
-//    var stream = sponsor(input.stringStream(''));
     stream(cust);
 
     test.ok(tracing.eventLoop({
@@ -62,6 +60,48 @@ test['empty string returns end marker'] = function (test) {
 /*
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 */
+};
+
+test['empty array returns end marker'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var cust = sponsor(function (r) {
+        log('cust:', r);
+        test.equal(0, r.pos);
+        test.strictEqual(undefined, r.token);
+    });
+
+    var stream = input.fromArray(sponsor, []);
+    stream(cust);
+
+    test.ok(tracing.eventLoop());
+    test.done();
+};
+
+test['actor-based stream from readable'] = function (test) {
+    test.expect(8);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var s = require('../stream.js');
+    var ws = s.characters();
+    var rs = ws; //ws.pipe(s.countRowCol());
+    var next = input.fromReadable(sponsor, rs);
+    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
+    var match = sponsor(function matchBeh(m) {
+        var first = ar.shift();  // consume first expected result value
+        log('matchBeh'+this.self+':', m, JSON.stringify(first));
+        test.equal(first, m.value);
+        if (first !== undefined) {
+            m.next(this.self);
+        }
+    });
+    ws.end('.\r\r\n\n!');
+    next(match);  // start reading the actor-based stream
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 var multilineFixture = function multilineFixture(test, sponsor) {
@@ -111,39 +151,16 @@ var multilineFixture = function multilineFixture(test, sponsor) {
     log('multilineFixture:', fixture);
     return fixture;
 };
-test['string stream counts lines'] = function (test) {
+test['string helper counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
     var fixture = multilineFixture(test, sponsor);
     test.expect(fixture.expect + 1);
 
     var stream = input.fromString(sponsor, fixture.source);
-//    var stream = sponsor(input.stringStream(fixture.source));
     stream(fixture.c0);
 
-/*
-    test.ok(tracing.eventLoop());
-    test.done();
-*/
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
-};
-
-test['empty array returns end marker'] = function (test) {
-    test.expect(3);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-
-    var cust = sponsor(function (r) {
-        test.equal(0, r.pos);
-        test.strictEqual(undefined, r.token);
-    });
-
-    var stream = input.fromArray(sponsor, []);
-//    var stream = sponsor(input.arrayStream([]));
-    stream(cust);
-
-    test.ok(tracing.eventLoop());
-    test.done();
 };
 
 var arrayFixture = function arrayFixture(test, sponsor) {
@@ -187,57 +204,11 @@ test['array stream handles many types'] = function (test) {
     test.expect(fixture.expect);
 
     var stream = input.fromArray(sponsor, fixture.source);
-//    var stream = sponsor(input.arrayStream(fixture.source));
     stream(fixture.c0);
 
     test.ok(tracing.eventLoop());
     test.done();
-};
-
-test['actor-based stream from readable'] = function (test) {
-    test.expect(8);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-
-    var s = require('../stream.js');
-    var ws = s.characters();
-    var rs = ws; //ws.pipe(s.countRowCol());
-    var next = input.fromReadable(sponsor, rs);
-    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
-    var match = sponsor(function matchBeh(m) {
-        var first = ar.shift();  // consume first expected result value
-        log('matchBeh'+this.self+':', m, JSON.stringify(first));
-        test.equal(first, m.value);
-        if (first !== undefined) {
-            m.next(this.self);
-        }
-    });
-    ws.end('.\r\r\n\n!');
-    next(match);  // start reading the actor-based stream
-
+/*
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
-};
-
-test['string helper counts lines'] = function (test) {
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-    var fixture = multilineFixture(test, sponsor);
-    test.expect(fixture.expect + 1);
-
-    var stream = input.fromString(sponsor, fixture.source);
-    stream(fixture.c0);
-
-    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
-};
-
-test['array helper handles many types'] = function (test) {
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-    var fixture = arrayFixture(test, sponsor);
-    test.expect(fixture.expect);
-
-    var stream = input.fromArray(sponsor, fixture.source);
-    stream(fixture.c0);
-
-    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+*/
 };
