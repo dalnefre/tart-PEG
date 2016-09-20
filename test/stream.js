@@ -139,44 +139,14 @@ test['characters() can feed actor-based stream'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    var makeNext = function makeNext() {
-        return function nextBeh(msg) {
-            log('nextBeh'+this.self+':', msg);
-            if (typeof msg === 'function') {  // msg = customer
-                this.behavior = makeWait([msg]);
-            } else if (typeof msg === 'object') {  // msg = result
-                this.behavior = makeCache(msg);
-            }
-        };
-    };
-    var makeWait = function makeWait(waiting) {
-        return function waitBeh(msg) {
-            log('waitBeh'+this.self+':', msg, waiting);
-            if (typeof msg === 'function') {  // msg = customer
-                waiting.push(msg);
-            } else if (typeof msg === 'object') {  // msg = result
-                this.behavior = makeCache(msg);
-                waiting.forEach(function (item, index, array) {
-                    item(msg);
-                });
-            }
-        };
-    };
-    var makeCache = function makeCache(result) {
-        return function cacheBeh(cust) {
-            log('cacheBeh'+this.self+':', cust, result);
-            if (typeof cust === 'function') {
-                cust(result);
-            }
-        };
-    };
-    var source = sponsor(makeNext());
+    var sa = require('../dataflow.js').factory(sponsor, log);
+    var source = sa.unbound();
     var next = source;
     var ws = s.characters();
     var rs = ws.pipe(s.countRowCol()); //ws;
     rs.on('data', function onData(obj) {
         log('data:', obj, next);
-        obj.next = sponsor(makeNext());
+        obj.next = sa.unbound();
         next(obj);
         next = obj.next;
     });

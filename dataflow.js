@@ -4,7 +4,7 @@ dataflow.js - actor-based single-assignment dataflow variable
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Dale Schumacher
+Copyright (c) 2016 Dale Schumacher
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ var factory = dataflow.factory = function factory(sponsor, log) {
     log = log || defaultLog;
 
     var saUnbound = (function () {
-        var saUnbound = function saUnboundBeh(m) {
+        var saUnboundBeh = function saUnboundBeh(m) {
             log('saUnbound'+this.self+':', m);
             if (typeof m === 'function') {  // m = customer
                 this.behavior = saWaiting([m]);

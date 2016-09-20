@@ -143,58 +143,29 @@ var stringStream = input.stringStream = function stringStream(seq, prev) {  // [
     });
 };
 
-var fromReadable = input.fromReadable = function fromReadable(sponsor, readable) {
-    var makeNext = function makeNext() {
-        return function nextBeh(msg) {
-            log('nextBeh'+this.self+':', msg);
-            if (typeof msg === 'function') {  // msg = customer
-                this.behavior = makeWait([msg]);
-            } else if (typeof msg === 'object') {  // msg = result
-                this.behavior = makeCache(msg);
-            } else {
-                log(this.self+' IGNORED', typeof cust);
-            }
-            log(this.self+'.behavior', this.behavior);
-        };
-    };
-    var makeWait = function makeWait(waiting) {
-        return function waitBeh(msg) {
-            log('waitBeh'+this.self+':', msg, waiting);
-            if (typeof msg === 'function') {  // msg = customer
-                waiting.push(msg);
-            } else if (typeof msg === 'object') {  // msg = result
-                this.behavior = makeCache(msg);
-                waiting.forEach(function (item, index, array) {
-                    item(msg);
-                });
-            } else {
-                log(this.self+' IGNORED', typeof cust);
-            }
-        };
-    };
-    var makeCache = function makeCache(result) {
-        return function cacheBeh(cust) {
-            log('cacheBeh'+this.self+':', cust, result);
-            if (typeof cust === 'function') {
-                cust(result);
-            } else {
-                log(this.self+' IGNORED', typeof cust);
-            }
-        };
-    };
-
-    var source = sponsor(makeNext());
+var fromReadable = input.fromReadable = function fromReadable(sponsor, readable, pos) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var source = sa.unbound();
     var next = source;
+    pos = pos || 0;
     readable.on('data', function onData(obj) {
         log('data:', obj, next);
-        obj.next = sponsor(makeNext());
+        if (typeof obj !== 'object') {
+            obj = { value: obj };
+        }
+        obj.pos = pos;
+        obj.next = sa.unbound();
         log('data-obj:', obj);
         next(obj);
         next = obj.next;
+        ++pos;
     });
     readable.on('end', function onEnd() {
         log('end:', next);
-        var obj = { next: next };  // FIXME: should we include .pos?
+        var obj = {
+            pos: pos,
+            next: next
+        };
         log('end-obj:', obj);
         next(obj);  // end of stream
     });
