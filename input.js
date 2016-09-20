@@ -67,31 +67,6 @@ var memo = input.memo = function memo(streamBeh) {
     return initBeh;
 };
 
-var arrayStream = input.arrayStream = function arrayStream(seq, pos) {  // [DEPRECATED]
-    pos = pos || 0;
-    return input.memo(function streamBeh(cust) {
-        var token = seq[pos];
-        log('arrayStream:', pos, JSON.stringify(token));
-        if (pos < seq.length) {
-            cust({
-                token: seq[pos],  // [DEPRECATED]
-                value: seq[pos],
-                pos: pos,
-                next: this.sponsor(arrayStream(seq, pos + 1))
-            });
-        } else {
-            var end = {
-                end: true,
-                pos: pos
-            };
-            end.next = this.sponsor(function endBeh(cust) {
-                cust(end);
-            });
-            cust(end);
-        }
-    });
-};
-
 var stringStream = input.stringStream = function stringStream(seq, prev) {  // [DEPRECATED]
     log('stringStream(seq, prev):', JSON.stringify(seq), prev);
     prev = prev || {

@@ -44,24 +44,24 @@ test['empty string returns end marker'] = function (test) {
     var sponsor = tracing.sponsor;
 
     var cust = sponsor(function (r) {
+    	log('cust:', r);
         test.strictEqual(0, r.pos);
         test.strictEqual(undefined, r.token);
     });
 
-    var stream = sponsor(input.stringStream(''));
+    var stream = input.fromArray(sponsor, '');
+//    var stream = input.fromString(sponsor, '');
+//    var stream = sponsor(input.stringStream(''));
     stream(cust);
 
     test.ok(tracing.eventLoop({
-/*
-        log: function (effect) {
-            console.log('DEBUG', effect);
-        },
-*/
-        fail: function (e) {
-            console.log('ERROR!', e);
-        }
+//        log: function (effect) { console.log('DEBUG', effect); },
+        fail: function (e) { console.log('ERROR!', e); }
     }));
     test.done();
+/*
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+*/
 };
 
 var multilineFixture = function multilineFixture(test, sponsor) {
@@ -117,11 +117,15 @@ test['string stream counts lines'] = function (test) {
     var fixture = multilineFixture(test, sponsor);
     test.expect(fixture.expect + 1);
 
-    var stream = sponsor(input.stringStream(fixture.source));
+    var stream = input.fromString(sponsor, fixture.source);
+//    var stream = sponsor(input.stringStream(fixture.source));
     stream(fixture.c0);
 
+/*
     test.ok(tracing.eventLoop());
     test.done();
+*/
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['empty array returns end marker'] = function (test) {
@@ -134,7 +138,8 @@ test['empty array returns end marker'] = function (test) {
         test.strictEqual(undefined, r.token);
     });
 
-    var stream = sponsor(input.arrayStream([]));
+    var stream = input.fromArray(sponsor, []);
+//    var stream = sponsor(input.arrayStream([]));
     stream(cust);
 
     test.ok(tracing.eventLoop());
@@ -181,7 +186,8 @@ test['array stream handles many types'] = function (test) {
     var fixture = arrayFixture(test, sponsor);
     test.expect(fixture.expect);
 
-    var stream = sponsor(input.arrayStream(fixture.source));
+    var stream = input.fromArray(sponsor, fixture.source);
+//    var stream = sponsor(input.arrayStream(fixture.source));
     stream(fixture.c0);
 
     test.ok(tracing.eventLoop());
