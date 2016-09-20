@@ -49,7 +49,7 @@ test['empty string returns end marker'] = function (test) {
         test.strictEqual(undefined, r.token);
     });
 
-    var stream = input.fromArray(sponsor, '');
+    var stream = input.fromSequence(sponsor, '');
 //    var stream = input.fromString(sponsor, '');
 //    var stream = sponsor(input.stringStream(''));
     stream(cust);

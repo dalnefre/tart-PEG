@@ -85,7 +85,7 @@ test['packrat is just memoization'] = function (test) {
     });
 
     var matcher = sponsor(PEG.start(start, ok, fail));
-    var stream = sponsor(input.stringStream('-- '));
+    var stream = input.fromSequence(sponsor, '-- ');
     stream(matcher);
     
     test.ok(tracing.eventLoop({ count: 100 }));
@@ -157,7 +157,7 @@ test['namespace defaults to packrat and named value transform'] = function (test
 
     var start = sponsor(ns.lookup('start'));
     var matcher = sponsor(PEG.start(start, ok, fail));
-    var stream = sponsor(input.stringStream('-- '));
+    var stream = input.fromSequence(sponsor, '-- ');
     stream(matcher);
     
     test.ok(tracing.eventLoop({ count: 1000 }));
