@@ -161,7 +161,7 @@ var fromStream = input.fromStream = function fromStream(sponsor, source) {
     return next;
 };
 
-var fromArray = input.fromArray = function fromArray(sponsor, source) {
+var fromArray = input.fromArray = input.fromSequence = function fromArray(sponsor, source) {
     var sa = require('./dataflow.js').factory(sponsor, log);
     var makeNext = function makeNext(source, pos) {
         var value = source[pos];
