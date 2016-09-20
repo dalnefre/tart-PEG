@@ -193,12 +193,21 @@ var fromStream = input.fromStream = function fromStream(sponsor, source) {
 };
 
 var fromArray = input.fromArray = function fromArray(sponsor, source) {
-    var s = require('./stream.js');
-    var rs = s.arrayStream(source);
-    var next = input.fromReadable(sponsor, rs);
-/*
-    var next = sponsor(input.arrayStream(source));  // [DEPRECATED]
-*/
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var makeNext = function makeNext(source, pos) {
+        var value = source[pos];
+        var obj = { pos: pos };
+        var next = sa.bound(obj);
+        if (value !== undefined) {
+            obj.value = value;
+            obj.next = makeNext(source, pos + 1);
+        } else {
+            obj.next = next;
+        }
+        log('makeNext:', next, obj);
+        return next;
+    };
+    var next = makeNext(source, 0);
     log('fromArray:', next);
     return next;
 };
