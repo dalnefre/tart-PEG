@@ -37,12 +37,6 @@ var PEG = require('./PEG.js');
 //var log = console.log;
 var log = function () {};
 
-var end = input.end = {
-    next: function next(cust) {
-        cust(end);
-    }
-};
-
 var memo = input.memo = function memo(streamBeh) {
     var waiting = [];
     var result;
@@ -215,13 +209,10 @@ var fromArray = input.fromArray = function fromArray(sponsor, source) {
 var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
     var stream = require('stream');
     var rs = new stream.Readable({ objectMode: true });
-    var pos = 0;
     var ok = sponsor(function okBeh(r) {
         log('fromPEG.OK:', JSON.stringify(r, null, 2));
-        r.pos = pos;
         rs.push(r);
         log('fromPEG.push:', r);
-        pos += 1;
         pattern({  // try to match the next token
             input: r.end,
             ok: ok,  // this.self
