@@ -37,6 +37,87 @@ var PEG = require('./PEG.js');
 //var log = console.log;
 var log = function () {};
 
+var fromArray = input.fromArray = input.fromSequence = function fromArray(sponsor, seq) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var makeNext = function makeNext(seq, pos) {
+        var value = seq[pos];
+        var obj = { pos: pos };
+        var next = sa.bound(obj);
+        if (value !== undefined) {
+            obj.value = value;
+            obj.next = makeNext(seq, pos + 1);
+        } else {
+            obj.next = next;
+        }
+        log('makeNext:', next, obj);
+        return next;
+    };
+    var next = makeNext(seq, 0);
+    log('fromArray:', next);
+    return next;
+};
+
+var posDecorator = input.posDecorator = function posDecorator(pos) {
+    var pos = pos || 0;
+    return function decorate(item) {
+        return {
+            pos: pos,
+            value: item
+        };
+        pos += 1;
+    };
+};
+
+var lineDecorator = input.lineDecorator = function lineDecorator(pos, row, col, prev) {
+    var pos = pos || 0;
+    var row = row || 0;
+    var col = col || 0;
+    var prev;
+    return function decorate(item) {
+        if ((prev === '\n') 
+        ||  ((prev === '\r') && (item !== '\n'))) {
+            row += 1;
+            col = 0;
+        }
+        obj.row = row;
+        obj.col = col;
+        return {
+            pos: pos,
+            row: row,
+            col: col,
+            value: item
+        };
+        pos += 1;
+        col += 1;
+        prev = item;
+    };
+};
+
+var fromString = input.fromString = function fromString(sponsor, seq, decorate) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var source = sa.unbound();
+    decorate = decorate || lineDecorator();
+    var next = source;
+    seq.forEach(function (item/*, index, array*/) {
+        var obj = decorate(item);
+        obj.next = sa.unbound;
+        next(obj);
+        next = obj.next;
+    });
+    var end = decorate();  // end-of-input
+    end.next = next;
+    next(end);
+/*
+    var s = require('./stream.js');
+    var ws = s.characters();
+    var rs = ws.pipe(s.countRowCol()); //ws;
+    var source = input.fromReadable(sponsor, rs);
+    ws.end(seq);
+*/
+    log('fromString:', source);
+    return source;
+};
+
 var fromReadable = input.fromReadable = function fromReadable(sponsor, readable, pos) {
     var sa = require('./dataflow.js').factory(sponsor, log);
     var source = sa.unbound();
@@ -67,42 +148,12 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable,
     return source;
 };
 
-var fromString = input.fromString = function fromString(sponsor, seq) {
-    var s = require('./stream.js');
-    var ws = s.characters();
-    var rs = ws.pipe(s.countRowCol()); //ws;
-    var next = input.fromReadable(sponsor, rs);
-    ws.end(seq);
-    log('fromString:', next);
-    return next;
-};
-
 var fromStream = input.fromStream = function fromStream(sponsor, source) {
     var s = require('./stream.js');
     var ws = source.pipe(s.characters());
     var rs = ws.pipe(s.countRowCol()); //ws;
     var next = input.fromReadable(sponsor, rs);
     log('fromStream:', next);
-    return next;
-};
-
-var fromArray = input.fromArray = input.fromSequence = function fromArray(sponsor, source) {
-    var sa = require('./dataflow.js').factory(sponsor, log);
-    var makeNext = function makeNext(source, pos) {
-        var value = source[pos];
-        var obj = { pos: pos };
-        var next = sa.bound(obj);
-        if (value !== undefined) {
-            obj.value = value;
-            obj.next = makeNext(source, pos + 1);
-        } else {
-            obj.next = next;
-        }
-        log('makeNext:', next, obj);
-        return next;
-    };
-    var next = makeNext(source, 0);
-    log('fromArray:', next);
     return next;
 };
 
