@@ -42,8 +42,8 @@ var sponsor = tart.minimal({
 var stream = require('../stream.js');
 var input = require('../input.js');
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var PEG = require('../PEG.js');
 
@@ -60,7 +60,6 @@ var ns = require('../grammar.js').build(sponsor/*, log*/);
 require('../reducePEG.js').transform(ns);
 
 /*
-*/
 var allSource = ''
 + 'ALL <- .*\n';
 var simpleSource = ''
@@ -85,17 +84,18 @@ var exprSource = ''
 //var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
 var fileSource = require('fs').readFileSync('examples/LISP.peg', 'utf8');
 var source = fileSource; //allSource;
+*/
 
 var cs = stream.characters(true);
 /*
-*/
 var next = input.fromReadable(sponsor,
     cs.pipe(stream.countRowCol()));
 cs.end(source);
-/*
+*/
 process.stdin.setEncoding('utf8');
 var next = input.fromReadable(sponsor,
     process.stdin.pipe(cs).pipe(stream.countRowCol()));
+/*
 */
 
 var ok = sponsor(function okBeh(m) {
