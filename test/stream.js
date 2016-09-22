@@ -107,33 +107,6 @@ test['countRowCol() handles different line endings'] = function (test) {
     });
 };
 
-test['arrayStream() provides objects'] = function (test) {
-    test.expect(18);
-
-    var ar = [
-        { value:'.', row:0, col:0 }, 
-        { value:'\r', row:0, col:1 }, 
-        { value:'\r', row:1, col:0 }, 
-        { value:'\n', row:1, col:1 }, 
-        { value:'\n', row:2, col:0 }, 
-        { value:'!', row:3, col:0 }
-    ];
-    var rs = s.arrayStream(ar);
-    rs.on('data', function onData(object) {
-        log('data object:', object);
-        var expect = ar.shift();
-        var actual = object.value;
-        log('data:', expect, actual);
-        test.strictEqual(expect.value, actual.value);
-        test.strictEqual(expect.row, actual.row);
-        test.strictEqual(expect.col, actual.col);
-    });
-    rs.on('end', function onEnd() {
-        log('end.');
-        test.done();
-    });
-};
-
 test['characters() can feed actor-based stream'] = function (test) {
     test.expect(8);
     var tracing = tart.tracing();

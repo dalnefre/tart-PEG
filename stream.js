@@ -97,19 +97,3 @@ s.countRowCol = function countRowCol() {
     };
     return ts;
 };
-
-s.arrayStream = function arrayStream(list) {
-    var rs = new stream.Readable({ objectMode: true });
-    
-    log('arrayStream:', list);
-    var pos = 0;
-    list.forEach(function (item) {
-        var obj = { pos: pos, value: item };
-        rs.push(obj);
-        log('arrayStream.push:', obj);
-        pos += 1;
-    });
-    rs.push(null);  // end stream
-    log('arrayStream.end');
-    return rs;
-};
