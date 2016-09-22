@@ -92,6 +92,35 @@ var lineDecorator = input.lineDecorator = function lineDecorator(pos, row, col, 
     };
 };
 
+var characters = input.characters = function characters(options) {
+    options = options || {};
+    options.decorate = options.decorate || lineDecorator();
+    var ts = new require('stream').Transform({ objectMode: true });
+    if (options.keepCharacters) {
+        ts.allCharacters = '';
+    }
+    ts._transform = function _transform(chunk, encoding, callback) {
+        log('chars_transform:', JSON.stringify(arguments));
+        var sa = chunk.toString(encoding).split('');
+        log('chars_sa:', sa);
+        sa.forEach(function (ch) {
+            if (options.keepCharacters) {
+                ts.allCharacters += ch;
+            }
+            var obj = decorate(ch);
+            log('chars_push:', obj);
+            ts.push(obj);
+        });
+        callback();
+    };
+    ts._flush = function _flush(callback) {
+        log('chars_flush:', JSON.stringify(arguments));
+        ts.push(null);  // end stream
+        callback();
+    };
+    return ts;
+};
+
 var fromString = input.fromString = function fromString(sponsor, seq, decorate) {
     var sa = require('./dataflow.js').factory(sponsor, log);
     var source = sa.unbound();
