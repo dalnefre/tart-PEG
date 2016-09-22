@@ -167,13 +167,19 @@ var fromStream = input.fromStream = function fromStream(sponsor, source) {
     return next;
 };
 
-var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
-    var stream = require('stream');
-    var rs = new stream.Readable({ objectMode: true });
+var fromPEG = input.fromPEG = function fromPEG(sponsor, from, pattern) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var to = sa.unbound();
+    var next = to;
+    var pos = 0;
     var ok = sponsor(function okBeh(r) {
         log('fromPEG.OK:', JSON.stringify(r, null, 2));
-        rs.push(r);
-        log('fromPEG.push:', r);
+        r.pos = pos;
+        r.next = sa.unbound();
+        log('fromPEG.obj:', r);
+        next(r);
+        next = r.next;
+        pos += 1;
         pattern({  // try to match the next token
             input: r.end,
             ok: ok,  // this.self
@@ -182,14 +188,15 @@ var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
     });
     var fail = sponsor(function failBeh(r) {
         log('fromPEG.FAIL:', JSON.stringify(r, null, 2));
-        rs.push(null);  // end stream
-        log('fromPEG.end');
+        r.pos = pos;
+        r.next = next;
+        log('fromPEG.end:', r);
+        next(r);
     });
 
     var start = sponsor(PEG.start(pattern, ok, fail));
-    source(start);
+    from(start);
 
-    var next = input.fromReadable(sponsor, rs);
-    log('fromPEG:', next);
-    return next;
+    log('fromPEG:', to);
+    return to;
 };

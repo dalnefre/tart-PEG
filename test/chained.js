@@ -118,7 +118,7 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
             log('sZ'+this.self+':', cust);
             if (typeof cust === 'function') {
                 cust({
-                    end: true,
+                    pos: 2,
                     next: sZ
                 });
             }
@@ -138,7 +138,9 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
             log('cust'+this.self+' n:', c_n);
             test.equal(c_n, r.pos);
             c_n += 1;  // update expected position
-            r.next(cust);
+            if (r.value !== undefined) {
+                r.next(cust);
+            }
         }
     });
 
