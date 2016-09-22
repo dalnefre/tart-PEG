@@ -160,7 +160,8 @@ test['string helper counts lines'] = function (test) {
     var stream = input.fromString(sponsor, fixture.source);
     stream(fixture.c0);
 
-    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 var arrayFixture = function arrayFixture(test, sponsor) {

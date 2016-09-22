@@ -81,7 +81,8 @@ test['object sequence matches object-list source'] = function (test) {
     );
     source(start);
 
-    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 test['input.fromPEG() unit test with mock source'] = function (test) {
@@ -132,7 +133,6 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
-//        log('cust'+this.self+' r:', JSON.stringify(r, null, 2));
         log('cust'+this.self+' r:', r);
         if (r.value !== undefined) {
             log('cust'+this.self+' n:', c_n);
@@ -146,13 +146,11 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
 
     tokens(cust);  // begin reading from token stream
 
-    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 test['PEG stream generates token objects'] = function (test) {
-
-    test.expect(0); return test.done();  // FIXME: FAILING TEST DISABLED!
-
     test.expect(5);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -186,15 +184,12 @@ Space   <- [ \t-\r]
         })
     );
 
-//    var source = input.fromString(sponsor, 'This is a TEST!');
-    var source = input.fromString(sponsor, 'X YZ');
+    var source = input.fromString(sponsor, 'This is a TEST!');
     var pattern = ns.call('Token');
-//    var pattern = pf.star(pf.any);  // _ <- .*
     var tokens = input.fromPEG(sponsor, source, pattern);
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
-//        log('cust'+this.self+' r:', JSON.stringify(r, null, 2));
         log('cust'+this.self+' r:', r);
         if (r.value !== undefined) {
             log('cust'+this.self+' n:', c_n);
@@ -205,30 +200,12 @@ Space   <- [ \t-\r]
     });
 
     tokens(cust);  // begin reading from token stream
-//    source(cust);
-/*
-    var ok = sponsor(function okBeh(r) {
-        log('OK:', r);
-        var v = r.value;
-        log('OK.value:', JSON.stringify(v, null, 2));
-        pattern({
-            input: r.end,
-            ok: ok,
-            fail: fail
-        });  // look for next match
-    });
-    var fail = sponsor(function failBeh(r) {
-        console.log('FAIL:', JSON.stringify(r, null, 2));
-    });
-    var start = pf.start(
-        pattern,
-        ok,
-        fail
-    );
-    source(start);
-*/
 
+    test.ok(tracing.eventLoop());
+    test.done();
+/*
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+*/
 };
 
 /*
