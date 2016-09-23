@@ -39,12 +39,12 @@ var sponsor = tart.minimal({
     fail: function (e) { console.log('ERROR!', e); }
 });
 */
+
+var PEG = require('../PEG.js');
 var input = require('../input.js');
 
 //var log = console.log;
 var log = function () {};
-
-var PEG = require('../PEG.js');
 
 /*
 var pf = PEG.factory(sponsor);

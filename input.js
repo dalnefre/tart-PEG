@@ -188,10 +188,8 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable,
 };
 
 var fromStream = input.fromStream = function fromStream(sponsor, source) {
-    var s = require('./stream.js');
-    var ws = source.pipe(s.characters());
-    var rs = ws.pipe(s.countRowCol()); //ws;
-    var next = input.fromReadable(sponsor, rs);
+    var ts = source.pipe(input.characters());
+    var next = input.fromReadable(sponsor, ts);
     log('fromStream:', next);
     return next;
 };
