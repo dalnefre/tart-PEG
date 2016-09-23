@@ -164,6 +164,22 @@ test['string helper counts lines'] = function (test) {
     test.done();
 };
 
+test['characters transform counts lines'] = function (test) {
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var fixture = multilineFixture(test, sponsor);
+    test.expect(fixture.expect + 1);
+
+    var ts = input.characters();
+    ts.write(fixture.source);
+    ts.end();
+
+    var stream = input.fromReadable(sponsor, ts);
+    stream(fixture.c0);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
+
 var arrayFixture = function arrayFixture(test, sponsor) {
     var fixture = {
         expect: 8,

@@ -107,7 +107,7 @@ var characters = input.characters = function characters(options) {
             if (options.keepCharacters) {
                 ts.allCharacters += ch;
             }
-            var obj = decorate(ch);
+            var obj = options.decorate(ch);
             log('chars_push:', obj);
             ts.push(obj);
         });
