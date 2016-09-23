@@ -39,7 +39,6 @@ var sponsor = tart.minimal({
     fail: function (e) { console.log('ERROR!', e); }
 });
 */
-var stream = require('../stream.js');
 var input = require('../input.js');
 
 //var log = console.log;
@@ -59,9 +58,9 @@ ns.define('Grammar',
 var ns = require('../grammar.js').build(sponsor/*, log*/);
 require('../reducePEG.js').transform(ns);
 
-/*
 var allSource = ''
 + 'ALL <- .*\n';
+/*
 var simpleSource = ''
 + '\r\n# comment\n';
 var objectSource = ''
@@ -83,20 +82,16 @@ var exprSource = ''
 + '        / [0-9]+\n';
 //var fileSource = require('fs').readFileSync('grammar.peg', 'utf8');
 var fileSource = require('fs').readFileSync('examples/LISP.peg', 'utf8');
-var source = fileSource; //allSource;
 */
+var source = allSource; //fileSource;
 
-var cs = stream.characters(true);
+var cs = input.characters({ keepCharacters: true });
 /*
-var next = input.fromReadable(sponsor,
-    cs.pipe(stream.countRowCol()));
 cs.end(source);
+var next = input.fromReadable(sponsor, cs);
 */
 process.stdin.setEncoding('utf8');
-var next = input.fromReadable(sponsor,
-    process.stdin.pipe(cs).pipe(stream.countRowCol()));
-/*
-*/
+var next = input.fromReadable(sponsor, process.stdin.pipe(cs));
 
 var ok = sponsor(function okBeh(m) {
     log('OK:', JSON.stringify(m, null, '  '));

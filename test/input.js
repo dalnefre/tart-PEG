@@ -143,10 +143,10 @@ var multilineFixture = function multilineFixture(test, sponsor) {
     });
     var c4 = fixture.c4 = sponsor(function (r) {
         log('c4:', r);
-        // test.strictEqual(4, r.pos);
+        //test.strictEqual(4, r.pos);
         test.strictEqual(undefined, r.value);
-        // test.strictEqual(3, r.row);
-        // test.strictEqual(0, r.col);
+        //test.strictEqual(3, r.row);
+        //test.strictEqual(0, r.col);
     });
     log('multilineFixture:', fixture);
     return fixture;
@@ -164,7 +164,7 @@ test['string helper counts lines'] = function (test) {
     test.done();
 };
 
-test['characters transform counts lines'] = function (test) {
+test['characters transform-stream counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
     var fixture = multilineFixture(test, sponsor);
