@@ -32,13 +32,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var test = module.exports = {};   
 
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart-tracing');
 //var PEG = require('../index.js');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
-
-//var log = console.log;
-var log = function () {};
 
 test['empty pattern returns empty list'] = function (test) {
     test.expect(2);

@@ -32,10 +32,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var input = module.exports;
 
-var PEG = require('./PEG.js');
-
 //var log = console.log;
 var log = function () {};
+
+var PEG = require('./PEG.js');
 
 var fromSequence = input.fromSequence = function fromSequence(sponsor, seq) {
     var sa = require('./dataflow.js').factory(sponsor, log);

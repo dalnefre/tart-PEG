@@ -32,12 +32,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var test = module.exports = {};   
 
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
-
-//var log = console.log;
-var log = function () {};
 
 test['object sequence matches object-list source'] = function (test) {
     test.expect(6);

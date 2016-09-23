@@ -30,12 +30,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+var log = console.log;
+//var log = function () {};
+
 var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
-
-var log = console.log;
-//var log = function () {};
 
 var PEG = require('../PEG.js');
 var input = require('../input.js');

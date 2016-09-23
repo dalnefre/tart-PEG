@@ -30,15 +30,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
 var PEG = require('../PEG.js');
 var input = require('../input.js');
-
-//var log = console.log;
-var log = function () {};
 
 var ns = require('./LISP.js').build(sponsor, log);
 require('./reduceLISP.js').transform(ns);

@@ -30,15 +30,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var tart = require('tart-tracing');
-var PEG = require('../PEG.js');
-var input = require('../input.js');
+var test = module.exports = {};
 
 //var log = console.log;
 var log = function () {};
 
-var test = module.exports = {};
-
+var tart = require('tart-tracing');
+var PEG = require('../PEG.js');
+var input = require('../input.js');
 
 /*
 test['empty source returns empty array'] = function (test) {
