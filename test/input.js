@@ -30,13 +30,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+var test = module.exports = {};
+
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart-tracing');
 var input = require('../input.js');
-
-var log = console.log;
-//var log = function () {};
-
-var test = module.exports = {};
 
 test['empty string returns end marker'] = function (test) {
     test.expect(3);
@@ -44,23 +44,39 @@ test['empty string returns end marker'] = function (test) {
     var sponsor = tracing.sponsor;
 
     var cust = sponsor(function (r) {
+        log('cust:', r);
+        test.strictEqual(0, r.pos);
+        test.strictEqual(undefined, r.token);
+    });
+
+    var stream = input.fromSequence(sponsor, '');
+    stream(cust);
+
+    test.ok(tracing.eventLoop({
+//        log: function (effect) { console.log('DEBUG', effect); },
+        fail: function (e) { console.log('ERROR!', e); }
+    }));
+    test.done();
+/*
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+*/
+};
+
+test['empty array returns end marker'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+
+    var cust = sponsor(function (r) {
+        log('cust:', r);
         test.equal(0, r.pos);
         test.strictEqual(undefined, r.token);
     });
 
-    var stream = sponsor(input.stringStream(''));
+    var stream = input.fromArray(sponsor, []);
     stream(cust);
 
-    test.ok(tracing.eventLoop({
-/*
-        log: function (effect) {
-            console.log('DEBUG', effect);
-        },
-*/
-        fail: function (e) {
-            console.log('ERROR!', e);
-        }
-    }));
+    test.ok(tracing.eventLoop());
     test.done();
 };
 
@@ -71,74 +87,73 @@ var multilineFixture = function multilineFixture(test, sponsor) {
     };
     var c0 = fixture.c0 = sponsor(function (r) {
         log('c0:', r);
-        test.equal(0, r.pos);
-        test.equal('\r', r.value);
-        test.equal(0, r.row);
-        test.equal(0, r.col);
+        test.strictEqual(0, r.pos);
+        test.strictEqual('\r', r.value);
+        test.strictEqual(0, r.row);
+        test.strictEqual(0, r.col);
         r.next(c1);
     });
     var c1 = fixture.c1 = sponsor(function (r) {
         log('c1:', r);
-        test.equal(1, r.pos);
-        test.equal('\n', r.value);
-        test.equal(0, r.row);
-        test.equal(1, r.col);
+        test.strictEqual(1, r.pos);
+        test.strictEqual('\n', r.value);
+        test.strictEqual(0, r.row);
+        test.strictEqual(1, r.col);
         r.next(c2);
     });
     var c2 = fixture.c2 = sponsor(function (r) {
         log('c2:', r);
-        test.equal(2, r.pos);
-        test.equal('\n', r.value);
-        test.equal(1, r.row);
-        test.equal(0, r.col);
+        test.strictEqual(2, r.pos);
+        test.strictEqual('\n', r.value);
+        test.strictEqual(1, r.row);
+        test.strictEqual(0, r.col);
         r.next(c3);
     });
     var c3 = fixture.c3 = sponsor(function (r) {
         log('c3:', r);
-        test.equal(3, r.pos);
-        test.equal('\r', r.value);
-        test.equal(2, r.row);
-        test.equal(0, r.col);
+        test.strictEqual(3, r.pos);
+        test.strictEqual('\r', r.value);
+        test.strictEqual(2, r.row);
+        test.strictEqual(0, r.col);
         r.next(c4);
     });
     var c4 = fixture.c4 = sponsor(function (r) {
         log('c4:', r);
-        // test.equal(4, r.pos);
+        //test.strictEqual(4, r.pos);
         test.strictEqual(undefined, r.value);
-        // test.equal(3, r.row);
-        // test.equal(0, r.col);
+        //test.strictEqual(3, r.row);
+        //test.strictEqual(0, r.col);
     });
     log('multilineFixture:', fixture);
     return fixture;
 };
-test['string stream counts lines'] = function (test) {
+test['string helper counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
     var fixture = multilineFixture(test, sponsor);
     test.expect(fixture.expect + 1);
 
-    var stream = sponsor(input.stringStream(fixture.source));
+    var stream = input.fromString(sponsor, fixture.source);
     stream(fixture.c0);
 
     test.ok(tracing.eventLoop());
     test.done();
 };
 
-test['empty array returns end marker'] = function (test) {
-    test.expect(3);
+test['characters transform-stream counts lines'] = function (test) {
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
+    var fixture = multilineFixture(test, sponsor);
+    test.expect(fixture.expect + 1);
 
-    var cust = sponsor(function (r) {
-        test.equal(0, r.pos);
-        test.strictEqual(undefined, r.token);
-    });
+    var ts = input.characters();
+    ts.write(fixture.source);
+    ts.end();
 
-    var stream = sponsor(input.arrayStream([]));
-    stream(cust);
+    var stream = input.fromReadable(sponsor, ts);
+    stream(fixture.c0);
 
-    test.ok(tracing.eventLoop());
-    test.done();
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 var arrayFixture = function arrayFixture(test, sponsor) {
@@ -152,19 +167,19 @@ var arrayFixture = function arrayFixture(test, sponsor) {
     };
     var c0 = fixture.c0 = sponsor(function (r) {
         log('c0:', r);
-        test.equal(0, r.pos);
+        test.strictEqual(0, r.pos);
         test.strictEqual(42, r.value);
         r.next(c1);
     });
     var c1 = fixture.c1 = sponsor(function (r) {
         log('c1:', r);
-        test.equal(1, r.pos);
+        test.strictEqual(1, r.pos);
         test.strictEqual('foo', r.value);
         r.next(c2);
     });
     var c2 = fixture.c2 = sponsor(function (r) {
         log('c2:', r);
-        test.equal(2, r.pos);
+        test.strictEqual(2, r.pos);
         test.strictEqual('object', typeof r.value);
         r.next(c3);
     });
@@ -181,91 +196,12 @@ test['array stream handles many types'] = function (test) {
     var fixture = arrayFixture(test, sponsor);
     test.expect(fixture.expect);
 
-    var stream = sponsor(input.arrayStream(fixture.source));
-    stream(fixture.c0);
-
-    test.ok(tracing.eventLoop());
-    test.done();
-};
-
-test['actor-based stream from readable'] = function (test) {
-    test.expect(7);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-
-    var s = require('../stream.js');
-    var ws = s.characters();
-    var rs = ws; //ws.pipe(s.countRowCol());
-    var next = input.fromReadable(sponsor, rs);
-    var ar = ['.', '\r', '\r', '\n', '\n', '!'];
-    var match = sponsor(function matchBeh(m) {
-        var first = ar.shift();  // consume first expected result value
-        log('matchBeh'+this.self+':', m, JSON.stringify(first));
-        test.equal(first, m.value);
-        if (first !== undefined) {
-            m.next(this.self);
-        }
-    });
-    ws.end('.\r\r\n\n!');
-    next(match);  // start reading the actor-based stream
-
-/*
-    test.ok(tracing.eventLoop());
-*/
-    test.ok(tracing.eventLoop({
-        count: 100,
-//        log: function (effect) { console.log('DEBUG', effect); },
-        fail: function (exception) { console.log('FAIL!', exception); }
-    }));
-    log('test:', 'eventLoop() completed.');
-    test.done();
-};
-
-test['string helper counts lines'] = function (test) {
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-    var fixture = multilineFixture(test, sponsor);
-    test.expect(fixture.expect + 1);
-
-    var stream = input.fromString(sponsor, fixture.source);
-    stream(fixture.c0);
-
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-                count: 100,
-//                log: function (effect) { console.log('DEBUG', effect); },
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
-};
-
-test['array helper handles many types'] = function (test) {
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
-    var fixture = arrayFixture(test, sponsor);
-    test.expect(fixture.expect);
-
     var stream = input.fromArray(sponsor, fixture.source);
     stream(fixture.c0);
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-                count: 100,
-//                log: function (effect) { console.log('DEBUG', effect); },
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    test.ok(tracing.eventLoop());
+    test.done();
+/*
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+*/
 };

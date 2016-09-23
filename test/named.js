@@ -32,12 +32,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var test = module.exports = {};   
 
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
-
-//var log = console.log;
-var log = function () {};
 
 test['right recursion groups right-to-left'] = function (test) {
     test.expect(5);
@@ -77,7 +77,7 @@ test['right recursion groups right-to-left'] = function (test) {
 
     var start = sponsor(ns.lookup('Expr'));
     var matcher = sponsor(PEG.start(start, ok, fail));
-    var stream = sponsor(input.stringStream('a-b-c'));
+    var stream = input.fromSequence(sponsor, 'a-b-c');
     stream(matcher);
 
     test.ok(tracing.eventLoop({ count: 1000 }));
@@ -120,7 +120,7 @@ test['left recursion does not diverge'] = function (test) {
 
     var start = sponsor(ns.lookup('Expr'));
     var matcher = sponsor(PEG.start(start, ok, fail));
-    var stream = sponsor(input.stringStream('a-b-c'));
+    var stream = input.fromSequence(sponsor, 'a-b-c');
     stream(matcher);
 
     test.ok(tracing.eventLoop({ count: 1000 }), 'Exceeded message limit');
@@ -168,7 +168,7 @@ test['left recursion diverges with check disabled'] = function (test) {
 
     var start = sponsor(ns.lookup('Expr'));
     var matcher = sponsor(PEG.start(start, ok, fail));
-    var stream = sponsor(input.stringStream('a-b-c'));
+    var stream = input.fromSequence(sponsor, 'a-b-c');
     stream(matcher);
 
     test.ok(!tracing.eventLoop({ count: 1000 }), 'Ran out of messages');
@@ -213,7 +213,7 @@ test['iteration makes a list'] = function (test) {
 
     var start = sponsor(ns.lookup('Expr'));
     var matcher = sponsor(PEG.start(start, ok, fail));
-    var stream = sponsor(input.stringStream('a-b-c'));
+    var stream = input.fromSequence(sponsor, 'a-b-c');
     stream(matcher);
 
     test.ok(tracing.eventLoop({ count: 1000 }));

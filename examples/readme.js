@@ -30,6 +30,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart');
 var sponsor = tart.minimal({
     fail: function (e) {
@@ -39,9 +42,6 @@ var sponsor = tart.minimal({
 
 var PEG = require('../PEG.js');
 var input = require('../input.js');
-
-//var log = console.log;
-var log = function () {};
 
 var pf = PEG.factory(sponsor);
 var ns = pf.namespace(log);

@@ -30,14 +30,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart-tracing');
 var tracing = tart.tracing();
 var sponsor = tracing.sponsor;
 
-//var log = console.log;
-var log = function () {};
-
 var PEG = require('../PEG.js');
+var input = require('../input.js');
 
 var ns = require('./LISP.js').build(sponsor, log);
 require('./reduceLISP.js').transform(ns);
@@ -55,16 +56,6 @@ var source = ''
 + '(print (nfibs 32))\n'
 + '; expected result: 2178309\n';
 
-/*
-var next = sponsor(
-    require('../input.js').stringStream(source)
-);
-*/
-/*
-var stream = require('../stream.js').characters();
-var next = require('../input.js').fromReadable(sponsor, stream);
-stream.end(source);
-*/
 var next = require('../input.js').fromString(sponsor, source);
 
 var ok = sponsor(function okBeh(m) {

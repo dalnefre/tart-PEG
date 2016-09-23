@@ -32,12 +32,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var test = module.exports = {};   
 
+//var log = console.log;
+var log = function () {};
+
 var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
-
-var log = console.log;
-//var log = function () {};
 
 test['object sequence matches object-list source'] = function (test) {
     test.expect(6);
@@ -81,20 +81,8 @@ test['object sequence matches object-list source'] = function (test) {
     );
     source(start);
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-//                count: 100,
-//                log: function (effect) { console.log('DEBUG', effect); },
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 test['input.fromPEG() unit test with mock source'] = function (test) {
@@ -131,7 +119,7 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
             log('sZ'+this.self+':', cust);
             if (typeof cust === 'function') {
                 cust({
-                    end: true,
+                    pos: 2,
                     next: sZ
                 });
             }
@@ -145,30 +133,21 @@ test['input.fromPEG() unit test with mock source'] = function (test) {
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
-//        log('cust'+this.self+' r:', JSON.stringify(r, null, 2));
         log('cust'+this.self+' r:', r);
         if (r.value !== undefined) {
             log('cust'+this.self+' n:', c_n);
             test.equal(c_n, r.pos);
             c_n += 1;  // update expected position
-            r.next(cust);
+            if (r.value !== undefined) {
+                r.next(cust);
+            }
         }
     });
 
     tokens(cust);  // begin reading from token stream
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    test.ok(tracing.eventLoop());
+    test.done();
 };
 
 test['PEG stream generates token objects'] = function (test) {
@@ -205,15 +184,12 @@ Space   <- [ \t-\r]
         })
     );
 
-//    var source = input.fromString(sponsor, 'This is a TEST!');
-    var source = input.fromString(sponsor, 'X YZ');
+    var source = input.fromString(sponsor, 'This is a TEST!');
     var pattern = ns.call('Token');
-//    var pattern = pf.star(pf.any);  // _ <- .*
     var tokens = input.fromPEG(sponsor, source, pattern);
 
     var c_n = 0;  // expected position counter
     var cust = sponsor(function (r) {
-//        log('cust'+this.self+' r:', JSON.stringify(r, null, 2));
         log('cust'+this.self+' r:', r);
         if (r.value !== undefined) {
             log('cust'+this.self+' n:', c_n);
@@ -224,41 +200,12 @@ Space   <- [ \t-\r]
     });
 
     tokens(cust);  // begin reading from token stream
-//    source(cust);
-/*
-    var ok = sponsor(function okBeh(r) {
-        log('OK:', r);
-        var v = r.value;
-        log('OK.value:', JSON.stringify(v, null, 2));
-        pattern({
-            input: r.end,
-            ok: ok,
-            fail: fail
-        });  // look for next match
-    });
-    var fail = sponsor(function failBeh(r) {
-        console.log('FAIL:', JSON.stringify(r, null, 2));
-    });
-    var start = pf.start(
-        pattern,
-        ok,
-        fail
-    );
-    source(start);
-*/
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    test.ok(tracing.eventLoop());
+    test.done();
+/*
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+*/
 };
 
 /*

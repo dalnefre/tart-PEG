@@ -32,169 +32,154 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var input = module.exports;
 
+//var log = console.log;
+var log = function () {};
+
 var PEG = require('./PEG.js');
 
-var log = console.log;
-//var log = function () {};
-
-var end = input.end = {
-    next: function next(cust) {
-        cust(end);
-    }
-};
-
-var memo = input.memo = function memo(streamBeh) {
-    var waiting = [];
-    var result;
-    var initBeh = function initBeh(cust) {
-        log('input.memo[init]:', cust);
-        var stream = this.sponsor(streamBeh);
-        waiting.push(cust);
-        this.behavior = waitBeh;
-        stream(this.self);
-    };
-    var waitBeh = function waitBeh(msg) {
-        log('input.memo[wait]:', msg);
-        if (typeof msg === 'function') {
-            waiting.push(msg);
+var fromSequence = input.fromSequence = function fromSequence(sponsor, seq) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var makeNext = function makeNext(seq, pos) {
+        var value = seq[pos];
+        var obj = { pos: pos };
+        var next = sa.bound(obj);
+        if (value !== undefined) {
+            obj.value = value;
+            obj.next = makeNext(seq, pos + 1);
         } else {
-            result = msg;
-            for (var i = 0; i < waiting.length; ++i) {
-                waiting[i](result);
-            }
-            waiting = null;  // release waiting list
-            this.behavior = cacheBeh;
+            obj.next = next;
         }
+        log('makeNext:', next, obj);
+        return next;
     };
-    var cacheBeh = function cacheBeh(cust) {
-        log('input.memo[cache]:', cust, result);
-        cust(result);
-    };
-    return initBeh;
+    var source = makeNext(seq, 0);
+    log('fromSequence:', source);
+    return source;
 };
 
-var arrayStream = input.arrayStream = function arrayStream(seq, pos) {  // [DEPRECATED]
+var posDecorator = input.posDecorator = function posDecorator(pos) {
     pos = pos || 0;
-    return input.memo(function streamBeh(cust) {
-        var token = seq[pos];
-        log('arrayStream:', pos, JSON.stringify(token));
-        if (pos < seq.length) {
-            cust({
-                token: seq[pos],  // [DEPRECATED]
-                value: seq[pos],
-                pos: pos,
-                next: this.sponsor(arrayStream(seq, pos + 1))
-            });
-        } else {
-            var end = {
-                end: true,
-                pos: pos
-            };
-            end.next = this.sponsor(function endBeh(cust) {
-                cust(end);
-            });
-            cust(end);
-        }
-    });
+    return function decorate(item) {
+        var obj = {
+            pos: pos,
+            value: item
+        };
+        pos += 1;
+        return obj;
+    };
 };
 
-var stringStream = input.stringStream = function stringStream(seq, prev) {  // [DEPRECATED]
-    log('stringStream(seq, prev):', JSON.stringify(seq), prev);
-    prev = prev || {
-        row: 0,
-        col: -1,
-        pos: -1
-    };
-    return input.memo(function streamBeh(cust) {
-        log('stringStream.prev:', prev);
-        var pos = prev.pos + 1;
-        var row = prev.row;
-        var col = prev.col + 1;
-        var token = seq[pos];
-        log('stringStream:', pos, JSON.stringify(token), row, col);
-        if ((prev.value === '\n')
-        ||  ((prev.value === '\r') && (token !== '\n'))) {
+var lineDecorator = input.lineDecorator = function lineDecorator(pos, row, col, prev) {
+    pos = pos || 0;
+    row = row || 0;
+    col = col || 0;
+    return function decorate(item) {
+        if ((prev === '\n') 
+        ||  ((prev === '\r') && (item !== '\n'))) {
             row += 1;
             col = 0;
         }
-        if (token) {
-            var curr = {
-                token: token,  // [DEPRECATED]
-                value: token,
-                row: row,
-                col: col,
-                pos: pos
-            };
-            curr.next = this.sponsor(stringStream(seq, curr));
-            log('stringStream.curr:', curr);
-            cust(curr);
-        } else {
-            var end = {
-                row: row,
-                col: col,
-                pos: pos
-            };
-            end.next = this.sponsor(function endBeh(cust) {
-                cust(end);
-            });
-            log('stringStream.end:', end);
-            cust(end);
-        }
-    });
+        var obj = {
+            pos: pos,
+            row: row,
+            col: col,
+            value: item
+        };
+        pos += 1;
+        col += 1;
+        prev = item;
+        return obj;
+    };
 };
 
-var fromReadable = input.fromReadable = function fromReadable(sponsor, readable) {
-    var makeNext = function makeNext() {
-        return function nextBeh(msg) {
-            log('nextBeh'+this.self+':', msg);
-            if (typeof msg === 'function') {  // msg = customer
-                this.behavior = makeWait([msg]);
-            } else if (typeof msg === 'object') {  // msg = result
-                this.behavior = makeCache(msg);
-            } else {
-                log(this.self+' IGNORED', typeof cust);
+var characters = input.characters = function characters(options) {
+    options = options || {};
+    options.decorate = options.decorate || lineDecorator();
+    var ts = new require('stream').Transform({ objectMode: true });
+    if (options.keepCharacters) {
+        ts.allCharacters = '';
+    }
+    ts._transform = function _transform(chunk, encoding, callback) {
+        log('chars_transform:', JSON.stringify(arguments));
+        var sa = chunk.toString(encoding).split('');
+        log('chars_sa:', sa);
+        sa.forEach(function (ch) {
+            if (options.keepCharacters) {
+                ts.allCharacters += ch;
             }
-            log(this.self+'.behavior', this.behavior);
-        };
+            var obj = options.decorate(ch);
+            log('chars_push:', obj);
+            ts.push(obj);
+        });
+        callback();
     };
-    var makeWait = function makeWait(waiting) {
-        return function waitBeh(msg) {
-            log('waitBeh'+this.self+':', msg, waiting);
-            if (typeof msg === 'function') {  // msg = customer
-                waiting.push(msg);
-            } else if (typeof msg === 'object') {  // msg = result
-                this.behavior = makeCache(msg);
-                waiting.forEach(function (item, index, array) {
-                    item(msg);
-                });
-            } else {
-                log(this.self+' IGNORED', typeof cust);
-            }
-        };
+    ts._flush = function _flush(callback) {
+        log('chars_flush:', JSON.stringify(arguments));
+        ts.push(null);  // end stream
+        callback();
     };
-    var makeCache = function makeCache(result) {
-        return function cacheBeh(cust) {
-            log('cacheBeh'+this.self+':', cust, result);
-            if (typeof cust === 'function') {
-                cust(result);
-            } else {
-                log(this.self+' IGNORED', typeof cust);
-            }
-        };
-    };
+    return ts;
+};
 
-    var source = sponsor(makeNext());
+var fromString = input.fromString = function fromString(sponsor, seq, decorate) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var source = sa.unbound();
+    decorate = decorate || lineDecorator();
     var next = source;
-    readable.on('data', function onData(obj) {
-        log('data:', obj, next);
-        obj.next = sponsor(makeNext());
-        log('data-obj:', obj);
+    for (var i = 0; i < seq.length; ++i) {
+        var obj = decorate(seq[i]);
+        obj.next = sa.unbound();
+        next(obj);
+        next = obj.next;
+    }
+    var end = decorate();  // end-of-input
+    end.next = next;
+    next(end);
+    log('fromString:', source);
+    return source;
+};
+
+var fromArray = input.fromArray = function fromArray(sponsor, seq, decorate) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var source = sa.unbound();
+    decorate = decorate || posDecorator();
+    var next = source;
+    seq.forEach(function (item/*, index, array*/) {
+        var obj = decorate(item);
+        obj.next = sa.unbound();
         next(obj);
         next = obj.next;
     });
+    var end = decorate();  // end-of-input
+    end.next = next;
+    next(end);
+    log('fromArray:', source);
+    return source;
+};
+
+var fromReadable = input.fromReadable = function fromReadable(sponsor, readable, pos) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var source = sa.unbound();
+    var next = source;
+    pos = pos || 0;
+    readable.on('data', function onData(obj) {
+        log('data:', obj, next);
+        if (typeof obj !== 'object') {
+            obj = { value: obj };
+        }
+        obj.pos = pos;
+        obj.next = sa.unbound();
+        log('data-obj:', obj);
+        next(obj);
+        next = obj.next;
+        ++pos;
+    });
     readable.on('end', function onEnd() {
         log('end:', next);
-        var obj = { end: true, next: next };
+        var obj = {
+            pos: pos,
+            next: next
+        };
         log('end-obj:', obj);
         next(obj);  // end of stream
     });
@@ -202,45 +187,25 @@ var fromReadable = input.fromReadable = function fromReadable(sponsor, readable)
     return source;
 };
 
-var fromString = input.fromString = function fromString(sponsor, seq) {
-    var s = require('./stream.js');
-    var ws = s.characters();
-    var rs = ws.pipe(s.countRowCol()); //ws;
-    var next = input.fromReadable(sponsor, rs);
-    ws.end(seq);
-    log('fromString:', next);
-    return next;
-};
-
 var fromStream = input.fromStream = function fromStream(sponsor, source) {
-    var s = require('./stream.js');
-    var ws = source.pipe(s.characters());
-    var rs = ws.pipe(s.countRowCol()); //ws;
-    var next = input.fromReadable(sponsor, rs);
+    var ts = source.pipe(input.characters());
+    var next = input.fromReadable(sponsor, ts);
     log('fromStream:', next);
     return next;
 };
 
-var fromArray = input.fromArray = function fromArray(sponsor, source) {
-    var s = require('./stream.js');
-    var rs = s.arrayStream(source);
-    var next = input.fromReadable(sponsor, rs);
-/*
-    var next = sponsor(input.arrayStream(source));  // [DEPRECATED]
-*/
-    log('fromArray:', next);
-    return next;
-};
-
-var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
-    var stream = require('stream');
-    var rs = new stream.Readable({ objectMode: true });
+var fromPEG = input.fromPEG = function fromPEG(sponsor, from, pattern) {
+    var sa = require('./dataflow.js').factory(sponsor, log);
+    var to = sa.unbound();
+    var next = to;
     var pos = 0;
     var ok = sponsor(function okBeh(r) {
         log('fromPEG.OK:', JSON.stringify(r, null, 2));
         r.pos = pos;
-        rs.push(r);
-        log('fromPEG.push:', r);
+        r.next = sa.unbound();
+        log('fromPEG.obj:', r);
+        next(r);
+        next = r.next;
         pos += 1;
         pattern({  // try to match the next token
             input: r.end,
@@ -250,14 +215,15 @@ var fromPEG = input.fromPEG = function fromPEG(sponsor, source, pattern) {
     });
     var fail = sponsor(function failBeh(r) {
         log('fromPEG.FAIL:', JSON.stringify(r, null, 2));
-        rs.push(null);  // end stream
-        log('fromPEG.end');
+        r.pos = pos;
+        r.next = next;
+        log('fromPEG.end:', r);
+        next(r);
     });
 
     var start = sponsor(PEG.start(pattern, ok, fail));
-    source(start);
+    from(start);
 
-    var next = input.fromReadable(sponsor, rs);
-    log('fromPEG:', next);
-    return next;
+    log('fromPEG:', to);
+    return to;
 };
