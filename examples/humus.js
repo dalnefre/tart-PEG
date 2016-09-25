@@ -51,6 +51,7 @@ var source = input.fromString(sponsor,
     'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
 );
 */
+/*
 var source = input.fromString(sponsor, 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
   + 'CREATE R WITH label_beh(println, #Right)\n'
@@ -58,13 +59,12 @@ var source = input.fromString(sponsor,
   + 'SEND #Hello TO R\n'
   + 'SEND #Hello TO L\n'
 );
-/*
+*/
 var source = input.fromStream(sponsor, 
     require('fs').createReadStream('examples/sample.hum', {
         encoding: 'utf8'
     })
 );
-*/
 
 /*
         FIXME: HUMUS TOKENS ASSUME NO LEADING WHITESPACE!

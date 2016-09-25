@@ -1,57 +1,41 @@
-#
-# Observer Pattern
-#
-
-LET end_beh = \msg.[
-	CASE msg OF
-	(#add, observer) : [
-		CREATE next WITH end_beh
-		BECOME subject_beh(observer, next)
-	]
-	(#cut, prev) : [
-		SEND (SELF, end_beh) TO prev
-	]
+LET empty_env = \_.?
+LET extend_env(env, name, value) = \lookup.(
+#	IF $lookup = $name (value) ELSE (env(lookup))
+	CASE lookup OF
+	$name : value
+	_ : end(lookup)
 	END
+)
+
+LET const_expr_beh(value) = \(cust, #eval, _).[ 
+	SEND value TO cust 
+]
+LET ident_expr_beh(ident) = \(cust, #eval, env).[
+	SEND env(ident) TO cust
+]
+LET abs_expr_beh(ident, body_expr) = \(cust, #eval, env).[
+	CREATE closure WITH \(cust, #apply, arg).[
+		SEND (cust, #eval, extend_env(env, ident, arg)) TO body_expr
+	]
+	SEND closure TO cust
+]
+LET app_expr_beh(abs_expr, arg_expr) = \(cust, #eval, env).[
+	SEND (k_eval, #eval, env) TO abs_expr
+	CREATE k_eval WITH \abs.[
+		SEND (SELF, #eval, env) TO arg_expr
+		BECOME \arg.[
+			SEND (cust, #apply, arg) TO abs
+		]
+	]
 ]
 
-LET subject_beh(observer, next) = \msg.[
-	CASE msg OF
-	(#add, observer') : [
-		CREATE next' WITH subject_beh(observer, next)
-		BECOME subject_beh(observer', next')
-	]
-	(#rem, $observer) : [
-		BECOME pass_beh(next, next)
-		SEND (#cut, SELF) TO next
-	]
-	(#note, event) : [
-		SEND event TO observer
-		SEND msg TO next
-	]
-	(#cut, prev) : [
-		SEND (SELF, subject_beh(observer, next)) TO prev
-	]
-	_ : [ SEND msg TO next ]
-	END
-]
+# (\x.x)(42) -> 42
 
-LET pass_beh(auth, next) = \msg.[
-	CASE msg OF
-	($auth, beh) : [ BECOME beh ]
-	_ : [ SEND msg TO next ]
-	END
-]
-
-# Test Fixtures
-
-LET observer_beh(label) = \event.[ SEND (NOW, label, event) TO println ]
-CREATE s3 WITH end_beh
-CREATE o2 WITH observer_beh(#o2)
-CREATE s2 WITH subject_beh(o2, s3)
-CREATE o1 WITH observer_beh(#o1)
-CREATE s1 WITH subject_beh(o1, s2)
-# SEND (1000, (#note, #X), s1) TO timer
-# SEND (2000, (#rem, o1), s1) TO timer
-# SEND (3000, (#note, #Y), s1) TO timer
-SEND (#rem, o1) TO s1
-SEND (#note, #X) TO s1
+CREATE example WITH app_expr_beh(
+	NEW abs_expr_beh(
+		#x,
+		NEW ident_expr_beh(#x)
+	),
+	NEW const_expr_beh(42)
+)
+SEND (println, #eval, empty_env) TO example
