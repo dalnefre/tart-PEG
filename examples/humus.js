@@ -46,10 +46,11 @@ require('./reduceTokens.js').transform(humusTokens);
 var humusSyntax = require('./humusSyntax.js').build(sponsor/*, log*/);
 //require('./reduceSyntax.js').transform(humusSyntax);
 
+/*
 var source = input.fromString(sponsor, 
     'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
 );
-/*
+*/
 var source = input.fromString(sponsor, 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
   + 'CREATE R WITH label_beh(println, #Right)\n'
@@ -57,6 +58,7 @@ var source = input.fromString(sponsor,
   + 'SEND #Hello TO R\n'
   + 'SEND #Hello TO L\n'
 );
+/*
 var source = input.fromStream(sponsor, 
     require('fs').createReadStream('examples/sample.hum', {
         encoding: 'utf8'
@@ -64,44 +66,29 @@ var source = input.fromStream(sponsor,
 );
 */
 
-var parseTokens = function parseTokens(source) {
-    var start = sponsor(PEG.start(
-        humusTokens.call('tokens'),
-        sponsor(function okBeh(m) {
-            log('Tokens OK:', JSON.stringify(m, null, '  '));
-            parseSyntax(m.value);
-        }),
-        sponsor(function failBeh(m) {
-            console.log('Tokens FAIL:', JSON.stringify(m, null, '  '));
-        })
-    ));
-    source(start);
-};
+/*
+        FIXME: HUMUS TOKENS ASSUME NO LEADING WHITESPACE!
+        
+        .fromPEG() effectively implements a 'g*' or 'g+' rule
+        this also does not explicitly match EOF, so
+        we can't tell if we successfully parsed the whole file
+        or we had an erroneous token somewhere
+*/
 
-var parseSyntax = function parseSyntax(tokens) {
-    dumpTokens(tokens);
-    var source = input.fromArray(sponsor, tokens);
-    var start = sponsor(PEG.start(
-        humusSyntax.call('humus'),
-        sponsor(function okBeh(m) {
-            console.log('Syntax OK:', JSON.stringify(m, null, '  '));
-        }),
-        sponsor(function failBeh(m) {
-            console.log('Syntax FAIL:', JSON.stringify(m, null, '  '));
-        })
-    ));
-    source(start);
-};
+var pattern = humusTokens.call('token');
+var tokens = input.fromPEG(sponsor, source, pattern);
 
-var dumpTokens = function dumpTokens(list) {
-    process.stdout.write('<TOKENS>\n');
-    for (var i = 0; i < list.length; ++i) {
-        process.stdout.write(JSON.stringify(list[i]) + '\n');
-    }
-    process.stdout.write('</TOKENS>\n');
-};
+var start = sponsor(PEG.start(
+    humusSyntax.call('humus'),
+    sponsor(function okBeh(m) {
+        console.log('Syntax OK:', JSON.stringify(m, null, '  '));
+    }),
+    sponsor(function failBeh(m) {
+        console.log('Syntax FAIL:', JSON.stringify(m, null, '  '));
+    })
+));
 
-parseTokens(source);
+tokens(start);  // begin reading from token stream
 
 require('../fixture.js').asyncRepeat(5,
     function eventLoop() {
