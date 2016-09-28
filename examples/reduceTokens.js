@@ -73,6 +73,10 @@ semantic.transform = function transform(ns) {
 //    var log = console.log;
     var log = function () {};
 
+/*
+tokens  <- _ token* EOF
+[_, [token, ...], EOF] ==> [token, ...]
+*/
     ns.transform('tokens', function transformTokens(name, value) {
         log('transformTokens:', name, value);
         var result = value[1];
@@ -86,8 +90,21 @@ semantic.transform = function transform(ns) {
         log('Value:', result);
         return result;
     };
+/*
+token   <- symbol
+         / number
+         / char
+         / string
+         / ident
+         / punct
+token ==> token
+*/
     ns.transform('token', transformValue);
 
+/*
+symbol  <- '#' (punct / name)
+['#', token] ==> { type: 'symbol', value: token }
+*/
     ns.transform('symbol', function transformSymbol(name, value) {
         log('transformSymbol:', name, value);
         var result = {
@@ -98,6 +115,23 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
+/*
+number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
+[[sign], [digits, ...] [], _] ==> {
+    type: 'number',
+    sign: sign,
+    radix: 10,
+    digits: digits...,
+    value: parseInt(digits..., 10)
+}
+[[sign], [radix, ...], ['#', [digits, ...]], _] ==> {
+    type: 'number',
+    sign: sign,
+    radix: parseInt(radix..., 10),
+    digits: digits...,
+    value: parseInt(digits..., .radix)
+}
+*/
     ns.transform('number', function transformNumber(name, value) {
         log('transformNumber:', name, value);
         var result = {
@@ -120,6 +154,10 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
+/*
+char    <- "'" (!"'" qchar) "'" _
+['\'', [undefined, qchar], '\'', _] ==> qchar
+*/
     ns.transform('char', function transformChar(name, value) {
         log('transformChar:', name, value);
         var result = {
@@ -130,6 +168,10 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
+/*
+string  <- '"' (!'"' qchar)+ '"' _
+['"', [[undefined, qchar], ...], '"', _] ==> qchar...
+*/
     ns.transform('string', function transformString(name, value) {
         log('transformString:', name, value);        
         var list = value[1];
@@ -155,6 +197,13 @@ semantic.transform = function transform(ns) {
         ']': ']',
         '\\': '\\'
     };
+/*
+qchar   <- '\\' [nrt'"\[\]\\]
+         / '\\u' [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+         / !'\\' .
+['\\', esc] ==> esc
+[undefined, char] ==> char
+*/
     ns.transform('qchar', function transformCharacter(name, value) {
         log('transformCharacter:', name, value);
         var result = value[1];
@@ -165,6 +214,11 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
+/*
+ident   <- name
+name ==> name IF isKeyword(name)
+name ==> { name: 'ident', value: name } OTHERWISE
+*/
     ns.transform('ident', function transformIdent(name, value) {
         log('transformIdent:', name, value);
         var result = value;
@@ -178,6 +232,10 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
+/*
+name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
+[[char, ...], _] ==> char...
+*/
     ns.transform('name', function transformName(name, value) {
         log('transformName:', name, value);
         var result = value[0].join('');
@@ -185,6 +243,10 @@ semantic.transform = function transform(ns) {
         return result;
     });
 
+/*
+punct   <- [#$(),.:;=\[\\\]] _
+[char, _] ==> char
+*/
     ns.transform('punct', function transformPunct(name, value) {
         log('transformPunct:', name, value);
         var result = value[0];
@@ -200,7 +262,18 @@ semantic.transform = function transform(ns) {
         log('Named:', result);
         return result;
     };
+/*
+_       <- &punct                           # token boundary
+         / (space / comment)*
+undefined ==> { name: '_' }
+[...] ==> { name: '_' }
+*/
     ns.transform('_', transformNamed);
+
+/*
+default transformation
+value ==> { name: name, value: value, ... }
+*/
 
     return ns;
 };
