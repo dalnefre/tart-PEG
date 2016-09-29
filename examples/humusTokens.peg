@@ -2,31 +2,24 @@
 # Lexical tokens for the Humus programming language (cf. humusSyntax.peg)
 #
 
-tokens  <- _ token* EOF
-token   <- symbol
-         / number
-         / char
-         / string
-         / ident
-         / punct
+tokens  <- token* EOF
+token   <- _ (symbol / number / char / string / ident / punct)
 
 symbol  <- '#' (punct / name)
 
-number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
+number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)?
 
-char    <- "'" (!"'" qchar) "'" _
-string  <- '"' (!'"' qchar)+ '"' _
+char    <- "'" (!"'" qchar) "'"
+string  <- '"' (!'"' qchar)+ '"'
 qchar   <- '\\' [nrt'"\[\]\\]
          / '\\u' [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
          / !'\\' .
 
-# ident   <- !number (!punct .)+
 ident   <- name
-name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
-punct   <- [#$(),.:;=\[\\\]] _
+name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+
+punct   <- [#$(),.:;=\[\\\]]
 
-_       <- &punct                           # token boundary
-         / (space / comment)*
+_       <- (comment / space)*               # optional whitespace
 comment <- '#' space (!EOL .)*
 space   <- [ \t-\r]
 EOL     <- '\n'
