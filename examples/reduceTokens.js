@@ -83,6 +83,16 @@ tokens  <- _ token* EOF
         log('Tokens:', result);
         return result;
     });
+/*
+tokens  <- token* EOF
+[[token, ...], EOF] ==> [token, ...]
+    ns.transform('tokens', function transformTokens(name, value) {
+        log('transformTokens:', name, value);
+        var result = value[0];
+        log('Tokens:', result);
+        return result;
+    });
+*/
 
     var transformValue = function transformValue(name, value) {
         log('transformValue:', name, value);
@@ -100,6 +110,16 @@ token   <- symbol
 token ==> token
 */
     ns.transform('token', transformValue);
+/*
+token   <- _ (symbol / number / char / string / ident / punct)
+[_, token] ==> token
+    ns.transform('token', function transformToken(name, value) {
+        log('transformToken:', name, value);
+        var result = value[1];
+        log('Token:', result);
+        return result;
+    });
+*/
 
 /*
 symbol  <- '#' (punct / name)
@@ -156,7 +176,7 @@ number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
 
 /*
 char    <- "'" (!"'" qchar) "'" _
-['\'', [undefined, qchar], '\'', _] ==> qchar
+['\'', [undefined, qchar], '\'', _] ==> { type: 'char', value: qchar }
 */
     ns.transform('char', function transformChar(name, value) {
         log('transformChar:', name, value);
@@ -170,7 +190,7 @@ char    <- "'" (!"'" qchar) "'" _
 
 /*
 string  <- '"' (!'"' qchar)+ '"' _
-['"', [[undefined, qchar], ...], '"', _] ==> qchar...
+['"', [[undefined, qchar], ...], '"', _] ==> { type: 'string', value: qchar... }
 */
     ns.transform('string', function transformString(name, value) {
         log('transformString:', name, value);        
@@ -217,7 +237,7 @@ qchar   <- '\\' [nrt'"\[\]\\]
 /*
 ident   <- name
 name ==> name IF isKeyword(name)
-name ==> { name: 'ident', value: name } OTHERWISE
+name ==> { type: 'ident', value: name } OTHERWISE
 */
     ns.transform('ident', function transformIdent(name, value) {
         log('transformIdent:', name, value);
@@ -265,10 +285,15 @@ punct   <- [#$(),.:;=\[\\\]] _
 /*
 _       <- &punct                           # token boundary
          / (space / comment)*
-undefined ==> { name: '_' }
-[...] ==> { name: '_' }
+undefined ==> { type: '_' }
+[...] ==> { type: '_' }
 */
     ns.transform('_', transformNamed);
+/*
+_       <- (comment / space)*               # optional whitespace
+[...] ==> { type: '_' }
+    ns.transform('_', transformNamed);
+*/
 
 /*
 default transformation
