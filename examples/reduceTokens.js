@@ -72,6 +72,40 @@ var isKeyword = function isKeyword(name) {
 semantic.transform = function transform(ns) {
 //    var log = console.log;
     var log = function () {};
+/*
+name, value ==> { name: name, value: value, ... }
+*/
+    var transformDefault = function transformDefault(name, value, r) {
+        log('transformDefault:', name, value, r);
+        var result = {
+            name: name,
+            start: r.start,
+            end: r.end,
+            value: value
+        };
+        log('Default:', result);
+        return result;
+    };
+/*
+name, value ==> value
+*/
+    var transformValue = function transformValue(name, value) {
+        log('transformValue:', name, value);
+        var result = value;
+        log('Value:', result);
+        return result;
+    };
+/*
+name, value ==> { type: name }
+*/
+    var transformNamed = function transformNamed(name, value) {
+        log('transformNamed:', name, value);
+        var result = {
+            type: name
+        };
+        log('Named:', result);
+        return result;
+    };
 
 /*
 tokens  <- _ token* EOF
@@ -94,12 +128,6 @@ tokens  <- token* EOF
     });
 */
 
-    var transformValue = function transformValue(name, value) {
-        log('transformValue:', name, value);
-        var result = value;
-        log('Value:', result);
-        return result;
-    };
 /*
 token   <- symbol
          / number
@@ -274,14 +302,6 @@ punct   <- [#$(),.:;=\[\\\]] _
         return result;
     });
 
-    var transformNamed = function transformNamed(name, value) {
-        log('transformNamed:', name, value);
-        var result = {
-            type: name
-        };
-        log('Named:', result);
-        return result;
-    };
 /*
 _       <- &punct                           # token boundary
          / (space / comment)*
@@ -293,11 +313,6 @@ undefined ==> { type: '_' }
 _       <- (comment / space)*               # optional whitespace
 [...] ==> { type: '_' }
     ns.transform('_', transformNamed);
-*/
-
-/*
-default transformation
-value ==> { name: name, value: value, ... }
 */
 
     return ns;
