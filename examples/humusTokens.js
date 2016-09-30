@@ -9,11 +9,10 @@ grammar.build = function build(sponsor, log) {
   var ns = pf.namespace(log);
 
 /*
-tokens  <- _ token* EOF
+tokens  <- token* EOF
 */
   ns.define("tokens",
     pf.seq([
-      ns.call("_"),
       pf.star(
         ns.call("token")
       ),
@@ -22,21 +21,19 @@ tokens  <- _ token* EOF
   );
 
 /*
-token   <- symbol
-         / number
-         / char
-         / string
-         / ident
-         / punct
+token   <- _ (symbol / number / char / string / ident / punct)
 */
   ns.define("token",
-    pf.alt([
-      ns.call("symbol"),
-      ns.call("number"),
-      ns.call("char"),
-      ns.call("string"),
-      ns.call("ident"),
-      ns.call("punct")
+    pf.seq([
+      ns.call("_"),
+      pf.alt([
+        ns.call("symbol"),
+        ns.call("number"),
+        ns.call("char"),
+        ns.call("string"),
+        ns.call("ident"),
+        ns.call("punct")
+      ])
     ])
   );
 
@@ -54,7 +51,7 @@ symbol  <- '#' (punct / name)
   );
 
 /*
-number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
+number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)?
 */
   ns.define("number",
     pf.seq([
@@ -75,13 +72,12 @@ number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
             })
           )
         ])
-      ),
-      ns.call("_")
+      )
     ])
   );
 
 /*
-char    <- "'" (!"'" qchar) "'" _
+char    <- "'" (!"'" qchar) "'"
 */
   ns.define("char",
     pf.seq([
@@ -92,13 +88,12 @@ char    <- "'" (!"'" qchar) "'" _
         ),
         ns.call("qchar")
       ]),
-      pf.term("'"),
-      ns.call("_")
+      pf.term("'")
     ])
   );
 
 /*
-string  <- '"' (!'"' qchar)+ '"' _
+string  <- '"' (!'"' qchar)+ '"'
 */
   ns.define("string",
     pf.seq([
@@ -111,14 +106,13 @@ string  <- '"' (!'"' qchar)+ '"' _
           ns.call("qchar")
         ])
       ),
-      pf.term("\""),
-      ns.call("_")
+      pf.term("\"")
     ])
   );
 
 /*
 qchar   <- '\\' [nrt'"\[\]\\]
-         / '\\u' [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+         / '\\' 'u' [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
          / !'\\' .
 */
   ns.define("qchar",
@@ -130,7 +124,8 @@ qchar   <- '\\' [nrt'"\[\]\\]
         })
       ]),
       pf.seq([
-        pf.term("\\u"),
+        pf.term("\\"),
+        pf.term("u"),
         pf.if(function cond(token) {
           return /[0-9a-fA-F]/.test(token);
         }),
@@ -161,47 +156,35 @@ ident   <- name
   );
 
 /*
-name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
+name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+
 */
   ns.define("name",
-    pf.seq([
-      pf.plus(
-        pf.if(function cond(token) {
-          return /[-0-9a-zA-Z!%&'*+/?@^_~]/.test(token);
-        })
-      ),
-      ns.call("_")
-    ])
+    pf.plus(
+      pf.if(function cond(token) {
+        return /[-0-9a-zA-Z!%&'*+/?@^_~]/.test(token);
+      })
+    )
   );
 
 /*
-punct   <- [#$(),.:;=\[\\\]] _
+punct   <- [#$(),.:;=\[\\\]]
 */
   ns.define("punct",
-    pf.seq([
-      pf.if(function cond(token) {
-        return /[#$(),.:;=\[\\\]]/.test(token);
-      }),
-      ns.call("_")
-    ])
+    pf.if(function cond(token) {
+      return /[#$(),.:;=\[\\\]]/.test(token);
+    })
   );
 
 /*
-_       <- &punct                           # token boundary
-         / (space / comment)*
+_       <- (comment / space)*               # optional whitespace
 */
   ns.define("_",
-    pf.alt([
-      pf.follow(
-        ns.call("punct")
-      ),
-      pf.star(
-        pf.alt([
-          ns.call("space"),
-          ns.call("comment")
-        ])
-      )
-    ])
+    pf.star(
+      pf.alt([
+        ns.call("comment"),
+        ns.call("space")
+      ])
+    )
   );
 
 /*

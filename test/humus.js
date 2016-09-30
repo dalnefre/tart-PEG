@@ -39,7 +39,6 @@ var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
 var input = require('../input.js');
 
-/*
 test['empty source returns empty array'] = function (test) {
     test.expect(4);
     var tracing = tart.tracing();
@@ -56,8 +55,8 @@ test['empty source returns empty array'] = function (test) {
             var v = m.value;
             test.strictEqual('tokens', v.name);
             v = v.value;
-            test.strictEqual(3, v.length);
-            var tokens = v[1];
+            test.strictEqual(2, v.length);
+            var tokens = v[0];
             test.strictEqual(0, tokens.length);
         }),
         sponsor(function failBeh(m) {
@@ -82,7 +81,6 @@ test['empty source returns empty array'] = function (test) {
         }
     );
 };
-*/
 
 test['blank source returns empty array'] = function (test) {
     test.expect(4);
@@ -101,8 +99,8 @@ test['blank source returns empty array'] = function (test) {
             var v = m.value;
             test.strictEqual('tokens', v.name);
             v = v.value;
-            test.strictEqual(3, v.length);
-            var tokens = v[1];
+            test.strictEqual(2, v.length);
+            var tokens = v[0];
             test.strictEqual(0, tokens.length);
         }),
         sponsor(function failBeh(m) {

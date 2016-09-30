@@ -108,46 +108,26 @@ name, value ==> { type: name }
     };
 
 /*
-tokens  <- _ token* EOF
-[_, [token, ...], EOF] ==> [token, ...]
-*/
-    ns.transform('tokens', function transformTokens(name, value) {
-        log('transformTokens:', name, value);
-        var result = value[1];
-        log('Tokens:', result);
-        return result;
-    });
-/*
 tokens  <- token* EOF
 [[token, ...], EOF] ==> [token, ...]
+*/
     ns.transform('tokens', function transformTokens(name, value) {
         log('transformTokens:', name, value);
         var result = value[0];
         log('Tokens:', result);
         return result;
     });
-*/
 
-/*
-token   <- symbol
-         / number
-         / char
-         / string
-         / ident
-         / punct
-token ==> token
-*/
-    ns.transform('token', transformValue);
 /*
 token   <- _ (symbol / number / char / string / ident / punct)
 [_, token] ==> token
+*/
     ns.transform('token', function transformToken(name, value) {
         log('transformToken:', name, value);
         var result = value[1];
         log('Token:', result);
         return result;
     });
-*/
 
 /*
 symbol  <- '#' (punct / name)
@@ -164,15 +144,15 @@ symbol  <- '#' (punct / name)
     });
 
 /*
-number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
-[[sign], [digits, ...] [], _] ==> {
+number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)?
+[[sign], [digits, ...] []] ==> {
     type: 'number',
     sign: sign,
     radix: 10,
     digits: digits...,
     value: parseInt(digits..., 10)
 }
-[[sign], [radix, ...], ['#', [digits, ...]], _] ==> {
+[[sign], [radix, ...], ['#', [digits, ...]]] ==> {
     type: 'number',
     sign: sign,
     radix: parseInt(radix..., 10),
@@ -203,8 +183,8 @@ number  <- '-'? [0-9]+ ('#' [0-9a-zA-Z]+)? _
     });
 
 /*
-char    <- "'" (!"'" qchar) "'" _
-['\'', [undefined, qchar], '\'', _] ==> { type: 'char', value: qchar }
+char    <- "'" (!"'" qchar) "'"
+['\'', [undefined, qchar], '\''] ==> { type: 'char', value: qchar }
 */
     ns.transform('char', function transformChar(name, value) {
         log('transformChar:', name, value);
@@ -217,8 +197,8 @@ char    <- "'" (!"'" qchar) "'" _
     });
 
 /*
-string  <- '"' (!'"' qchar)+ '"' _
-['"', [[undefined, qchar], ...], '"', _] ==> { type: 'string', value: qchar... }
+string  <- '"' (!'"' qchar)+ '"'
+['"', [[undefined, qchar], ...], '"'] ==> { type: 'string', value: qchar... }
 */
     ns.transform('string', function transformString(name, value) {
         log('transformString:', name, value);        
@@ -281,39 +261,27 @@ name ==> { type: 'ident', value: name } OTHERWISE
     });
 
 /*
-name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+ _
-[[char, ...], _] ==> char...
+name    <- [-0-9a-zA-Z!%&'*+/?@^_~]+
+[char, ...] ==> char...
 */
     ns.transform('name', function transformName(name, value) {
         log('transformName:', name, value);
-        var result = value[0].join('');
+        var result = value.join('');
         log('Name:', result);
         return result;
     });
 
 /*
-punct   <- [#$(),.:;=\[\\\]] _
-[char, _] ==> char
+punct   <- [#$(),.:;=\[\\\]]
+char ==> char
 */
-    ns.transform('punct', function transformPunct(name, value) {
-        log('transformPunct:', name, value);
-        var result = value[0];
-        log('Punct:', result);
-        return result;
-    });
+    ns.transform('punct', transformValue);
 
-/*
-_       <- &punct                           # token boundary
-         / (space / comment)*
-undefined ==> { type: '_' }
-[...] ==> { type: '_' }
-*/
-    ns.transform('_', transformNamed);
 /*
 _       <- (comment / space)*               # optional whitespace
 [...] ==> { type: '_' }
-    ns.transform('_', transformNamed);
 */
+    ns.transform('_', transformNamed);
 
     return ns;
 };

@@ -66,15 +66,6 @@ var source = input.fromStream(sponsor,
     })
 );
 
-/*
-        FIXME: HUMUS TOKENS ASSUME NO LEADING WHITESPACE!
-        
-        .fromPEG() effectively implements a 'g*' or 'g+' rule
-        this also does not explicitly match EOF, so
-        we can't tell if we successfully parsed the whole file
-        or we had an erroneous token somewhere
-*/
-
 var pattern = humusTokens.call('token');
 var tokens = input.fromPEG(sponsor, source, pattern);
 

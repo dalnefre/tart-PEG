@@ -1,3 +1,7 @@
+#
+# Integrated Lamba Calculus example with functional environments
+#
+
 LET empty_env = \_.?
 LET extend_env(env, name, value) = \lookup.(
 #	IF $lookup = $name (value) ELSE (env(lookup))
