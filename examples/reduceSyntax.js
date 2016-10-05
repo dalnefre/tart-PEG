@@ -321,7 +321,9 @@ term    <- 'NEW' term
          / '(' expr? ')'
          / ident
 ['NEW', term] ==> ?
-['(', [expr], ')'] ==> ?
+['(', [], ')'] ==> { beh: const_expr, value: null }
+['(', [expr], ')'] ==> expr
+{ type: 'ident', value: name } => { beh: 'ident_expr', ident: name }
 term ==> value
 */
     ns.transform('term', function transformTerm(name, value) {
@@ -329,6 +331,19 @@ term ==> value
         var result = value;
         if ((value.lengh === 2) && (value[0] === 'NEW')) {
         } else if ((value.lengh === 3) && (value[0] === '(') && (value[2] === ')')) {
+            if (value[1].length < 1) {
+                result = {
+                    beh: 'const_expr',
+                    value: null
+                };
+            } else {
+                result = value[1][0];
+            }
+        } else if (value.type === 'ident') {
+                result = {
+                    beh: 'ident_expr',
+                    ident: value.value
+                };
         } else {
             result = value;
         }
@@ -378,10 +393,10 @@ const   <- block
 ['[', [stmt, ...], ']'] ==> ?
 'SELF' ==> { beh: 'self_expr' }
 ['\\', ptrn, '.', body] ==> ?
-'NIL' ==> { beh: const_expr, value: null }
-'TRUE' ==> { beh: const_expr, value: true }
-'FALSE' ==> { beh: const_expr, value: false }
-'?' ==> { beh: const_expr, value: undefined }
+'NIL' ==> { beh: 'const_expr', value: null }
+'TRUE' ==> { beh: 'const_expr', value: true }
+'FALSE' ==> { beh: 'const_expr', value: false }
+'?' ==> { beh: 'const_expr', value: undefined }
 */
     ns.transform('const', function transformConstant(name, value) {
         log('transformConstant:', name, value);
@@ -392,6 +407,19 @@ const   <- block
                 beh: 'self_expr'
             };
         } else if ((value.lengh === 4) && (value[0] === '\\') && (value[2] === '.')) {
+            /*
+            @{
+              beh: abs_expr,
+              ptrn: @{
+                beh: ident_ptrn,
+                ident: x
+              },
+              body: @{
+                beh: ident_expr,
+                ident: x
+              }
+            }
+            */
         } else if (value === 'NIL') {
             result = {
                 beh: 'const_expr',
