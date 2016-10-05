@@ -47,10 +47,10 @@ var humusSyntax = require('./humusSyntax.js').build(sponsor/*, log*/);
 require('./reduceSyntax.js').transform(humusSyntax);
 
 /*
+*/
 var source = input.fromString(sponsor, 
     'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
 );
-*/
 /*
 var source = input.fromString(sponsor, 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
@@ -60,11 +60,13 @@ var source = input.fromString(sponsor,
   + 'SEND #Hello TO L\n'
 );
 */
+/*
 var source = input.fromStream(sponsor, 
     require('fs').createReadStream('examples/sample.hum', {
         encoding: 'utf8'
     })
 );
+*/
 
 var pattern = humusTokens.call('token');
 var tokens = input.fromPEG(sponsor, source, pattern);
