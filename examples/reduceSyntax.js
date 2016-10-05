@@ -102,11 +102,11 @@ expr ==> { beh: 'expr_stmt', expr: value }
     ns.transform('stmt', function transformStatement(name, value) {
         log('transformStatement:', name, value);
         var result = value;
-        if ((value.lengh === 3) && (value[0] === 'LET')) {
-        } else if ((value.lengh === 5) && (value[1] === 'SEND') && (value[3] === 'TO')) {
-        } else if ((value.lengh === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
-        } else if ((value.lengh === 2) && (value[0] === 'BECOME')) {
-        } else if ((value.lengh === 2) && (value[0] === 'THROW')) {
+        if ((value.length === 3) && (value[0] === 'LET')) {
+        } else if ((value.length === 5) && (value[1] === 'SEND') && (value[3] === 'TO')) {
+        } else if ((value.length === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
+        } else if ((value.length === 2) && (value[0] === 'BECOME')) {
+        } else if ((value.length === 2) && (value[0] === 'THROW')) {
         } else {
             result = {
                 beh: 'expr_stmt',
@@ -133,10 +133,10 @@ term ==> ?
     ns.transform('expr', function transformExpression(name, value) {
         log('transformExpression:', name, value);
         var result = value;
-        if ((value.lengh === 4) && (value[0] === 'LET') && (value[2] === 'IN')) {
-        } else if ((value.lengh === 5) && (value[0] === 'IF')) {
-        } else if ((value.lengh === 5) && (value[0] === 'CASE') && (value[2] === 'OF') && (value[4] === 'END')) {
-        } else if ((value.lengh === 3) && (value[1] === ',')) {
+        if ((value.length === 4) && (value[0] === 'LET') && (value[2] === 'IN')) {
+        } else if ((value.length === 5) && (value[0] === 'IF')) {
+        } else if ((value.length === 5) && (value[0] === 'CASE') && (value[2] === 'OF') && (value[4] === 'END')) {
+        } else if ((value.length === 3) && (value[1] === ',')) {
         } else {
             result = value;
         }
@@ -159,8 +159,8 @@ term ==> value
     ns.transform('term', function transformTerm(name, value) {
         log('transformTerm:', name, value);
         var result = value;
-        if ((value.lengh === 2) && (value[0] === 'NEW')) {
-        } else if ((value.lengh === 3) && (value[0] === '(') && (value[2] === ')')) {
+        if ((value.length === 2) && (value[0] === 'NEW')) {
+        } else if ((value.length === 3) && (value[0] === '(') && (value[2] === ')')) {
             if (value[1].length < 1) {
                 result = {
                     beh: 'const_expr',
@@ -231,12 +231,12 @@ const   <- block
     ns.transform('const', function transformConstant(name, value) {
         log('transformConstant:', name, value);
         var result = value;
-        if ((value.lengh === 3) && (value[0] === '[') && (value[2] === ']')) {
+        if ((value.length === 3) && (value[0] === '[') && (value[2] === ']')) {
         } else if (value === 'SELF') {
             result = {
                 beh: 'self_expr'
             };
-        } else if ((value.lengh === 4) && (value[0] === '\\') && (value[2] === '.')) {
+        } else if ((value.length === 4) && (value[0] === '\\') && (value[2] === '.')) {
             /*
             @{
               beh: abs_expr,
