@@ -93,7 +93,7 @@ stmt    <- 'LET' eqtn !'IN'
          / expr
 ['LET', equation, undefined] ==> ?
 [['AFTER', delay], 'SEND', message, 'TO', target] ==> ?
-[[], 'SEND', message, 'TO', target] ==> ?
+[[], 'SEND', message, 'TO', target] ==> { beh: 'send_stmt', msg: message, to: target }
 ['CREATE', identifier, 'WITH', behavior] ==> ?
 ['BECOME', behavior] ==> ?
 ['THROW', exception] ==> ?
@@ -104,6 +104,38 @@ expr ==> { beh: 'expr_stmt', expr: value }
         var result = value;
         if ((value.length === 3) && (value[0] === 'LET')) {
         } else if ((value.length === 5) && (value[1] === 'SEND') && (value[3] === 'TO')) {
+            result = {
+                beh: 'send_stmt',
+                msg: value[2],
+                to: value[4]
+            };
+            /*
+            @{
+              beh: send_stmt,
+              msg: @{
+                beh: pair_expr,
+                head: @{
+                  beh: ident_expr,
+                  ident: println
+                },
+                tail: @{
+                  beh: pair_expr,
+                  head: @{
+                    beh: const_expr,
+                    value: eval
+                  },
+                  tail: @{
+                    beh: ident_expr,
+                    ident: empty_env
+                  }
+                }
+              },
+              to: @{
+                beh: ident_expr,
+                ident: example
+              }
+            }
+            */
         } else if ((value.length === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
         } else if ((value.length === 2) && (value[0] === 'BECOME')) {
         } else if ((value.length === 2) && (value[0] === 'THROW')) {
