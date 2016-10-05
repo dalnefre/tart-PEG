@@ -44,7 +44,7 @@ var humusTokens = require('./humusTokens.js').build(sponsor/*, log*/);
 require('./reduceTokens.js').transform(humusTokens);
 
 var humusSyntax = require('./humusSyntax.js').build(sponsor/*, log*/);
-//require('./reduceSyntax.js').transform(humusSyntax);
+require('./reduceSyntax.js').transform(humusSyntax);
 
 /*
 var source = input.fromString(sponsor, 
