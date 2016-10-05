@@ -249,5 +249,105 @@ _       <- (comment / space)*               # optional whitespace
     ns.transform('_', transformNamed);
 */
 
+/*
+block   <- '[' stmt* ']'
+*/
+    ns.transform('block', transformDefault);
+
+/*
+stmt    <- 'LET' eqtn !'IN'
+         / ('AFTER' expr)? 'SEND' expr 'TO' expr
+         / 'CREATE' ident 'WITH' expr
+         / 'BECOME' expr
+         / 'THROW' expr
+         / expr
+*/
+    ns.transform('stmt', transformDefault);
+
+/*
+expr    <- 'LET' eqtn 'IN' expr
+         / 'IF' eqtn expr ('ELIF' eqtn expr)* ('ELSE' expr)?
+         / 'CASE' expr 'OF' (ptrn ':' expr)+ 'END'
+         / term ',' expr
+         / term
+*/
+    ns.transform('expr', transformDefault);
+
+/*
+term    <- 'NEW' term
+         / const
+         / call
+         / '(' expr? ')'
+         / ident
+*/
+    ns.transform('term', transformDefault);
+
+/*
+call    <- ident '(' expr? ')'
+         / '(' expr ')' '(' expr? ')'
+*/
+    ns.transform('call', transformDefault);
+
+/*
+eqtn    <- ident '(' ptrn? ')' '=' expr
+         / ptrn '=' ptrn
+*/
+    ns.transform('eqtn', transformDefault);
+
+/*
+ptrn    <- pterm ',' ptrn
+         / pterm
+*/
+    ns.transform('ptrn', transformDefault);
+
+/*
+pterm   <- '_'
+         / '$' term
+         / '(' ptrn? ')'
+         / const
+         / ident
+*/
+    ns.transform('pterm', transformDefault);
+
+/*
+const   <- block
+         / 'SELF'
+         / '\\' ptrn '.' expr
+         / symbol
+         / number
+         / char
+         / string
+         / 'NIL'
+         / 'TRUE'
+         / 'FALSE'
+         / '?'
+*/
+    ns.transform('const', transformDefault);
+
+/*
+ident   <- { type:'ident' }
+*/
+    ns.transform('ident', transformValue);
+
+/*
+number  <- { type:'number' }
+*/
+    ns.transform('number', transformValue);
+
+/*
+char    <- { type:'char' }
+*/
+    ns.transform('char', transformValue);
+
+/*
+string  <- { type:'string' }
+*/
+    ns.transform('string', transformValue);
+
+/*
+symbol  <- { type:'symbol' }
+*/
+    ns.transform('symbol', transformValue);
+
     return ns;
 };
