@@ -252,7 +252,7 @@ _       <- (comment / space)*               # optional whitespace
 /*
 block   <- '[' stmt* ']'
 */
-    ns.transform('block', transformDefault);
+    ns.transform('block', transformValue);
 
 /*
 stmt    <- 'LET' eqtn !'IN'
@@ -261,8 +261,31 @@ stmt    <- 'LET' eqtn !'IN'
          / 'BECOME' expr
          / 'THROW' expr
          / expr
+['LET', equation, undefined] ==> ?
+[['AFTER', delay], 'SEND', message, 'TO', target] ==> ?
+[[], 'SEND', message, 'TO', target] ==> ?
+['CREATE', identifier, 'WITH', behavior] ==> ?
+['BECOME', behavior] ==> ?
+['THROW', exception] ==> ?
+expr ==> { beh: 'expr_stmt', expr: value }
 */
-    ns.transform('stmt', transformDefault);
+    ns.transform('stmt', function transformStatement(name, value) {
+        log('transformStatement:', name, value);
+        var result = value;
+        if ((value.lengh === 3) && (value[0] === 'LET')) {
+        } else if ((value.lengh === 5) && (value[1] === 'SEND') && (value[3] === 'TO')) {
+        } else if ((value.lengh === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
+        } else if ((value.lengh === 2) && (value[0] === 'BECOME')) {
+        } else if ((value.lengh === 2) && (value[0] === 'THROW')) {
+        } else {
+            result = {
+                beh: 'expr_stmt',
+                expr: value
+            };
+        }
+        log('Statement:', result);
+        return result;
+    });
 
 /*
 expr    <- 'LET' eqtn 'IN' expr
@@ -270,8 +293,26 @@ expr    <- 'LET' eqtn 'IN' expr
          / 'CASE' expr 'OF' (ptrn ':' expr)+ 'END'
          / term ',' expr
          / term
+['LET', equation, 'IN', expression] ==> ?
+['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], []] ==> ?
+['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], ['ELSE', alternative]] ==> ?
+['CASE', expression, 'OF', [[ptrn, ':', result], ...], 'END'] ==> ?
+[term, ',', more] ==> ?
+term ==> ?
 */
-    ns.transform('expr', transformDefault);
+    ns.transform('expr', function transformExpression(name, value) {
+        log('transformExpression:', name, value);
+        var result = value;
+        if ((value.lengh === 4) && (value[0] === 'LET') && (value[2] === 'IN')) {
+        } else if ((value.lengh === 5) && (value[0] === 'IF')) {
+        } else if ((value.lengh === 5) && (value[0] === 'CASE') && (value[2] === 'OF') && (value[4] === 'END')) {
+        } else if ((value.lengh === 3) && (value[1] === ',')) {
+        } else {
+            result = value;
+        }
+        log('Expression:', result);
+        return result;
+    });
 
 /*
 term    <- 'NEW' term
@@ -279,8 +320,21 @@ term    <- 'NEW' term
          / call
          / '(' expr? ')'
          / ident
+['NEW', term] ==> ?
+['(', [expr], ')'] ==> ?
+term ==> value
 */
-    ns.transform('term', transformDefault);
+    ns.transform('term', function transformTerm(name, value) {
+        log('transformTerm:', name, value);
+        var result = value;
+        if ((value.lengh === 2) && (value[0] === 'NEW')) {
+        } else if ((value.lengh === 3) && (value[0] === '(') && (value[2] === ')')) {
+        } else {
+            result = value;
+        }
+        log('Term:', result);
+        return result;
+    });
 
 /*
 call    <- ident '(' expr? ')'
@@ -321,8 +375,47 @@ const   <- block
          / 'TRUE'
          / 'FALSE'
          / '?'
+['[', [stmt, ...], ']'] ==> ?
+'SELF' ==> { beh: 'self_expr' }
+['\\', ptrn, '.', body] ==> ?
+'NIL' ==> { beh: const_expr, value: null }
+'TRUE' ==> { beh: const_expr, value: true }
+'FALSE' ==> { beh: const_expr, value: false }
+'?' ==> { beh: const_expr, value: undefined }
 */
-    ns.transform('const', transformDefault);
+    ns.transform('const', function transformConstant(name, value) {
+        log('transformConstant:', name, value);
+        var result = value;
+        if ((value.lengh === 3) && (value[0] === '[') && (value[2] === ']')) {
+        } else if (value === 'SELF') {
+            result = {
+                beh: 'self_expr'
+            };
+        } else if ((value.lengh === 4) && (value[0] === '\\') && (value[2] === '.')) {
+        } else if (value === 'NIL') {
+            result = {
+                beh: 'const_expr',
+                value: null
+            };
+        } else if (value === 'TRUE') {
+            result = {
+                beh: 'const_expr',
+                value: true
+            };
+        } else if (value === 'FALSE') {
+            result = {
+                beh: 'const_expr',
+                value: false
+            };
+        } else if (value === '?') {
+            result = {
+                beh: 'const_expr',
+                value: undefined
+            };
+        }
+        log('Constant:', result);
+        return result;
+    });
 
 /*
 ident   <- { type:'ident' }
