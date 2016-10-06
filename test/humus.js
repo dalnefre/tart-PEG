@@ -209,6 +209,7 @@ Tokens OK: {
 */
 
 var humusFixture = function humusFixture(test, sponsor, log) {
+    log = log || function () {};
     var fixture = {
         humusTokens: require('../examples/humusTokens.js').build(sponsor, log),
         humusSyntax: require('../examples/humusSyntax.js').build(sponsor, log),
@@ -230,6 +231,30 @@ var humusFixture = function humusFixture(test, sponsor, log) {
     });
     log('humusFixture:', fixture);
     return fixture;
+};
+
+test['TRUE is a simple constant expression'] = function (test) {
+    test.expect(3);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var hf = humusFixture(test, sponsor/*, log*/);
+
+    var source = input.fromString(sponsor,
+        'TRUE'
+    );
+
+    var start = sponsor(PEG.start(
+        hf.humusSyntax.call('expr'),
+        hf.ok(function validate(m) {
+            var v = m.value;
+            test.strictEqual('const_expr', v.beh);
+            test.strictEqual(true, v.value);
+        }),
+        hf.fail
+    ));
+    source(start);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['SEND a variety of data types'] = function (test) {
