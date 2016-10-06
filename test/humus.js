@@ -283,6 +283,65 @@ test['SEND a variety of data types'] = function (test) {
 };
 
 /*
+'IF x = $y x ELSE y' ==>
+@{
+  beh: expr_stmt,
+  expr: @{
+    beh: if_expr,
+    eqtn: @{
+      beh: eqtn,
+      left: @{
+        beh: ident_ptrn,
+        ident: x
+      },
+      right: @{
+        beh: value_ptrn,
+        expr: @{
+          beh: ident_expr,
+          ident: y
+        }
+      }
+    },
+    expr: @{
+      beh: ident_expr,
+      ident: x
+    },
+    next: @{
+      beh: ident_expr,
+      ident: y
+    }
+  }
+}
+*/
+
+/*
+'LET empty_env = \\_.?' ==>
+@{
+  beh: let_stmt,
+  eqtn: @{
+    beh: eqtn,
+    left: @{
+      beh: ident_ptrn,
+      ident: empty_env
+    },
+    right: @{
+      beh: value_ptrn,
+      expr: @{
+        beh: abs_expr,
+        ptrn: @{
+          beh: any_ptrn
+        },
+        body: @{
+          beh: const_expr,
+          value: <UNDEF>
+        }
+      }
+    }
+  }
+}
+*/
+
+/*
 Syntax OK: {
   "start": {
     "token": "SEND",
