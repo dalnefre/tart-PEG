@@ -34,6 +34,7 @@ var test = module.exports = {};
 
 //var log = console.log;
 var log = function () {};
+var warn = console.log;
 
 var tart = require('tart-tracing');
 var PEG = require('../PEG.js');
@@ -60,7 +61,7 @@ test['empty source returns empty array'] = function (test) {
             test.strictEqual(0, tokens.length);
         }),
         sponsor(function failBeh(m) {
-            log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+            warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
             test.ok(false);
         })
     ));
@@ -91,7 +92,7 @@ test['blank source returns empty array'] = function (test) {
             test.strictEqual(0, tokens.length);
         }),
         sponsor(function failBeh(m) {
-            log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+            warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
             test.ok(false);
         })
     ));
@@ -118,7 +119,7 @@ test['transformed simple source returns token array'] = function (test) {
             test.strictEqual(14, tokens.length);
         }),
         sponsor(function failBeh(m) {
-            log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+            warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
             test.ok(false);
         })
     ));
@@ -211,14 +212,19 @@ Tokens OK: {
 var humusFixture = function humusFixture(test, sponsor, log) {
     log = log || function () {};
     var fixture = {
-        humusTokens: require('../examples/humusTokens.js').build(sponsor, log),
-        humusSyntax: require('../examples/humusSyntax.js').build(sponsor, log),
+        humusTokens: require('../examples/humusTokens.js').build(sponsor/*, log*/),
+        humusSyntax: require('../examples/humusSyntax.js').build(sponsor/*, log*/),
         test: test,
         sponsor: sponsor,
         log: log
     };
     require('../examples/reduceTokens.js').transform(fixture.humusTokens);
     require('../examples/reduceSyntax.js').transform(fixture.humusSyntax);
+    var tokenSource = fixture.tokenSource = function tokenSource(charSource, start) {
+        start = start || 'token';
+        var pattern = fixture.humusTokens.call(start);
+        return input.fromPEG(sponsor, charSource, pattern);
+    };
     var ok = fixture.ok = function ok(validate) {
         return sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
@@ -226,10 +232,10 @@ var humusFixture = function humusFixture(test, sponsor, log) {
         });
     };
     var fail = fixture.fail = sponsor(function failBeh(m) {
-        log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+        warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
         test.ok(false);
     });
-    log('humusFixture:', fixture);
+//    log('humusFixture:', fixture);
     return fixture;
 };
 
@@ -237,11 +243,11 @@ test['TRUE is a simple constant expression'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var hf = humusFixture(test, sponsor/*, log*/);
+    var hf = humusFixture(test, sponsor, log);
 
-    var source = input.fromString(sponsor,
+    var source = hf.tokenSource(input.fromString(sponsor,
         'TRUE'
-    );
+    ));
 
     var start = sponsor(PEG.start(
         hf.humusSyntax.call('expr'),
@@ -261,11 +267,11 @@ test['SEND a variety of data types'] = function (test) {
     test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var hf = humusFixture(test, sponsor/*, log*/);
+    var hf = humusFixture(test, sponsor, log);
 
-    var source = input.fromString(sponsor,
+    var source = hf.tokenSource(input.fromString(sponsor,
         'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
-    );
+    ));
 
     var start = sponsor(PEG.start(
         hf.humusSyntax.call('stmt'),
@@ -337,574 +343,6 @@ test['SEND a variety of data types'] = function (test) {
         }
       }
     }
-  }
-}
-*/
-
-/*
-Syntax OK: {
-  "start": {
-    "token": "SEND",
-    "value": "SEND",
-    "pos": 0
-  },
-  "end": {
-    "pos": 14
-  },
-  "value": {
-    "name": "humus",
-    "start": {
-      "token": "SEND",
-      "value": "SEND",
-      "pos": 0
-    },
-    "end": {
-      "pos": 14
-    },
-    "value": [
-      {
-        "name": "stmt",
-        "start": {
-          "token": "SEND",
-          "value": "SEND",
-          "pos": 0
-        },
-        "end": {
-          "pos": 14
-        },
-        "value": [
-          [],
-          "SEND",
-          {
-            "name": "expr",
-            "start": {
-              "token": "(",
-              "value": "(",
-              "pos": 1
-            },
-            "end": {
-              "token": "TO",
-              "value": "TO",
-              "pos": 12
-            },
-            "value": {
-              "name": "term",
-              "start": {
-                "token": "(",
-                "value": "(",
-                "pos": 1
-              },
-              "end": {
-                "token": "TO",
-                "value": "TO",
-                "pos": 12
-              },
-              "value": [
-                "(",
-                [
-                  {
-                    "name": "expr",
-                    "start": {
-                      "token": {
-                        "type": "symbol",
-                        "value": "Hello"
-                      },
-                      "value": {
-                        "type": "symbol",
-                        "value": "Hello"
-                      },
-                      "pos": 2
-                    },
-                    "end": {
-                      "token": ")",
-                      "value": ")",
-                      "pos": 11
-                    },
-                    "value": [
-                      {
-                        "name": "term",
-                        "start": {
-                          "token": {
-                            "type": "symbol",
-                            "value": "Hello"
-                          },
-                          "value": {
-                            "type": "symbol",
-                            "value": "Hello"
-                          },
-                          "pos": 2
-                        },
-                        "end": {
-                          "token": ",",
-                          "value": ",",
-                          "pos": 3
-                        },
-                        "value": {
-                          "name": "const",
-                          "start": {
-                            "token": {
-                              "type": "symbol",
-                              "value": "Hello"
-                            },
-                            "value": {
-                              "type": "symbol",
-                              "value": "Hello"
-                            },
-                            "pos": 2
-                          },
-                          "end": {
-                            "token": ",",
-                            "value": ",",
-                            "pos": 3
-                          },
-                          "value": {
-                            "name": "symbol",
-                            "start": {
-                              "token": {
-                                "type": "symbol",
-                                "value": "Hello"
-                              },
-                              "value": {
-                                "type": "symbol",
-                                "value": "Hello"
-                              },
-                              "pos": 2
-                            },
-                            "end": {
-                              "token": ",",
-                              "value": ",",
-                              "pos": 3
-                            },
-                            "value": {
-                              "type": "symbol",
-                              "value": "Hello"
-                            }
-                          }
-                        }
-                      },
-                      ",",
-                      {
-                        "name": "expr",
-                        "start": {
-                          "token": {
-                            "type": "string",
-                            "value": "World"
-                          },
-                          "value": {
-                            "type": "string",
-                            "value": "World"
-                          },
-                          "pos": 4
-                        },
-                        "end": {
-                          "token": ")",
-                          "value": ")",
-                          "pos": 11
-                        },
-                        "value": [
-                          {
-                            "name": "term",
-                            "start": {
-                              "token": {
-                                "type": "string",
-                                "value": "World"
-                              },
-                              "value": {
-                                "type": "string",
-                                "value": "World"
-                              },
-                              "pos": 4
-                            },
-                            "end": {
-                              "token": ",",
-                              "value": ",",
-                              "pos": 5
-                            },
-                            "value": {
-                              "name": "const",
-                              "start": {
-                                "token": {
-                                  "type": "string",
-                                  "value": "World"
-                                },
-                                "value": {
-                                  "type": "string",
-                                  "value": "World"
-                                },
-                                "pos": 4
-                              },
-                              "end": {
-                                "token": ",",
-                                "value": ",",
-                                "pos": 5
-                              },
-                              "value": {
-                                "name": "string",
-                                "start": {
-                                  "token": {
-                                    "type": "string",
-                                    "value": "World"
-                                  },
-                                  "value": {
-                                    "type": "string",
-                                    "value": "World"
-                                  },
-                                  "pos": 4
-                                },
-                                "end": {
-                                  "token": ",",
-                                  "value": ",",
-                                  "pos": 5
-                                },
-                                "value": {
-                                  "type": "string",
-                                  "value": "World"
-                                }
-                              }
-                            }
-                          },
-                          ",",
-                          {
-                            "name": "expr",
-                            "start": {
-                              "token": {
-                                "type": "char",
-                                "value": "\n"
-                              },
-                              "value": {
-                                "type": "char",
-                                "value": "\n"
-                              },
-                              "pos": 6
-                            },
-                            "end": {
-                              "token": ")",
-                              "value": ")",
-                              "pos": 11
-                            },
-                            "value": [
-                              {
-                                "name": "term",
-                                "start": {
-                                  "token": {
-                                    "type": "char",
-                                    "value": "\n"
-                                  },
-                                  "value": {
-                                    "type": "char",
-                                    "value": "\n"
-                                  },
-                                  "pos": 6
-                                },
-                                "end": {
-                                  "token": ",",
-                                  "value": ",",
-                                  "pos": 7
-                                },
-                                "value": {
-                                  "name": "const",
-                                  "start": {
-                                    "token": {
-                                      "type": "char",
-                                      "value": "\n"
-                                    },
-                                    "value": {
-                                      "type": "char",
-                                      "value": "\n"
-                                    },
-                                    "pos": 6
-                                  },
-                                  "end": {
-                                    "token": ",",
-                                    "value": ",",
-                                    "pos": 7
-                                  },
-                                  "value": {
-                                    "name": "char",
-                                    "start": {
-                                      "token": {
-                                        "type": "char",
-                                        "value": "\n"
-                                      },
-                                      "value": {
-                                        "type": "char",
-                                        "value": "\n"
-                                      },
-                                      "pos": 6
-                                    },
-                                    "end": {
-                                      "token": ",",
-                                      "value": ",",
-                                      "pos": 7
-                                    },
-                                    "value": {
-                                      "type": "char",
-                                      "value": "\n"
-                                    }
-                                  }
-                                }
-                              },
-                              ",",
-                              {
-                                "name": "expr",
-                                "start": {
-                                  "token": {
-                                    "type": "symbol",
-                                    "value": "#"
-                                  },
-                                  "value": {
-                                    "type": "symbol",
-                                    "value": "#"
-                                  },
-                                  "pos": 8
-                                },
-                                "end": {
-                                  "token": ")",
-                                  "value": ")",
-                                  "pos": 11
-                                },
-                                "value": [
-                                  {
-                                    "name": "term",
-                                    "start": {
-                                      "token": {
-                                        "type": "symbol",
-                                        "value": "#"
-                                      },
-                                      "value": {
-                                        "type": "symbol",
-                                        "value": "#"
-                                      },
-                                      "pos": 8
-                                    },
-                                    "end": {
-                                      "token": ",",
-                                      "value": ",",
-                                      "pos": 9
-                                    },
-                                    "value": {
-                                      "name": "const",
-                                      "start": {
-                                        "token": {
-                                          "type": "symbol",
-                                          "value": "#"
-                                        },
-                                        "value": {
-                                          "type": "symbol",
-                                          "value": "#"
-                                        },
-                                        "pos": 8
-                                      },
-                                      "end": {
-                                        "token": ",",
-                                        "value": ",",
-                                        "pos": 9
-                                      },
-                                      "value": {
-                                        "name": "symbol",
-                                        "start": {
-                                          "token": {
-                                            "type": "symbol",
-                                            "value": "#"
-                                          },
-                                          "value": {
-                                            "type": "symbol",
-                                            "value": "#"
-                                          },
-                                          "pos": 8
-                                        },
-                                        "end": {
-                                          "token": ",",
-                                          "value": ",",
-                                          "pos": 9
-                                        },
-                                        "value": {
-                                          "type": "symbol",
-                                          "value": "#"
-                                        }
-                                      }
-                                    }
-                                  },
-                                  ",",
-                                  {
-                                    "name": "expr",
-                                    "start": {
-                                      "token": {
-                                        "type": "number",
-                                        "sign": "-",
-                                        "radix": 16,
-                                        "digits": "2a",
-                                        "value": -42
-                                      },
-                                      "value": {
-                                        "type": "number",
-                                        "sign": "-",
-                                        "radix": 16,
-                                        "digits": "2a",
-                                        "value": -42
-                                      },
-                                      "pos": 10
-                                    },
-                                    "end": {
-                                      "token": ")",
-                                      "value": ")",
-                                      "pos": 11
-                                    },
-                                    "value": {
-                                      "name": "term",
-                                      "start": {
-                                        "token": {
-                                          "type": "number",
-                                          "sign": "-",
-                                          "radix": 16,
-                                          "digits": "2a",
-                                          "value": -42
-                                        },
-                                        "value": {
-                                          "type": "number",
-                                          "sign": "-",
-                                          "radix": 16,
-                                          "digits": "2a",
-                                          "value": -42
-                                        },
-                                        "pos": 10
-                                      },
-                                      "end": {
-                                        "token": ")",
-                                        "value": ")",
-                                        "pos": 11
-                                      },
-                                      "value": {
-                                        "name": "const",
-                                        "start": {
-                                          "token": {
-                                            "type": "number",
-                                            "sign": "-",
-                                            "radix": 16,
-                                            "digits": "2a",
-                                            "value": -42
-                                          },
-                                          "value": {
-                                            "type": "number",
-                                            "sign": "-",
-                                            "radix": 16,
-                                            "digits": "2a",
-                                            "value": -42
-                                          },
-                                          "pos": 10
-                                        },
-                                        "end": {
-                                          "token": ")",
-                                          "value": ")",
-                                          "pos": 11
-                                        },
-                                        "value": {
-                                          "name": "number",
-                                          "start": {
-                                            "token": {
-                                              "type": "number",
-                                              "sign": "-",
-                                              "radix": 16,
-                                              "digits": "2a",
-                                              "value": -42
-                                            },
-                                            "value": {
-                                              "type": "number",
-                                              "sign": "-",
-                                              "radix": 16,
-                                              "digits": "2a",
-                                              "value": -42
-                                            },
-                                            "pos": 10
-                                          },
-                                          "end": {
-                                            "token": ")",
-                                            "value": ")",
-                                            "pos": 11
-                                          },
-                                          "value": {
-                                            "type": "number",
-                                            "sign": "-",
-                                            "radix": 16,
-                                            "digits": "2a",
-                                            "value": -42
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ],
-                ")"
-              ]
-            }
-          },
-          "TO",
-          {
-            "name": "expr",
-            "start": {
-              "token": {
-                "type": "ident",
-                "value": "println"
-              },
-              "value": {
-                "type": "ident",
-                "value": "println"
-              },
-              "pos": 13
-            },
-            "end": {
-              "pos": 14
-            },
-            "value": {
-              "name": "term",
-              "start": {
-                "token": {
-                  "type": "ident",
-                  "value": "println"
-                },
-                "value": {
-                  "type": "ident",
-                  "value": "println"
-                },
-                "pos": 13
-              },
-              "end": {
-                "pos": 14
-              },
-              "value": {
-                "name": "ident",
-                "start": {
-                  "token": {
-                    "type": "ident",
-                    "value": "println"
-                  },
-                  "value": {
-                    "type": "ident",
-                    "value": "println"
-                  },
-                  "pos": 13
-                },
-                "end": {
-                  "pos": 14
-                },
-                "value": {
-                  "type": "ident",
-                  "value": "println"
-                }
-              }
-            }
-          }
-        ]
-      }
-    ]
   }
 }
 */
