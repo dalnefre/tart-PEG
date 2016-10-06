@@ -66,20 +66,7 @@ test['empty source returns empty array'] = function (test) {
     ));
     source(start);
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-                count: 100,
-//                log: function (effect) { console.log('DEBUG', effect); },
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['blank source returns empty array'] = function (test) {
@@ -110,20 +97,7 @@ test['blank source returns empty array'] = function (test) {
     ));
     source(start);
 
-    require('../fixture.js').asyncRepeat(3,
-        function action() {
-            return tracing.eventLoop({
-                count: 100,
-//                log: function (effect) { console.log('DEBUG', effect); },
-              fail: function (error) { console.log('FAIL!', error); }
-            });
-        },
-        function callback(error, result) {
-            log('asyncRepeat callback:', error, result);
-            test.ok(!error && result);
-            test.done();
-        }
-    );
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
 test['transformed simple source returns token array'] = function (test) {
@@ -233,6 +207,55 @@ Tokens OK: {
 {"type":"ident","value":"println"}
 </TOKENS>
 */
+
+var humusFixture = function humusFixture(test, sponsor, log) {
+    var fixture = {
+        humusTokens: require('../examples/humusTokens.js').build(sponsor, log),
+        humusSyntax: require('../examples/humusSyntax.js').build(sponsor, log),
+        test: test,
+        sponsor: sponsor,
+        log: log
+    };
+    require('../examples/reduceTokens.js').transform(fixture.humusTokens);
+    require('../examples/reduceSyntax.js').transform(fixture.humusSyntax);
+    var ok = fixture.ok = function ok(validate) {
+        return sponsor(function okBeh(m) {
+            log('Tokens OK:', JSON.stringify(m, null, '  '));
+            validate(m);
+        });
+    };
+    var fail = fixture.fail = sponsor(function failBeh(m) {
+        log('Tokens FAIL:', JSON.stringify(m, null, '  '));
+        test.ok(false);
+    });
+    log('humusFixture:', fixture);
+    return fixture;
+};
+
+test['SEND a variety of data types'] = function (test) {
+    test.expect(4);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var hf = humusFixture(test, sponsor/*, log*/);
+
+    var source = input.fromString(sponsor,
+        'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
+    );
+
+    var start = sponsor(PEG.start(
+        hf.humusSyntax.call('stmt'),
+        hf.ok(function validate(m) {
+            var v = m.value;
+            test.strictEqual('send_stmt', v.beh);
+            test.strictEqual('object', typeof v.msg);
+            test.strictEqual('object', typeof v.to);
+        }),
+        hf.fail
+    ));
+    source(start);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
 
 /*
 Syntax OK: {
