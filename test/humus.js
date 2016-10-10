@@ -239,7 +239,7 @@ var humusFixture = function humusFixture(test, sponsor, log) {
     return fixture;
 };
 
-test['TRUE is a simple constant expression'] = function (test) {
+test['TRUE is a simple constant'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -253,7 +253,7 @@ test['TRUE is a simple constant expression'] = function (test) {
         hf.humusSyntax.call('expr'),
         hf.ok(function validate(m) {
             var v = m.value;
-            test.strictEqual('const_expr', v.beh);
+            test.strictEqual('const', v.type);
             test.strictEqual(true, v.value);
         }),
         hf.fail

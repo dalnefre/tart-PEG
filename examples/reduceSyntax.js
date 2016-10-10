@@ -185,7 +185,7 @@ term    <- 'NEW' term
 ['NEW', term] ==> ?
 ['(', [], ')'] ==> { beh: 'const_expr', value: null }
 ['(', [expr], ')'] ==> expr
-{ type: 'ident', value: name } => { beh: 'ident_expr', ident: name }
+{ type: 'ident', value: name } => value
 term ==> value
 */
     ns.transform('term', function transformTerm(name, value) {
@@ -202,10 +202,7 @@ term ==> value
                 result = value[1][0];
             }
         } else if (value.type === 'ident') {
-                result = {
-                    beh: 'ident_expr',
-                    ident: value.value
-                };
+            result = value;
         } else {
             result = value;
         }
@@ -253,12 +250,12 @@ const   <- block
          / 'FALSE'
          / '?'
 ['[', [stmt, ...], ']'] ==> ?
-'SELF' ==> { beh: 'self_expr' }
+'SELF' ==> { type: 'self' }
 ['\\', ptrn, '.', body] ==> ?
-'NIL' ==> { beh: 'const_expr', value: null }
-'TRUE' ==> { beh: 'const_expr', value: true }
-'FALSE' ==> { beh: 'const_expr', value: false }
-'?' ==> { beh: 'const_expr', value: undefined }
+'NIL' ==> { type: 'const', value: null }
+'TRUE' ==> { type: 'const', value: true }
+'FALSE' ==> { type: 'const', value: false }
+'?' ==> { type: 'const', value: undefined }
 */
     ns.transform('const', function transformConstant(name, value) {
         log('transformConstant:', name, value);
@@ -266,7 +263,7 @@ const   <- block
         if ((value.length === 3) && (value[0] === '[') && (value[2] === ']')) {
         } else if (value === 'SELF') {
             result = {
-                beh: 'self_expr'
+                type: 'self'
             };
         } else if ((value.length === 4) && (value[0] === '\\') && (value[2] === '.')) {
             /*
@@ -284,22 +281,22 @@ const   <- block
             */
         } else if (value === 'NIL') {
             result = {
-                beh: 'const_expr',
+                type: 'const',
                 value: null
             };
         } else if (value === 'TRUE') {
             result = {
-                beh: 'const_expr',
+                type: 'const',
                 value: true
             };
         } else if (value === 'FALSE') {
             result = {
-                beh: 'const_expr',
+                type: 'const',
                 value: false
             };
         } else if (value === '?') {
             result = {
-                beh: 'const_expr',
+                type: 'const',
                 value: undefined
             };
         }
