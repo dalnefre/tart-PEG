@@ -183,8 +183,8 @@ expr    <- 'LET' eqtn 'IN' expr
 ['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], []] ==> ?
 ['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], ['ELSE', alternative]] ==> ?
 ['CASE', expression, 'OF', [[ptrn, ':', result], ...], 'END'] ==> ?
-[term, ',', more] ==> ?
-term ==> ?
+[term, ',', more] ==> { type: 'pair', head: term, tail: more }
+term ==> term
 */
     ns.transform('expr', function transformExpression(name, value) {
         log('transformExpression:', name, value);
@@ -193,6 +193,11 @@ term ==> ?
         } else if ((value.length === 5) && (value[0] === 'IF')) {
         } else if ((value.length === 5) && (value[0] === 'CASE') && (value[2] === 'OF') && (value[4] === 'END')) {
         } else if ((value.length === 3) && (value[1] === ',')) {
+            result = {
+                type: 'pair',
+                head: value[0],
+                tail: value[2]
+            };
         } else {
             result = value;
         }
