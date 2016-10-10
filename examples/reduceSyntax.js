@@ -94,9 +94,9 @@ stmt    <- 'LET' eqtn !'IN'
 ['LET', equation, undefined] ==> ?
 [['AFTER', delay], 'SEND', message, 'TO', target] ==> ?
 [[], 'SEND', message, 'TO', target] ==> { beh: 'send_stmt', msg: message, to: target }
-['CREATE', identifier, 'WITH', behavior] ==> ?
-['BECOME', behavior] ==> ?
-['THROW', exception] ==> ?
+['CREATE', identifier, 'WITH', behavior] ==> { beh: 'create_stmt', ident: identifier, expr: behavior }
+['BECOME', behavior] ==> { beh: 'become_stmt', expr: behavior }
+['THROW', exception] ==> { beh: 'throw_stmt', expr: exception }
 expr ==> { beh: 'expr_stmt', expr: value }
 */
     ns.transform('stmt', function transformStatement(name, value) {
@@ -137,8 +137,21 @@ expr ==> { beh: 'expr_stmt', expr: value }
             }
             */
         } else if ((value.length === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
+            result = {
+                beh: 'create_stmt',
+                ident: value[1].value,  // extract actual identifier
+                expr: value[3]
+            };
         } else if ((value.length === 2) && (value[0] === 'BECOME')) {
+            result = {
+                beh: 'become_stmt',
+                expr: value[1]
+            };
         } else if ((value.length === 2) && (value[0] === 'THROW')) {
+            result = {
+                beh: 'throw_stmt',
+                expr: value[1]
+            };
         } else {
             result = {
                 beh: 'expr_stmt',
