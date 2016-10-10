@@ -91,8 +91,8 @@ stmt    <- 'LET' eqtn !'IN'
          / 'BECOME' expr
          / 'THROW' expr
          / expr
-['LET', equation, undefined] ==> ?
-[['AFTER', delay], 'SEND', message, 'TO', target] ==> ?
+['LET', equation, undefined] ==> { beh: 'let_stmt', eqtn: equation }
+[['AFTER', delay], 'SEND', message, 'TO', target] ==> { beh: 'after_send_stmt', dt: delay, msg: message, to: target }
 [[], 'SEND', message, 'TO', target] ==> { beh: 'send_stmt', msg: message, to: target }
 ['CREATE', identifier, 'WITH', behavior] ==> { beh: 'create_stmt', ident: identifier, expr: behavior }
 ['BECOME', behavior] ==> { beh: 'become_stmt', expr: behavior }
@@ -103,6 +103,17 @@ expr ==> { beh: 'expr_stmt', expr: value }
         log('transformStatement:', name, value);
         var result = value;
         if ((value.length === 3) && (value[0] === 'LET')) {
+            result = {
+                beh: 'let_stmt',
+                eqtn: value[1]
+            };
+        } else if ((value.length === 5) && (value[0][0] === 'AFTER') && (value[1] === 'SEND') && (value[3] === 'TO')) {
+            result = {
+                beh: 'after_send_stmt',
+                dt: value[0][1],
+                msg: value[2],
+                to: value[4]
+            };
         } else if ((value.length === 5) && (value[1] === 'SEND') && (value[3] === 'TO')) {
             result = {
                 beh: 'send_stmt',
@@ -198,7 +209,7 @@ term    <- 'NEW' term
 ['NEW', term] ==> ?
 ['(', [], ')'] ==> { beh: 'const_expr', value: null }
 ['(', [expr], ')'] ==> expr
-{ type: 'ident', value: name } => value
+{ type: 'ident', value: name } ==> value
 term ==> value
 */
     ns.transform('term', function transformTerm(name, value) {
