@@ -330,7 +330,7 @@ const   <- block
          / '?'
 ['[', [stmt, ...], ']'] ==> ?
 'SELF' ==> { type: 'self' }
-['\\', ptrn, '.', body] ==> ?
+['\\', ptrn, '.', body] ==> { type: 'abs', ptrn: ptrn, body: expr }
 'NIL' ==> { type: 'const', value: null }
 'TRUE' ==> { type: 'const', value: true }
 'FALSE' ==> { type: 'const', value: false }
@@ -345,8 +345,13 @@ const   <- block
                 type: 'self'
             };
         } else if ((value.length === 4) && (value[0] === '\\') && (value[2] === '.')) {
+            result = {
+                type: 'abs',
+                ptrn: value[1],
+                body: value[3]
+            };
             /*
-            @{
+            \x.x ==> @{
               beh: abs_expr,
               ptrn: @{
                 beh: ident_ptrn,
