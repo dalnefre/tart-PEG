@@ -248,8 +248,40 @@ call    <- ident '(' expr? ')'
 /*
 eqtn    <- ident '(' ptrn? ')' '=' expr
          / ptrn '=' ptrn
+[ident, '(', [ptrn], ')', '=', expr] ==> { type: 'eqtn', left: ident, right: { type: 'abs', ptrn: ptrn, body: expr } }
+[lhs, '=', rhs] ==> { type: 'eqtn', left: lhs, right: rhs }
 */
-    ns.transform('eqtn', transformDefault);
+    ns.transform('eqtn', function transformEquation(name, value) {
+        log('transformEquation:', name, value);
+        var result = value;
+        if ((value.length === 6) && (value[1] === '(') && (value[3] === ')') && (value[4] === '=')) {
+            if (value[2].length < 1) {  // extract pattern
+                result = {
+                    type: 'const',
+                    value: null
+                };
+            } else {
+                result = value[2][0];
+            }
+            result = {
+                type: 'eqtn',
+                left: value[0],
+                right: {
+                    type: 'abs',
+                    ptrn: result,  // use pattern in equation rewrite
+                    body: value[5]
+                }
+            };
+        } else if ((value.length === 3) && (value[1] === '=')) {
+            result = {
+                type: 'eqtn',
+                left: value[0],
+                right: value[2]
+            };
+        }
+        log('Equation:', result);
+        return result;
+    });
 
 /*
 ptrn    <- pterm ',' ptrn

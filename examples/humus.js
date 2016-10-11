@@ -49,9 +49,9 @@ require('./reduceSyntax.js').transform(humusSyntax);
 /*
 */
 var source = input.fromString(sponsor, 
-    'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
+//    'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
 //    'CREATE sink WITH \\_.[]\n'
-//    'LET id = \\x.x'
+    'LET id = \\x.x'
 );
 /*
 var source = input.fromString(sponsor, 
