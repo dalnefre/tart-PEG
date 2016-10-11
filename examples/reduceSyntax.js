@@ -212,7 +212,7 @@ term    <- 'NEW' term
          / '(' expr? ')'
          / ident
 ['NEW', term] ==> ?
-['(', [], ')'] ==> { beh: 'const_expr', value: null }
+['(', [], ')'] ==> { type: 'const', value: null }
 ['(', [expr], ')'] ==> expr
 { type: 'ident', value: name } ==> value
 term ==> value
@@ -224,7 +224,7 @@ term ==> value
         } else if ((value.length === 3) && (value[0] === '(') && (value[2] === ')')) {
             if (value[1].length < 1) {
                 result = {
-                    beh: 'const_expr',
+                    type: 'const',
                     value: null
                 };
             } else {
@@ -254,8 +254,24 @@ eqtn    <- ident '(' ptrn? ')' '=' expr
 /*
 ptrn    <- pterm ',' ptrn
          / pterm
+[pterm, ',', more] ==> { type: 'pair', head: pterm, tail: more }
+pterm ==> pterm
 */
-    ns.transform('ptrn', transformDefault);
+    ns.transform('ptrn', function transformPattern(name, value) {
+        log('transformPattern:', name, value);
+        var result = value;
+        if ((value.length === 3) && (value[1] === ',')) {
+            result = {
+                type: 'pair',
+                head: value[0],
+                tail: value[2]
+            };
+        } else {
+            result = value;
+        }
+        log('Pattern:', result);
+        return result;
+    });
 
 /*
 pterm   <- '_'
@@ -263,8 +279,42 @@ pterm   <- '_'
          / '(' ptrn? ')'
          / const
          / ident
+'_' ==> ? { type: 'any' }
+['$', term] ==> { type: 'value', expr: term }
+['(', [], ')'] ==> { type: 'const', value: null }
+['(', [ptrn], ')'] ==> ptrn
+{ type: 'ident', value: name } ==> value
+term ==> value
 */
-    ns.transform('pterm', transformDefault);
+    ns.transform('pterm', function transformPTerm(name, value) {
+        log('transformPTerm:', name, value);
+        var result = value;
+        if (value === '_') {
+            result = {
+                type: 'any'
+            };
+        } else if ((value.length === 2) && (value[0] === '$')) {
+            result = {
+                type: 'value',
+                expr: value[1]
+            };
+        } else if ((value.length === 3) && (value[0] === '(') && (value[2] === ')')) {
+            if (value[1].length < 1) {
+                result = {
+                    type: 'const',
+                    value: null
+                };
+            } else {
+                result = value[1][0];
+            }
+        } else if (value.type === 'ident') {
+            result = value;
+        } else {
+            result = value;
+        }
+        log('PTerm:', result);
+        return result;
+    });
 
 /*
 const   <- block
