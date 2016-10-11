@@ -145,6 +145,8 @@ term    <- 'NEW' term
         pf.term("NEW"),
         ns.call("term")
       ]),
+      ns.call("const"),
+      ns.call("call"),
       pf.seq([
         pf.term("("),
         pf.opt(
@@ -152,8 +154,6 @@ term    <- 'NEW' term
         ),
         pf.term(")")
       ]),
-      ns.call("const"),
-      ns.call("call"),
       ns.call("ident")
     ])
   );

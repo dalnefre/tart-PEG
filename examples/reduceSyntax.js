@@ -242,8 +242,36 @@ term ==> value
 /*
 call    <- ident '(' expr? ')'
          / '(' expr ')' '(' expr? ')'
+[ident, '(', [expr], ')'] ==> { type: 'app', abs: ident, arg: expr }
+['(', abs, ')', '(', [expr], ')'] ==> { type: 'app', abs: abs, arg: expr }
 */
-    ns.transform('call', transformDefault);
+    ns.transform('call', function transformCall(name, value) {
+        log('transformCall:', name, value);
+/*
+        var result = value;
+*/
+        var result = {
+            type: 'call'
+        };
+        var expr;
+        if ((value.length === 4) && (value[1] === '(') && (value[3] === ')')) {
+            result.abs = value[0];
+            expr = value[2];
+        } else if ((value.length === 6) && (value[0] === '(') && (value[2] === ')') && (value[3] === '(') && (value[5] === ')')) {
+            result.abs = value[1];
+            expr = value[4];
+        }
+        if (expr.length < 1) {
+            result.arg = {
+                type: 'const',
+                value: null
+            };
+        } else {
+            result.arg = expr[0];
+        }
+        log('Call:', result);
+        return result;
+    });
 
 /*
 eqtn    <- ident '(' ptrn? ')' '=' expr
