@@ -120,33 +120,6 @@ expr ==> { type: 'expr', expr: value }
                 msg: value[2],
                 to: value[4]
             };
-            /*
-            @{
-              beh: send_stmt,
-              msg: @{
-                beh: pair_expr,
-                head: @{
-                  beh: ident_expr,
-                  ident: println
-                },
-                tail: @{
-                  beh: pair_expr,
-                  head: @{
-                    beh: const_expr,
-                    value: eval
-                  },
-                  tail: @{
-                    beh: ident_expr,
-                    ident: empty_env
-                  }
-                }
-              },
-              to: @{
-                beh: ident_expr,
-                ident: example
-              }
-            }
-            */
         } else if ((value.length === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
             result = {
                 type: 'create',
@@ -407,19 +380,6 @@ const   <- block
                 ptrn: value[1],
                 body: value[3]
             };
-            /*
-            \x.x ==> @{
-              beh: abs_expr,
-              ptrn: @{
-                beh: ident_ptrn,
-                ident: x
-              },
-              body: @{
-                beh: ident_expr,
-                ident: x
-              }
-            }
-            */
         } else if (value === 'NIL') {
             result = {
                 type: 'const',
