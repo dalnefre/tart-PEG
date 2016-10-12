@@ -56,9 +56,9 @@ gen.block = function genBlock(ast) {
     ast.value.forEach(function (stmt) {
         current.stmt = {
             beh: 'stmt_pair',
-			head: gen.stmt(stmt, scope),
-			tail: final
-		};
+            head: gen.stmt(stmt, scope),
+            tail: final
+        };
         current = current.tail;
     });
     result.vars = Object.keys(scope);
@@ -73,18 +73,43 @@ stmt    <- 'LET' eqtn !'IN'
          / 'BECOME' expr
          / 'THROW' expr
          / expr
-['LET', equation, undefined] ==> { type: 'let', eqtn: equation }
-[['AFTER', delay], 'SEND', message, 'TO', target] ==> { type: 'after_send', dt: delay, msg: message, to: target }
-[[], 'SEND', message, 'TO', target] ==> { type: 'send', msg: message, to: target }
-['CREATE', identifier, 'WITH', behavior] ==> { type: 'create', ident: identifier, expr: behavior }
-['BECOME', behavior] ==> { type: 'become', expr: behavior }
-['THROW', exception] ==> { type: 'throw', expr: exception }
-expr ==> { type: 'expr', expr: value }
+{ type: 'let', eqtn: equation }
+{ type: 'after_send', dt: delay, msg: message, to: target }
+{ type: 'send', msg: message, to: target }
+{ type: 'create', ident: identifier, expr: behavior }
+{ type: 'become', expr: behavior }
+{ type: 'throw', expr: exception }
+{ type: 'expr', expr: value }
 */
 gen.stmt = function genStmt(ast, scope) {
     log('genStmt:', ast, scope);
-    var result = ast;  // no-op
+    var result = ast;
+    if (ast.type === 'expr') {
+        return {
+            beh: 'expr_stmt',
+            expr: gen.expr(ast.value)
+        };
+    }
     log('Stmt:', result);
+    return result;
+};
+
+/*
+expr    <- 'LET' eqtn 'IN' expr
+         / 'IF' eqtn expr ('ELIF' eqtn expr)* ('ELSE' expr)?
+         / 'CASE' expr 'OF' (ptrn ':' expr)+ 'END'
+         / term ',' expr
+         / term
+['LET', equation, 'IN', expression] ==> { type: 'let_in', eqtn: equation, expr: expression }
+['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], ['ELSE', alternative]] ==> { type: 'if', ... }
+['CASE', expression, 'OF', [[ptrn, ':', result], ...], 'END'] ==> { type: 'case', ... }
+[term, ',', more] ==> { type: 'pair', head: term, tail: more }
+term ==> value
+*/
+gen.expr = function genExpr(ast) {
+    log('genExpr:', ast);
+    var result = ast;
+    log('Expr:', result);
     return result;
 };
 
@@ -115,6 +140,12 @@ eqtn    <- ident '(' ptrn? ')' '=' expr
 [ident, '(', [ptrn], ')', '=', expr] ==> { type: 'eqtn', left: ident, right: { type: 'abs', ptrn: ptrn, body: expr } }
 [lhs, '=', rhs] ==> { type: 'eqtn', left: lhs, right: rhs }
 */
+gen.eqtn = function genEqtn(ast, scope) {
+    log('genEqtn:', ast, scope);
+    var result = ast;
+    log('Eqtn:', result);
+    return result;
+};
 
 /*
 ptrn    <- pterm ',' ptrn
@@ -122,6 +153,12 @@ ptrn    <- pterm ',' ptrn
 [pterm, ',', more] ==> { type: 'pair', head: pterm, tail: more }
 pterm ==> value
 */
+gen.ptrn = function genPtrn(ast, scope) {
+    log('genPtrn:', ast, scope);
+    var result = ast;
+    log('Ptrn:', result);
+    return result;
+};
 
 /*
 pterm   <- '_'
