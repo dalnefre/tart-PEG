@@ -152,17 +152,22 @@ expr    <- 'LET' eqtn 'IN' expr
          / 'CASE' expr 'OF' (ptrn ':' expr)+ 'END'
          / term ',' expr
          / term
-['LET', equation, 'IN', expression] ==> ?
+['LET', equation, 'IN', expression] ==> { type: 'let_in', eqtn: equation, expr: expression }
 ['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], []] ==> ?
 ['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], ['ELSE', alternative]] ==> ?
 ['CASE', expression, 'OF', [[ptrn, ':', result], ...], 'END'] ==> ?
 [term, ',', more] ==> { type: 'pair', head: term, tail: more }
-term ==> term
+term ==> value
 */
     ns.transform('expr', function transformExpression(name, value) {
         log('transformExpression:', name, value);
         var result = value;
         if ((value.length === 4) && (value[0] === 'LET') && (value[2] === 'IN')) {
+            result = {
+                type: 'let_in',
+                eqtn: value[1],
+                expr: value[3]
+            };
         } else if ((value.length === 5) && (value[0] === 'IF')) {
         } else if ((value.length === 5) && (value[0] === 'CASE') && (value[2] === 'OF') && (value[4] === 'END')) {
         } else if ((value.length === 3) && (value[1] === ',')) {
@@ -171,8 +176,6 @@ term ==> term
                 head: value[0],
                 tail: value[2]
             };
-        } else {
-            result = value;
         }
         log('Expression:', result);
         return result;
@@ -184,16 +187,21 @@ term    <- 'NEW' term
          / call
          / '(' expr? ')'
          / ident
-['NEW', term] ==> ?
+['NEW', term] ==> { type: 'new', expr: term }
+{ type: 'const', ... } ==> value
+{ type: 'call', ... } ==> value
 ['(', [], ')'] ==> { type: 'const', value: null }
 ['(', [expr], ')'] ==> expr
 { type: 'ident', value: name } ==> value
-term ==> value
 */
     ns.transform('term', function transformTerm(name, value) {
         log('transformTerm:', name, value);
         var result = value;
         if ((value.length === 2) && (value[0] === 'NEW')) {
+            result = {
+                type: 'new',
+                expr: value[1]
+            };
         } else if ((value.length === 3) && (value[0] === '(') && (value[2] === ')')) {
             if (value[1].length < 1) {
                 result = {
@@ -203,10 +211,6 @@ term ==> value
             } else {
                 result = value[1][0];
             }
-        } else if (value.type === 'ident') {
-            result = value;
-        } else {
-            result = value;
         }
         log('Term:', result);
         return result;
@@ -285,7 +289,7 @@ eqtn    <- ident '(' ptrn? ')' '=' expr
 ptrn    <- pterm ',' ptrn
          / pterm
 [pterm, ',', more] ==> { type: 'pair', head: pterm, tail: more }
-pterm ==> pterm
+pterm ==> value
 */
     ns.transform('ptrn', function transformPattern(name, value) {
         log('transformPattern:', name, value);
@@ -296,8 +300,6 @@ pterm ==> pterm
                 head: value[0],
                 tail: value[2]
             };
-        } else {
-            result = value;
         }
         log('Pattern:', result);
         return result;
@@ -313,8 +315,8 @@ pterm   <- '_'
 ['$', term] ==> { type: 'value', expr: term }
 ['(', [], ')'] ==> { type: 'const', value: null }
 ['(', [ptrn], ')'] ==> ptrn
+{ type: 'const', ... } ==> value
 { type: 'ident', value: name } ==> value
-term ==> value
 */
     ns.transform('pterm', function transformPTerm(name, value) {
         log('transformPTerm:', name, value);
@@ -337,10 +339,6 @@ term ==> value
             } else {
                 result = value[1][0];
             }
-        } else if (value.type === 'ident') {
-            result = value;
-        } else {
-            result = value;
         }
         log('PTerm:', result);
         return result;
@@ -358,9 +356,13 @@ const   <- block
          / 'TRUE'
          / 'FALSE'
          / '?'
-['[', [stmt, ...], ']'] ==> ?
+{ type: block, ... } ==> value
 'SELF' ==> { type: 'self' }
 ['\\', ptrn, '.', body] ==> { type: 'abs', ptrn: ptrn, body: expr }
+{ type: symbol, ... } ==> value
+{ type: number, ... } ==> value
+{ type: char, ... } ==> value
+{ type: string, ... } ==> value
 'NIL' ==> { type: 'const', value: null }
 'TRUE' ==> { type: 'const', value: true }
 'FALSE' ==> { type: 'const', value: false }
@@ -369,8 +371,7 @@ const   <- block
     ns.transform('const', function transformConstant(name, value) {
         log('transformConstant:', name, value);
         var result = value;
-        if ((value.length === 3) && (value[0] === '[') && (value[2] === ']')) {
-        } else if (value === 'SELF') {
+        if (value === 'SELF') {
             result = {
                 type: 'self'
             };
