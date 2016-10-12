@@ -46,12 +46,13 @@ gen.humus = function genHumus(ast) {
 // { value: [stmt, ...], ... }
 gen.block = function genBlock(ast) {
     log('genBlock:', ast);
-    var scope = {};
     var final = { beh: 'empty_stmt' };
     var result = {
         beh: 'block_beh',
+        vars: [];
         stmt: final
     };
+    var scope = result.vars;
     var current = result;
     ast.value.forEach(function (stmt) {
         current.stmt = {
@@ -61,7 +62,6 @@ gen.block = function genBlock(ast) {
         };
         current = current.tail;
     });
-    result.vars = Object.keys(scope);
     log('Block:', result);
     return result;
 };
@@ -74,8 +74,8 @@ stmt    <- 'LET' eqtn !'IN'
          / 'THROW' expr
          / expr
 { type: 'let', eqtn: equation }
-{ type: 'after_send', dt: delay, msg: message, to: target }
 { type: 'send', msg: message, to: target }
+{ type: 'after_send', dt: delay, msg: message, to: target }
 { type: 'create', ident: identifier, expr: behavior }
 { type: 'become', expr: behavior }
 { type: 'throw', expr: exception }
@@ -85,9 +85,47 @@ gen.stmt = function genStmt(ast, scope) {
     log('genStmt:', ast, scope);
     var result = ast;
     if (ast.type === 'expr') {
-        return {
+        result = {
             beh: 'expr_stmt',
-            expr: gen.expr(ast.value)
+            expr: gen.expr(ast.expr)
+        };
+    } else if (ast.type === 'let') {
+        result = {
+            beh: 'let_stmt',
+            eqtn: gen.eqtn(ast.eqtn)
+        };
+    } else if (ast.type === 'send') {
+        result = {
+            beh: 'send_stmt',
+            msg: gen.expr(ast.msg),
+            to: gen.expr(ast.to)
+        };
+    } else if (ast.type === 'after_send') {
+        result = {
+            beh: 'after_send_stmt',
+            msg: gen.expr(ast.msg),
+            to: gen.expr(ast.to),
+            dt: gen.expr(ast.dt)
+        };
+    } else if (ast.type === 'create') {
+        var ident = ast.ident.value;
+        if (scope) {
+            scope[scope.length] = ident;  // FIXME: check for duplicates?
+        }
+        result = {
+            beh: 'create_stmt',
+            ident: ident,
+            expr: gen.expr(ast.expr)
+        };
+    } else if (ast.type === 'become') {
+        result = {
+            beh: 'become_stmt',
+            expr: gen.expr(ast.expr)
+        };
+    } else if (ast.type === 'throw') {
+        result = {
+            beh: 'throw_stmt',
+            expr: gen.expr(ast.expr)
         };
     }
     log('Stmt:', result);
@@ -200,7 +238,7 @@ const   <- block
 */
 
 /*
-ident   <- { type:'ident' }
+ident   <- { type:'ident', value:name }
 */
 
 /*
