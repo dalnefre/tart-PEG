@@ -165,9 +165,8 @@ expr    <- 'LET' eqtn 'IN' expr
          / term ',' expr
          / term
 ['LET', equation, 'IN', expression] ==> { type: 'let_in', eqtn: equation, expr: expression }
-['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], []] ==> ?
-['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], ['ELSE', alternative]] ==> ?
-['CASE', expression, 'OF', [[ptrn, ':', result], ...], 'END'] ==> ?
+['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], ['ELSE', alternative]] ==> { type: 'if', ... }
+['CASE', expression, 'OF', [[ptrn, ':', result], ...], 'END'] ==> { type: 'case', ... }
 [term, ',', more] ==> { type: 'pair', head: term, tail: more }
 term ==> value
 */
@@ -181,7 +180,47 @@ term ==> value
                 expr: value[3]
             };
         } else if ((value.length === 5) && (value[0] === 'IF')) {
+            var final = { type: 'const', value: undefined };
+            if ((value[4].length == 2) && (value[4][0] === 'ELSE')) {
+                final = value[4][1];
+            }
+            result = {
+                type: 'if',
+                eqtn: value[1],
+                expr: value[2],
+                next: final
+            };
+            var current = result;
+            value[3].forEach(function (elif) {
+                if ((elif.length === 3) && (elif[0] === 'ELIF')) {
+                    current.next = {
+                        type: 'if',
+                        eqtn: elif[1],
+                        expr: elif[2],
+                        next: final
+                    };
+                    current = current.next;
+                }
+            });
         } else if ((value.length === 5) && (value[0] === 'CASE') && (value[2] === 'OF') && (value[4] === 'END')) {
+            var final = { type: 'end' };
+            result = {
+                type: 'case',
+                expr: value[1],
+                next: final
+            };
+            var current = result;
+            value[3].forEach(function (choice) {
+                if ((choice.length === 3) && (choice[1] === ':')) {
+                    current.next = {
+                        type: 'choice',
+                        ptrn: choice[0],
+                        expr: choice[2],
+                        next: final
+                    };
+                    current = current.next;
+                }
+            });
         } else if ((value.length === 3) && (value[1] === ',')) {
             result = {
                 type: 'pair',
