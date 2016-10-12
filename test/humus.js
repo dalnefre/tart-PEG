@@ -277,7 +277,7 @@ test['SEND a variety of data types'] = function (test) {
         hf.humusSyntax.call('stmt'),
         hf.ok(function validate(m) {
             var v = m.value;
-            test.strictEqual('send_stmt', v.beh);
+            test.strictEqual('send', v.type);
             test.strictEqual('object', typeof v.msg);
             test.strictEqual('object', typeof v.to);
         }),
