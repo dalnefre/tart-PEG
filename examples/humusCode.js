@@ -132,15 +132,52 @@ expr    <- 'LET' eqtn 'IN' expr
          / 'CASE' expr 'OF' (ptrn ':' expr)+ 'END'
          / term ',' expr
          / term
-['LET', equation, 'IN', expression] ==> { type: 'let_in', eqtn: equation, expr: expression }
-['IF', equation_0, consequent_0, [['ELIF', equation_n, consequent_n], ...], ['ELSE', alternative]] ==> { type: 'if', ... }
-['CASE', expression, 'OF', [[ptrn, ':', result], ...], 'END'] ==> { type: 'case', ... }
-[term, ',', more] ==> { type: 'pair', head: term, tail: more }
-term ==> value
+{ type: 'let_in', eqtn: equation, expr: expression }
+{ type: 'if', ... }
+{ type: 'case', ... }
+{ type: 'pair', head: term, tail: more }
+...
+{ type: 'block', value: [stmt, ...] }
+{ type: 'abs', ptrn: ptrn, body: expr }
+{ type: 'ident', value: name }
+{ type: 'const', value: ... }
 */
 gen.expr = function genExpr(ast) {
     log('genExpr:', ast);
     var result = ast;
+    if (ast.type === 'pair') {
+        result = {
+            beh: 'pair_expr',
+            head: gen.expr(ast.head),
+            tail: gen.expr(ast.tail)
+        };
+    } else if (ast.type === 'let_in') {
+        var scope = [];
+        result = {
+            beh: 'let_expr',
+            vars: scope,  // FIXME: declare variables for LET/IN ??
+            eqtn: gen.eqtn(ast.eqtn, scope),
+            expr: gen.expr(ast.expr)
+        };
+    } else if (ast.type === 'block') {
+        result = gen.block(ast);
+    } else if (ast.type === 'abs') {
+        result = {
+            beh: 'abs_expr',
+            ptrn: gen.ptrn(ast.ptrn),  // FIXME: track declared variables ??
+            body: gen.expr(ast.body)
+        };
+    } else if (ast.type === 'ident') {
+        result = {
+            beh: 'ident_expr',
+            ident: ast.value
+        };
+    } else if (ast.type === 'const') {
+        result = {
+            beh: 'const_expr',
+            ident: ast.value
+        };
+    }
     log('Expr:', result);
     return result;
 };
@@ -188,6 +225,10 @@ gen.eqtn = function genEqtn(ast, scope) {
 /*
 { type: 'pair', head: pterm, tail: more }
 { type: 'ident', value: name }
+{ type: 'value', expr: term }
+{ type: 'block', value: [stmt, ...] }
+{ type: 'abs', ptrn: ptrn, body: expr }
+{ type: 'const', value: ... }
 */
 gen.ptrn = function genPtrn(ast, scope) {
     log('genPtrn:', ast, scope);
@@ -206,6 +247,21 @@ gen.ptrn = function genPtrn(ast, scope) {
         result = {
             beh: 'ident_ptrn',
             ident: name
+        };
+    } else if (ast.type === 'value') {
+        result = {
+            beh: 'value_ptrn',
+            expr: gen.expr(ast.expr)
+        };
+    } else if ((ast.type === 'block') || (ast.type === 'abs')) {
+        result = {
+            beh: 'value_ptrn',
+            expr: gen.expr(ast)
+        };
+    } else if (ast.type === 'const') {
+        result = {
+            beh: 'const_ptrn',
+            ident: ast.value
         };
     }
     log('Ptrn:', result);
