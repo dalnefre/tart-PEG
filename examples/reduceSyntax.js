@@ -91,32 +91,32 @@ stmt    <- 'LET' eqtn !'IN'
          / 'BECOME' expr
          / 'THROW' expr
          / expr
-['LET', equation, undefined] ==> { beh: 'let_stmt', eqtn: equation }
-[['AFTER', delay], 'SEND', message, 'TO', target] ==> { beh: 'after_send_stmt', dt: delay, msg: message, to: target }
-[[], 'SEND', message, 'TO', target] ==> { beh: 'send_stmt', msg: message, to: target }
-['CREATE', identifier, 'WITH', behavior] ==> { beh: 'create_stmt', ident: identifier, expr: behavior }
-['BECOME', behavior] ==> { beh: 'become_stmt', expr: behavior }
-['THROW', exception] ==> { beh: 'throw_stmt', expr: exception }
-expr ==> { beh: 'expr_stmt', expr: value }
+['LET', equation, undefined] ==> { type: 'let', eqtn: equation }
+[['AFTER', delay], 'SEND', message, 'TO', target] ==> { type: 'after_send', dt: delay, msg: message, to: target }
+[[], 'SEND', message, 'TO', target] ==> { type: 'send', msg: message, to: target }
+['CREATE', identifier, 'WITH', behavior] ==> { type: 'create', ident: identifier, expr: behavior }
+['BECOME', behavior] ==> { type: 'become', expr: behavior }
+['THROW', exception] ==> { type: 'throw', expr: exception }
+expr ==> { type: 'expr', expr: value }
 */
     ns.transform('stmt', function transformStatement(name, value) {
         log('transformStatement:', name, value);
         var result = value;
         if ((value.length === 3) && (value[0] === 'LET')) {
             result = {
-                beh: 'let_stmt',
+                type: 'let',
                 eqtn: value[1]
             };
         } else if ((value.length === 5) && (value[0][0] === 'AFTER') && (value[1] === 'SEND') && (value[3] === 'TO')) {
             result = {
-                beh: 'after_send_stmt',
+                type: 'after_send',
                 dt: value[0][1],
                 msg: value[2],
                 to: value[4]
             };
         } else if ((value.length === 5) && (value[1] === 'SEND') && (value[3] === 'TO')) {
             result = {
-                beh: 'send_stmt',
+                type: 'send',
                 msg: value[2],
                 to: value[4]
             };
@@ -149,23 +149,23 @@ expr ==> { beh: 'expr_stmt', expr: value }
             */
         } else if ((value.length === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
             result = {
-                beh: 'create_stmt',
+                type: 'create',
                 ident: value[1].value,  // extract actual identifier
                 expr: value[3]
             };
         } else if ((value.length === 2) && (value[0] === 'BECOME')) {
             result = {
-                beh: 'become_stmt',
+                type: 'become',
                 expr: value[1]
             };
         } else if ((value.length === 2) && (value[0] === 'THROW')) {
             result = {
-                beh: 'throw_stmt',
+                type: 'throw',
                 expr: value[1]
             };
         } else {
             result = {
-                beh: 'expr_stmt',
+                type: 'expr',
                 expr: value
             };
         }
@@ -247,9 +247,6 @@ call    <- ident '(' expr? ')'
 */
     ns.transform('call', function transformCall(name, value) {
         log('transformCall:', name, value);
-/*
-        var result = value;
-*/
         var result = {
             type: 'call'
         };
