@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var gen = module.exports;
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 // { value: [stmt, ...], ... }
 gen.humus = function genHumus(ast) {
@@ -67,12 +67,6 @@ gen.block = function genBlock(ast) {
 };
 
 /*
-stmt    <- 'LET' eqtn !'IN'
-         / ('AFTER' expr)? 'SEND' expr 'TO' expr
-         / 'CREATE' ident 'WITH' expr
-         / 'BECOME' expr
-         / 'THROW' expr
-         / expr
 { type: 'let', eqtn: equation }
 { type: 'send', msg: message, to: target }
 { type: 'after_send', dt: delay, msg: message, to: target }
@@ -92,7 +86,7 @@ gen.stmt = function genStmt(ast, scope) {
     } else if (ast.type === 'let') {
         result = {
             beh: 'let_stmt',
-            eqtn: gen.eqtn(ast.eqtn)
+            eqtn: gen.eqtn(ast.eqtn, scope)
         };
     } else if (ast.type === 'send') {
         result = {
@@ -108,13 +102,13 @@ gen.stmt = function genStmt(ast, scope) {
             dt: gen.expr(ast.dt)
         };
     } else if (ast.type === 'create') {
-        var ident = ast.ident;
+        var name = ast.ident;
         if (scope) {
-            scope[scope.length] = ident;  // FIXME: check for duplicates?
+            scope[scope.length] = name;  // FIXME: check for duplicates?
         }
         result = {
             beh: 'create_stmt',
-            ident: ident,
+            ident: name,
             expr: gen.expr(ast.expr)
         };
     } else if (ast.type === 'become') {
@@ -173,27 +167,47 @@ call    <- ident '(' expr? ')'
 */
 
 /*
-eqtn    <- ident '(' ptrn? ')' '=' expr
-         / ptrn '=' ptrn
-[ident, '(', [ptrn], ')', '=', expr] ==> { type: 'eqtn', left: ident, right: { type: 'abs', ptrn: ptrn, body: expr } }
-[lhs, '=', rhs] ==> { type: 'eqtn', left: lhs, right: rhs }
+{ type: 'eqtn', left: lhs, right: rhs }
+{ type: 'eqtn', left: { type: 'ident', value: name }, 
+                right: { type: 'abs', ptrn: ptrn, body: expr } }
 */
 gen.eqtn = function genEqtn(ast, scope) {
     log('genEqtn:', ast, scope);
     var result = ast;
+    if (ast.type === 'eqtn') {
+        result = {
+            beh: 'eqtn',
+            left: gen.ptrn(ast.left, scope),
+            right: gen.ptrn(ast.right, scope)
+        };
+    }
     log('Eqtn:', result);
     return result;
 };
 
 /*
-ptrn    <- pterm ',' ptrn
-         / pterm
-[pterm, ',', more] ==> { type: 'pair', head: pterm, tail: more }
-pterm ==> value
+{ type: 'pair', head: pterm, tail: more }
+{ type: 'ident', value: name }
 */
 gen.ptrn = function genPtrn(ast, scope) {
     log('genPtrn:', ast, scope);
     var result = ast;
+    if (ast.type === 'pair') {
+        result = {
+            beh: 'pair_ptrn',
+            head: gen.ptrn(ast.head, scope),
+            tail: gen.ptrn(ast.tail, scope)
+        };
+    } else if (ast.type === 'ident') {
+        var name = ast.value;
+        if (scope) {
+            scope[scope.length] = name;  // FIXME: check for duplicates?
+        }
+        result = {
+            beh: 'ident_ptrn',
+            ident: name
+        };
+    }
     log('Ptrn:', result);
     return result;
 };

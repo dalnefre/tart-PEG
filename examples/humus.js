@@ -50,11 +50,11 @@ require('./reduceSyntax.js').transform(humusSyntax);
 */
 var source = input.fromString(sponsor, 
 //    'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
-    'CREATE sink WITH \\_.[]\n'
+//    'CREATE sink WITH \\_.[]\n'
 //    'LET id = \\x.x'
 //    'LET id(x) = x'
 //    '(\\x.x)(42)'
-//    'LET ident_expr_beh(ident) = \\(cust, #eval, env).[ SEND env(ident) TO cust ]'
+    'LET ident_expr_beh(ident) = \\(cust, #eval, env).[ SEND env(ident) TO cust ]'
 );
 /*
 var source = input.fromString(sponsor, 
