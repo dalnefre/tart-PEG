@@ -81,8 +81,20 @@ humus   <- stmt+
 
 /*
 block   <- '[' stmt* ']'
+['[', [stmt, ...], ']'] ==> { type: block, stmts: [stmt, ...] }
 */
-    ns.transform('block', transformValue);
+    ns.transform('block', function transformBlock(name, value) {
+        log('transformBlock:', name, value);
+        var result = value;
+        if ((value.length === 3) && (value[0] === '[') && (value[2] === ']')) {
+            result = {
+                type: 'block',
+                stmts: value[1]
+            };
+        }
+        log('Block:', result);
+        return result;
+    });
 
 /*
 stmt    <- 'LET' eqtn !'IN'
