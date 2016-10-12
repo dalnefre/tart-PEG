@@ -81,7 +81,7 @@ humus   <- stmt+
 
 /*
 block   <- '[' stmt* ']'
-['[', [stmt, ...], ']'] ==> { type: block, stmts: [stmt, ...] }
+['[', [stmt, ...], ']'] ==> { type: block, value: [stmt, ...] }
 */
     ns.transform('block', function transformBlock(name, value) {
         log('transformBlock:', name, value);
@@ -89,7 +89,7 @@ block   <- '[' stmt* ']'
         if ((value.length === 3) && (value[0] === '[') && (value[2] === ']')) {
             result = {
                 type: 'block',
-                stmts: value[1]
+                value: value[1]
             };
         }
         log('Block:', result);
