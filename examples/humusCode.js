@@ -38,7 +38,7 @@ var log = function () {};
 // { value: [stmt, ...], ... }
 gen.humus = function genHumus(ast) {
     log('genHumus:', ast);
-    var result = genBlock(ast);
+    var result = gen.block(ast);
     log('Humus:', result);
     return result;
 };
@@ -49,7 +49,7 @@ gen.block = function genBlock(ast) {
     var final = { beh: 'empty_stmt' };
     var result = {
         beh: 'block_beh',
-        vars: [];
+        vars: [],
         stmt: final
     };
     var scope = result.vars;
@@ -108,7 +108,7 @@ gen.stmt = function genStmt(ast, scope) {
             dt: gen.expr(ast.dt)
         };
     } else if (ast.type === 'create') {
-        var ident = ast.ident.value;
+        var ident = ast.ident;
         if (scope) {
             scope[scope.length] = ident;  // FIXME: check for duplicates?
         }
