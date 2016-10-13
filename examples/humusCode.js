@@ -140,10 +140,12 @@ expr    <- 'LET' eqtn 'IN' expr
 { type: 'if', ... }
 { type: 'case', ... }
 { type: 'pair', head: term, tail: more }
-{ type: 'self' }
-{ type: 'block', value: [stmt, ...] }
-{ type: 'abs', ptrn: ptrn, body: expr }
+{ type: 'new', expr: term }
+{ type: 'app', abs: fn, arg: expr }
 { type: 'ident', value: name }
+{ type: 'block', value: [stmt, ...] }
+{ type: 'self' }
+{ type: 'abs', ptrn: ptrn, body: expr }
 { type: 'const', value: ... }
 { type: 'literal', value: ... }
 */
@@ -164,22 +166,33 @@ gen.expr = function genExpr(ast) {
             eqtn: gen.eqtn(ast.eqtn, scope),
             expr: gen.expr(ast.expr)
         };
-    } else if (ast.type === 'self') {
+    } else if (ast.type === 'new') {
         result = {
-            beh: 'self_expr'
+            beh: 'new_expr',
+            expr: gen.expr(ast.expr)
         };
-    } else if (ast.type === 'block') {
-        result = gen.block(ast);
-    } else if (ast.type === 'abs') {
+    } else if (ast.type === 'app') {
         result = {
-            beh: 'abs_expr',
-            ptrn: gen.ptrn(ast.ptrn),  // FIXME: track declared variables ??
-            body: gen.expr(ast.body)
+            beh: 'app_expr',
+            abs: gen.expr(ast.abs),
+            arg: gen.expr(ast.arg)
         };
     } else if (ast.type === 'ident') {
         result = {
             beh: 'ident_expr',
             ident: ast.value
+        };
+    } else if (ast.type === 'block') {
+        result = gen.block(ast);
+    } else if (ast.type === 'self') {
+        result = {
+            beh: 'self_expr'
+        };
+    } else if (ast.type === 'abs') {
+        result = {
+            beh: 'abs_expr',
+            ptrn: gen.ptrn(ast.ptrn),  // FIXME: track declared variables ??
+            body: gen.expr(ast.body)
         };
     } else if (ast.type === 'const') {
         result = {
@@ -195,26 +208,6 @@ gen.expr = function genExpr(ast) {
     log('Expr:', result);
     return result;
 };
-
-/*
-term    <- 'NEW' term
-         / const
-         / call
-         / '(' expr? ')'
-         / ident
-{ type: 'new', expr: term }
-{ type: 'const', ... }
-{ type: 'call', ... }
-{ type: 'const', value: null }
-{ type: 'ident', value: name }
-*/
-
-/*
-call    <- ident '(' expr? ')'
-         / '(' expr ')' '(' expr? ')'
-{ type: 'app', abs: ident, arg: expr }
-{ type: 'app', abs: abs, arg: expr }
-*/
 
 /*
 { type: 'eqtn', left: lhs, right: rhs }
@@ -238,9 +231,9 @@ gen.eqtn = function genEqtn(ast, scope) {
 /*
 { type: 'pair', head: pterm, tail: more }
 { type: 'any' }
-{ type: 'self' }
 { type: 'value', expr: term }
 { type: 'block', value: [stmt, ...] }
+{ type: 'self' }
 { type: 'abs', ptrn: ptrn, body: expr }
 { type: 'ident', value: name }
 { type: 'const', value: ... }
@@ -259,19 +252,10 @@ gen.ptrn = function genPtrn(ast, scope) {
         result = {
             beh: 'any_ptrn'
         };
-    } else if (ast.type === 'self') {
-        result = {
-            beh: 'self_ptrn'
-        };
     } else if (ast.type === 'value') {
         result = {
             beh: 'value_ptrn',
             expr: gen.expr(ast.expr)
-        };
-    } else if ((ast.type === 'block') || (ast.type === 'abs')) {
-        result = {
-            beh: 'value_ptrn',
-            expr: gen.expr(ast)
         };
     } else if (ast.type === 'ident') {
         var name = ast.value;
@@ -281,6 +265,15 @@ gen.ptrn = function genPtrn(ast, scope) {
         result = {
             beh: 'ident_ptrn',
             ident: name
+        };
+    } else if ((ast.type === 'block') || (ast.type === 'abs')) {
+        result = {
+            beh: 'value_ptrn',
+            expr: gen.expr(ast)
+        };
+    } else if (ast.type === 'self') {
+        result = {
+            beh: 'self_ptrn'
         };
     } else if (ast.type === 'const') {
         result = {
@@ -305,7 +298,6 @@ pterm   <- '_'
          / ident
 { type: 'any' }
 { type: 'value', expr: term }
-{ type: 'const', value: null }
 { type: 'const', ... }
 { type: 'ident', value: name }
 */
@@ -322,9 +314,9 @@ const   <- block
          / 'TRUE'
          / 'FALSE'
          / '?'
-{ type: block, ... }
+{ type: 'block', ... }
 { type: 'self' }
 { type: 'abs', ptrn: ptrn, body: expr }
-{ type: literal, value: ... }
+{ type: 'literal', value: ... }
 { type: 'const', value: ... }
 */
