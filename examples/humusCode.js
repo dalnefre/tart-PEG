@@ -115,15 +115,6 @@ gen.stmt = function genStmt(ast, scope) {
     return result;
 };
 
-/*
-expr    <- 'LET' eqtn 'IN' expr
-         / 'IF' eqtn expr ('ELIF' eqtn expr)* ('ELSE' expr)?
-         / 'CASE' expr 'OF' (ptrn ':' expr)+ 'END'
-         / term ',' expr
-         / term
-{ type: 'if', ... }
-{ type: 'case', ... }
-*/
 gen.expr = function genExpr(ast) {
     log('genExpr:', ast);
     var result = ast;
@@ -140,6 +131,19 @@ gen.expr = function genExpr(ast) {
             vars: scope,  // FIXME: declare variables for LET/IN ??
             eqtn: gen.eqtn(ast.eqtn, scope),
             expr: gen.expr(ast.expr)
+        };
+    } else if (ast.type === 'if') {  // { type: 'if', eqtn: eqtn, expr: cnsq, next: altn }
+        result = {
+            beh: 'if_expr',
+            eqtn: gen.eqtn(ast.eqtn),  // FIXME: track declared variables ??
+            expr: gen.expr(ast.expr),
+            next: gen.expr(ast.next)
+        };
+    } else if (ast.type === 'case') {  // { type: 'case', expr: value, next: ... }
+        result = {
+            beh: 'case_expr',
+            expr: gen.expr(ast.expr),
+            next: gen.case(ast.next)
         };
     } else if (ast.type === 'new') {  // { type: 'new', expr: term }
         result = {
@@ -196,6 +200,25 @@ gen.eqtn = function genEqtn(ast, scope) {
         };
     }
     log('Eqtn:', result);
+    return result;
+};
+
+gen.case = function genCase(ast) {
+    log('genCase:', ast);
+    var result = ast;
+    if (ast.type === 'choice') {  // { type: 'choice', ptrn: cond, expr: body, next: ... }
+        result = {
+            beh: 'case_choice',
+            ptrn: gen.ptrn(ast.ptrn),  // FIXME: track declared variables ??
+            expr: gen.expr(ast.expr),
+            next: gen.case(ast.next)
+        };
+    } else if (ast.type === 'end') {  // { type: 'end' }
+        result = {
+            beh: 'case_end'
+        };
+    }
+    log('Case:', result);
     return result;
 };
 
