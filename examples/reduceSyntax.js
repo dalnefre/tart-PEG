@@ -239,11 +239,8 @@ term    <- 'NEW' term
          / '(' expr? ')'
          / ident
 ['NEW', term] ==> { type: 'new', expr: term }
-{ type: 'const', ... } ==> value
-{ type: 'call', ... } ==> value
 ['(', [], ')'] ==> { type: 'const', value: null }
 ['(', [expr], ')'] ==> expr
-{ type: 'ident', value: name } ==> value
 */
     ns.transform('term', function transformTerm(name, value) {
         log('transformTerm:', name, value);
@@ -270,13 +267,16 @@ term    <- 'NEW' term
 /*
 call    <- ident '(' expr? ')'
          / '(' expr ')' '(' expr? ')'
-[ident, '(', [expr], ')'] ==> { type: 'app', abs: ident, arg: expr }
+[ident, '(', [], ')'] ==> { type: 'app', abs: { type: 'ident', value: name }, arg: { type: 'const', value: null } }
+[ident, '(', [expr], ')'] ==> { type: 'app', abs: { type: 'ident', value: name }, arg: expr }
+['(', abs, ')', '(', [], ')'] ==> { type: 'app', abs: abs, arg: { type: 'const', value: null } }
 ['(', abs, ')', '(', [expr], ')'] ==> { type: 'app', abs: abs, arg: expr }
+{ type: 'const', value: null }
 */
     ns.transform('call', function transformCall(name, value) {
         log('transformCall:', name, value);
         var result = {
-            type: 'call'
+            type: 'app'
         };
         var expr;
         if ((value.length === 4) && (value[1] === '(') && (value[3] === ')')) {
@@ -301,7 +301,8 @@ call    <- ident '(' expr? ')'
 /*
 eqtn    <- ident '(' ptrn? ')' '=' expr
          / ptrn '=' ptrn
-[ident, '(', [ptrn], ')', '=', expr] ==> { type: 'eqtn', left: ident, right: { type: 'abs', ptrn: ptrn, body: expr } }
+[ident, '(', [ptrn], ')', '=', expr] ==> { type: 'eqtn', left: { type: 'ident', value: name }, 
+                                                        right: { type: 'abs', ptrn: ptrn, body: expr } }
 [lhs, '=', rhs] ==> { type: 'eqtn', left: lhs, right: rhs }
 */
     ns.transform('eqtn', function transformEquation(name, value) {
@@ -455,7 +456,7 @@ const   <- block
     });
 
 /*
-ident   <- { type: 'ident' }
+ident   <- { type: 'ident', value: name }
 */
     ns.transform('ident', transformValue);
 
