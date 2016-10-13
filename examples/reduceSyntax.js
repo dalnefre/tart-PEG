@@ -72,6 +72,15 @@ name, value ==> { type: name }
         log('Named:', result);
         return result;
     };
+/*
+name, value ==> { type: 'literal', value: value }
+*/
+    var transformLiteral = function transformLiteral(name, value) {
+        log('transformLiteral:', name, value);
+        var result = { type: 'literal', value: value };
+        log('Literal:', result);
+        return result;
+    };
 
 /*
 humus   <- stmt+
@@ -135,7 +144,7 @@ expr ==> { type: 'expr', expr: value }
         } else if ((value.length === 4) && (value[0] === 'CREATE') && (value[2] === 'WITH')) {
             result = {
                 type: 'create',
-                ident: value[1].value,  // extract actual identifier
+                ident: value[1],
                 expr: value[3]
             };
         } else if ((value.length === 2) && (value[0] === 'BECOME')) {
@@ -271,7 +280,6 @@ call    <- ident '(' expr? ')'
 [ident, '(', [expr], ')'] ==> { type: 'app', abs: { type: 'ident', value: name }, arg: expr }
 ['(', abs, ')', '(', [], ')'] ==> { type: 'app', abs: abs, arg: { type: 'const', value: null } }
 ['(', abs, ')', '(', [expr], ')'] ==> { type: 'app', abs: abs, arg: expr }
-{ type: 'const', value: null }
 */
     ns.transform('call', function transformCall(name, value) {
         log('transformCall:', name, value);
@@ -460,15 +468,6 @@ ident   <- { type: 'ident', value: name }
 */
     ns.transform('ident', transformValue);
 
-/*
-name, value ==> { type: 'literal', value: value }
-*/
-    var transformLiteral = function transformLiteral(name, value) {
-        log('transformLiteral:', name, value);
-        var result = { type: 'literal', value: value };
-        log('Literal:', result);
-        return result;
-    };
 /*
 number  <- { type: 'literal', value: { type: 'number', ... } }
 */
