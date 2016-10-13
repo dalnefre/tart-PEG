@@ -35,7 +35,9 @@ var gen = module.exports;
 var log = console.log;
 //var log = function () {};
 
-// { value: [stmt, ...], ... }
+/*
+{ value: [stmt, ...], ... }
+*/
 gen.humus = function genHumus(ast) {
     log('genHumus:', ast);
     var result = gen.block(ast);
@@ -43,7 +45,9 @@ gen.humus = function genHumus(ast) {
     return result;
 };
 
-// { value: [stmt, ...], ... }
+/*
+{ value: [stmt, ...], ... }
+*/
 gen.block = function genBlock(ast) {
     log('genBlock:', ast);
     var final = { beh: 'empty_stmt' };
@@ -136,11 +140,12 @@ expr    <- 'LET' eqtn 'IN' expr
 { type: 'if', ... }
 { type: 'case', ... }
 { type: 'pair', head: term, tail: more }
-...
+{ type: 'self' }
 { type: 'block', value: [stmt, ...] }
 { type: 'abs', ptrn: ptrn, body: expr }
 { type: 'ident', value: name }
 { type: 'const', value: ... }
+{ type: 'literal', value: ... }
 */
 gen.expr = function genExpr(ast) {
     log('genExpr:', ast);
@@ -158,6 +163,10 @@ gen.expr = function genExpr(ast) {
             vars: scope,  // FIXME: declare variables for LET/IN ??
             eqtn: gen.eqtn(ast.eqtn, scope),
             expr: gen.expr(ast.expr)
+        };
+    } else if (ast.type === 'self') {
+        result = {
+            beh: 'self_expr'
         };
     } else if (ast.type === 'block') {
         result = gen.block(ast);
@@ -177,6 +186,11 @@ gen.expr = function genExpr(ast) {
             beh: 'const_expr',
             ident: ast.value
         };
+    } else if (ast.type === 'literal') {
+        result = {
+            beh: 'literal_expr',
+            ident: ast.value
+        };
     }
     log('Expr:', result);
     return result;
@@ -188,19 +202,18 @@ term    <- 'NEW' term
          / call
          / '(' expr? ')'
          / ident
-['NEW', term] ==> { type: 'new', expr: term }
-{ type: 'const', ... } ==> value
-{ type: 'call', ... } ==> value
-['(', [], ')'] ==> { type: 'const', value: null }
-['(', [expr], ')'] ==> expr
-{ type: 'ident', value: name } ==> value
+{ type: 'new', expr: term }
+{ type: 'const', ... }
+{ type: 'call', ... }
+{ type: 'const', value: null }
+{ type: 'ident', value: name }
 */
 
 /*
 call    <- ident '(' expr? ')'
          / '(' expr ')' '(' expr? ')'
-[ident, '(', [expr], ')'] ==> { type: 'app', abs: ident, arg: expr }
-['(', abs, ')', '(', [expr], ')'] ==> { type: 'app', abs: abs, arg: expr }
+{ type: 'app', abs: ident, arg: expr }
+{ type: 'app', abs: abs, arg: expr }
 */
 
 /*
@@ -224,11 +237,14 @@ gen.eqtn = function genEqtn(ast, scope) {
 
 /*
 { type: 'pair', head: pterm, tail: more }
-{ type: 'ident', value: name }
+{ type: 'any' }
+{ type: 'self' }
 { type: 'value', expr: term }
 { type: 'block', value: [stmt, ...] }
 { type: 'abs', ptrn: ptrn, body: expr }
+{ type: 'ident', value: name }
 { type: 'const', value: ... }
+{ type: 'literal', value: ... }
 */
 gen.ptrn = function genPtrn(ast, scope) {
     log('genPtrn:', ast, scope);
@@ -239,14 +255,13 @@ gen.ptrn = function genPtrn(ast, scope) {
             head: gen.ptrn(ast.head, scope),
             tail: gen.ptrn(ast.tail, scope)
         };
-    } else if (ast.type === 'ident') {
-        var name = ast.value;
-        if (scope) {
-            scope[scope.length] = name;  // FIXME: check for duplicates?
-        }
+    } else if (ast.type === 'any') {
         result = {
-            beh: 'ident_ptrn',
-            ident: name
+            beh: 'any_ptrn'
+        };
+    } else if (ast.type === 'self') {
+        result = {
+            beh: 'self_ptrn'
         };
     } else if (ast.type === 'value') {
         result = {
@@ -258,10 +273,24 @@ gen.ptrn = function genPtrn(ast, scope) {
             beh: 'value_ptrn',
             expr: gen.expr(ast)
         };
+    } else if (ast.type === 'ident') {
+        var name = ast.value;
+        if (scope) {
+            scope[scope.length] = name;  // FIXME: check for duplicates?
+        }
+        result = {
+            beh: 'ident_ptrn',
+            ident: name
+        };
     } else if (ast.type === 'const') {
         result = {
             beh: 'const_ptrn',
-            ident: ast.value
+            value: ast.value
+        };
+    } else if (ast.type === 'literal') {
+        result = {
+            beh: 'literal_ptrn',
+            value: ast.value
         };
     }
     log('Ptrn:', result);
@@ -274,12 +303,11 @@ pterm   <- '_'
          / '(' ptrn? ')'
          / const
          / ident
-'_' ==> ? { type: 'any' }
-['$', term] ==> { type: 'value', expr: term }
-['(', [], ')'] ==> { type: 'const', value: null }
-['(', [ptrn], ')'] ==> ptrn
-{ type: 'const', ... } ==> value
-{ type: 'ident', value: name } ==> value
+{ type: 'any' }
+{ type: 'value', expr: term }
+{ type: 'const', value: null }
+{ type: 'const', ... }
+{ type: 'ident', value: name }
 */
 
 /*
@@ -294,35 +322,9 @@ const   <- block
          / 'TRUE'
          / 'FALSE'
          / '?'
-{ type: block, ... } ==> value
-'SELF' ==> { type: 'self' }
-['\\', ptrn, '.', body] ==> { type: 'abs', ptrn: ptrn, body: expr }
-{ type: symbol, ... } ==> value
-{ type: number, ... } ==> value
-{ type: char, ... } ==> value
-{ type: string, ... } ==> value
-'NIL' ==> { type: 'const', value: null }
-'TRUE' ==> { type: 'const', value: true }
-'FALSE' ==> { type: 'const', value: false }
-'?' ==> { type: 'const', value: undefined }
-*/
-
-/*
-ident   <- { type:'ident', value:name }
-*/
-
-/*
-number  <- { type:'number' }
-*/
-
-/*
-char    <- { type:'char' }
-*/
-
-/*
-string  <- { type:'string' }
-*/
-
-/*
-symbol  <- { type:'symbol' }
+{ type: block, ... }
+{ type: 'self' }
+{ type: 'abs', ptrn: ptrn, body: expr }
+{ type: literal, value: ... }
+{ type: 'const', value: ... }
 */
