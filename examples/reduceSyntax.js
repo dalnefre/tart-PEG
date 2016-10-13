@@ -407,13 +407,10 @@ const   <- block
          / 'TRUE'
          / 'FALSE'
          / '?'
-{ type: block, ... } ==> value
+{ type: 'block', ... } ==> value
 'SELF' ==> { type: 'self' }
 ['\\', ptrn, '.', body] ==> { type: 'abs', ptrn: ptrn, body: expr }
-{ type: symbol, ... } ==> value
-{ type: number, ... } ==> value
-{ type: char, ... } ==> value
-{ type: string, ... } ==> value
+{ type: literal, value: { type: ... } } ==> value
 'NIL' ==> { type: 'const', value: null }
 'TRUE' ==> { type: 'const', value: true }
 'FALSE' ==> { type: 'const', value: false }
@@ -458,29 +455,38 @@ const   <- block
     });
 
 /*
-ident   <- { type:'ident' }
+ident   <- { type: 'ident' }
 */
     ns.transform('ident', transformValue);
 
 /*
-number  <- { type:'number' }
+name, value ==> { type: 'literal', value: value }
 */
-    ns.transform('number', transformValue);
+    var transformLiteral = function transformLiteral(name, value) {
+        log('transformLiteral:', name, value);
+        var result = { type: 'literal', value: value };
+        log('Literal:', result);
+        return result;
+    };
+/*
+number  <- { type: 'literal', value: { type: 'number', ... } }
+*/
+    ns.transform('number', transformLiteral);
 
 /*
-char    <- { type:'char' }
+char    <- { type: 'literal', value: { type: 'char', ... } }
 */
-    ns.transform('char', transformValue);
+    ns.transform('char', transformLiteral);
 
 /*
-string  <- { type:'string' }
+string  <- { type: 'literal', value: { type: 'string', ... } }
 */
-    ns.transform('string', transformValue);
+    ns.transform('string', transformLiteral);
 
 /*
-symbol  <- { type:'symbol' }
+symbol  <- { type: 'literal', value: { type: 'symbol', ... } }
 */
-    ns.transform('symbol', transformValue);
+    ns.transform('symbol', transformLiteral);
 
     return ns;
 };
