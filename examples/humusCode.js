@@ -35,19 +35,13 @@ var gen = module.exports;
 var log = console.log;
 //var log = function () {};
 
-/*
-{ value: [stmt, ...], ... }
-*/
 gen.humus = function genHumus(ast) {
     log('genHumus:', ast);
-    var result = gen.block(ast);
+    var result = gen.block(ast);  // { value: [stmt, ...], ... }
     log('Humus:', result);
     return result;
 };
 
-/*
-{ value: [stmt, ...], ... }
-*/
 gen.block = function genBlock(ast) {
     log('genBlock:', ast);
     var final = { beh: 'empty_stmt' };
@@ -58,7 +52,7 @@ gen.block = function genBlock(ast) {
     };
     var scope = result.vars;
     var current = result;
-    ast.value.forEach(function (stmt) {
+    ast.value.forEach(function (stmt) {  // { value: [stmt, ...], ... }
         current.stmt = {
             beh: 'stmt_pair',
             head: gen.stmt(stmt, scope),
@@ -70,43 +64,34 @@ gen.block = function genBlock(ast) {
     return result;
 };
 
-/*
-{ type: 'let', eqtn: equation }
-{ type: 'send', msg: message, to: target }
-{ type: 'after_send', dt: delay, msg: message, to: target }
-{ type: 'create', ident: identifier, expr: behavior }
-{ type: 'become', expr: behavior }
-{ type: 'throw', expr: exception }
-{ type: 'expr', expr: value }
-*/
 gen.stmt = function genStmt(ast, scope) {
     log('genStmt:', ast, scope);
     var result = ast;
-    if (ast.type === 'expr') {
+    if (ast.type === 'expr') {  // { type: 'expr', expr: value }
         result = {
             beh: 'expr_stmt',
             expr: gen.expr(ast.expr)
         };
-    } else if (ast.type === 'let') {
+    } else if (ast.type === 'let') {  // { type: 'let', eqtn: equation }
         result = {
             beh: 'let_stmt',
             eqtn: gen.eqtn(ast.eqtn, scope)
         };
-    } else if (ast.type === 'send') {
+    } else if (ast.type === 'send') {  // { type: 'send', msg: message, to: target }
         result = {
             beh: 'send_stmt',
             msg: gen.expr(ast.msg),
             to: gen.expr(ast.to)
         };
-    } else if (ast.type === 'after_send') {
+    } else if (ast.type === 'after_send') {  // { type: 'after_send', dt: delay, msg: message, to: target }
         result = {
             beh: 'after_send_stmt',
             msg: gen.expr(ast.msg),
             to: gen.expr(ast.to),
             dt: gen.expr(ast.dt)
         };
-    } else if (ast.type === 'create') {
-        var name = ast.ident;
+    } else if (ast.type === 'create') {  // { type: 'create', ident: identifier, expr: behavior }
+        var name = ast.ident.value,  // extract actual identifier name
         if (scope) {
             scope[scope.length] = name;  // FIXME: check for duplicates?
         }
@@ -115,12 +100,12 @@ gen.stmt = function genStmt(ast, scope) {
             ident: name,
             expr: gen.expr(ast.expr)
         };
-    } else if (ast.type === 'become') {
+    } else if (ast.type === 'become') {  // { type: 'become', expr: behavior }
         result = {
             beh: 'become_stmt',
             expr: gen.expr(ast.expr)
         };
-    } else if (ast.type === 'throw') {
+    } else if (ast.type === 'throw') {  // { type: 'throw', expr: exception }
         result = {
             beh: 'throw_stmt',
             expr: gen.expr(ast.expr)
