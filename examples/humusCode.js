@@ -35,6 +35,37 @@ var gen = module.exports;
 //var log = console.log;
 var log = function () {};
 
+gen._code = (function () {
+    var the_any_ptrn = { beh: 'any_ptrn' };
+    var the_self_ptrn = { beh: 'self_ptrn' };
+    return {
+        eqtn: function eqtn(left, right) {
+            return { beh: 'eqtn', left: left, right: right };
+        },
+        any_ptrn: function any_ptrn() {
+            return the_any_ptrn;
+        },
+        pair_ptrn: function pair_ptrn(head, tail) {
+            return { beh: 'pair_ptrn', head: head, tail: tail };
+        },
+        ident_ptrn: function ident_ptrn(name) {
+            return { beh: 'ident_ptrn', ident: name };
+        },
+        self_ptrn: function self_ptrn() {
+            return the_self_ptrn;
+        },
+        value_ptrn: function value_ptrn(expr) {
+            return { beh: 'value_ptrn', expr: expr };
+        },
+        const_ptrn: function const_ptrn(value) {
+            return { beh: 'const_ptrn', value: value };
+        },
+        literal_ptrn: function literal_ptrn(value) {
+            return { beh: 'literal_ptrn', value: value };
+        }
+    };
+})();
+
 gen.humus = function genHumus(ast) {
     log('genHumus:', ast);
     var result = gen.block(ast);  // { value: [stmt, ...], ... }
@@ -196,11 +227,10 @@ gen.eqtn = function genEqtn(ast, scope) {
     log('genEqtn:', ast, scope);
     var result = ast;
     if (ast.type === 'eqtn') {  // { type: 'eqtn', left: lhs, right: rhs }
-        result = {
-            beh: 'eqtn',
-            left: gen.ptrn(ast.left, scope),
-            right: gen.ptrn(ast.right, scope)
-        };
+        result = gen._code.eqtn(
+            gen.ptrn(ast.left, scope), 
+            gen.ptrn(ast.right, scope)
+        );
     }
     log('Eqtn:', result);
     return result;
@@ -229,49 +259,29 @@ gen.ptrn = function genPtrn(ast, scope) {
     log('genPtrn:', ast, scope);
     var result = ast;
     if (ast.type === 'pair') {  // { type: 'pair', head: pterm, tail: more }
-        result = {
-            beh: 'pair_ptrn',
-            head: gen.ptrn(ast.head, scope),
-            tail: gen.ptrn(ast.tail, scope)
-        };
+        result = gen._code.pair_ptrn(
+            gen.ptrn(ast.head, scope), 
+            gen.ptrn(ast.tail, scope)
+        );
     } else if (ast.type === 'any') {  // { type: 'any' }
-        result = {
-            beh: 'any_ptrn'
-        };
+        result = gen._code.any_ptrn();
     } else if (ast.type === 'value') {  // { type: 'value', expr: term }
-        result = {
-            beh: 'value_ptrn',
-            expr: gen.expr(ast.expr)
-        };
+        result = gen._code.value_ptrn(gen.expr(ast));
     } else if (ast.type === 'ident') {  // { type: 'ident', value: name }
         var name = ast.value;
         if (scope) {
             scope[scope.length] = name;  // FIXME: check for duplicates?
         }
-        result = {
-            beh: 'ident_ptrn',
-            ident: name
-        };
+        result = gen._code.ident_ptrn(name);
     } else if (ast.type === 'self') {  // { type: 'self' }
-        result = {
-            beh: 'self_ptrn'
-        };
+        result = gen._code.self_ptrn();
     } else if ((ast.type === 'block')   // { type: 'block', value: [stmt, ...] }
             || (ast.type === 'abs')) {  // { type: 'abs', ptrn: ptrn, body: expr }
-        result = {
-            beh: 'value_ptrn',
-            expr: gen.expr(ast)
-        };
+        result = gen._code.value_ptrn(gen.expr(ast));
     } else if (ast.type === 'const') {  // { type: 'const', value: ... }
-        result = {
-            beh: 'const_ptrn',
-            value: ast.value
-        };
+        result = gen._code.const_ptrn(ast.value);
     } else if (ast.type === 'literal') {  // { type: 'literal', value: ... }
-        result = {
-            beh: 'literal_ptrn',
-            value: ast.value
-        };
+        result = gen._code.literal_ptrn(ast.value);
     }
     log('Ptrn:', result);
     return result;
