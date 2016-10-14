@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var gen = module.exports;
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 gen.humus = function genHumus(ast) {
     log('genHumus:', ast);

@@ -30,8 +30,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var tart = require('tart-tracing');
 var tracing = tart.tracing();
@@ -59,7 +59,6 @@ var source = input.fromString(sponsor,
 );
 */
 /*
-*/
 var source = input.fromString(sponsor, 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
   + 'CREATE R WITH label_beh(println, #Right)\n'
@@ -67,13 +66,14 @@ var source = input.fromString(sponsor,
   + 'SEND #Hello TO R\n'
   + 'SEND #Hello TO L\n'
 );
+*/
 /*
+*/
 var source = input.fromStream(sponsor, 
     require('fs').createReadStream('examples/sample.hum', {
         encoding: 'utf8'
     })
 );
-*/
 
 var pattern = humusTokens.call('token');
 var tokens = input.fromPEG(sponsor, source, pattern);
@@ -82,6 +82,8 @@ var start = sponsor(PEG.start(
     humusSyntax.call('humus'),
     sponsor(function okBeh(m) {
         console.log('Syntax OK:', JSON.stringify(m, null, '  '));
+/*
+*/
         var code = humusCode.humus(m);
         console.log('humusCode:', JSON.stringify(code, null, '  '));
     }),
