@@ -36,12 +36,22 @@ var gen = module.exports;
 var log = function () {};
 
 gen._code = (function () {
+    var the_empty_stmt = { beh: 'empty_stmt' };
     var the_case_end = { beh: 'case_end' };
     var the_self_expr = { beh: 'self_expr' };
     var the_any_ptrn = { beh: 'any_ptrn' };
     var the_self_ptrn = { beh: 'self_ptrn' };
 
     return {
+        block: function block(vars, stmt) {
+            return { beh: 'block', vars: vars, stmt: stmt };
+        },
+        pair_stmt: function pair_expr(head, tail) {
+            return { beh: 'pair_stmt', head: head, tail: tail };
+        },
+        empty_stmt: function empty_stmt() {
+            return the_empty_stmt;
+        },
         expr_stmt: function expr_stmt(expr) {
             return { beh: 'expr_stmt', expr: expr };
         },
@@ -131,32 +141,24 @@ gen._code = (function () {
 
 gen.humus = function genHumus(ast) {
     log('genHumus:', ast);
-    var result = gen.block(ast);  // { value: [stmt, ...], ... }
+    var scope = [];  // IMPORTANT: MUST ADD VARS TO SCOPE BEFORE GENERATING CODE
+    var block = gen.block(ast.value, scope);  // { value: [stmt, ...], ... }
+    var result = gen._code.block(scope, block);
     log('Humus:', result);
     return result;
 };
 
-gen.block = function genBlock(ast) {
-    log('genBlock:', ast);
-    var final = { beh: 'empty_stmt' };
-    var result = {
-        tail: final  // placeholder for initial statement
-    };
-    var scope = [];
-    var current = result;
-    ast.value.forEach(function (stmt) {  // { value: [stmt, ...], ... }
-        current.tail = {
-            beh: 'stmt_pair',
-            head: gen.stmt(stmt, scope),
-            tail: final
-        };
-        current = current.tail;
-    });
-    result = {
-        beh: 'block_beh',
-        vars: [],
-        stmt: result.tail
-    };
+gen.block = function genBlock(list, scope) {
+    log('genBlock:', list, scope);
+    var result = list;
+    if (list.length > 0) {  // [stmt, ...]
+        var head = gen.stmt(list[0], scope);
+        var tail = gen.block(list.slice(1), scope);
+        // IMPORTANT: MUST ADD VARS TO SCOPE BEFORE GENERATING CODE
+        result = gen._code.pair_stmt(head, tail);
+    } else {  // []
+        result = gen._code.empty_stmt();
+    }
     log('Block:', result);
     return result;
 };
@@ -228,7 +230,7 @@ gen.expr = function genExpr(ast) {
     } else if (ast.type === 'ident') {  // { type: 'ident', value: name }
         result = gen._code.ident_expr(ast.value);
     } else if (ast.type === 'block') {  // { type: 'block', value: [stmt, ...] }
-        result = gen.block(ast);
+        result = gen.humus(ast);
     } else if (ast.type === 'self') {  // { type: 'self' }
         result = gen._code.self_expr();
     } else if (ast.type === 'abs') {  // { type: 'abs', ptrn: ptrn, body: expr }
