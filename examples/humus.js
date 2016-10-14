@@ -4,7 +4,7 @@ humus.js - chained parser for the Actor language Humus
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Dale Schumacher
+Copyright (c) 2015-2016 Dale Schumacher
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
