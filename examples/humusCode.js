@@ -42,6 +42,27 @@ gen._code = (function () {
     var the_self_ptrn = { beh: 'self_ptrn' };
 
     return {
+        expr_stmt: function expr_stmt(expr) {
+            return { beh: 'expr_stmt', expr: expr };
+        },
+        let_stmt: function let_stmt(eqtn) {
+            return { beh: 'let_stmt', eqtn: eqtn };
+        },
+        send_stmt: function send_stmt(msg, to) {
+            return { beh: 'send_stmt', msg: msg, to: to };
+        },
+        after_send_stmt: function after_send_stmt(msg, to, dt) {
+            return { beh: 'after_send_stmt', msg: msg, to: to, dt: dt };
+        },
+        create_stmt: function create_stmt(name, expr) {
+            return { beh: 'create_stmt', ident: name, expr: expr };
+        },
+        become_stmt: function become_stmt(expr) {
+            return { beh: 'become_stmt', expr: expr };
+        },
+        throw_stmt: function throw_stmt(expr) {
+            return { beh: 'throw_stmt', expr: expr };
+        },
         pair_expr: function pair_expr(head, tail) {
             return { beh: 'pair_expr', head: head, tail: tail };
         },
@@ -144,48 +165,30 @@ gen.stmt = function genStmt(ast, scope) {
     log('genStmt:', ast, scope);
     var result = ast;
     if (ast.type === 'expr') {  // { type: 'expr', expr: value }
-        result = {
-            beh: 'expr_stmt',
-            expr: gen.expr(ast.expr)
-        };
+        result = gen._code.expr_stmt(gen.expr(ast.expr));
     } else if (ast.type === 'let') {  // { type: 'let', eqtn: equation }
-        result = {
-            beh: 'let_stmt',
-            eqtn: gen.eqtn(ast.eqtn, scope)
-        };
+        result = gen._code.let_stmt(gen.eqtn(ast.eqtn, scope));
     } else if (ast.type === 'send') {  // { type: 'send', msg: message, to: target }
-        result = {
-            beh: 'send_stmt',
-            msg: gen.expr(ast.msg),
-            to: gen.expr(ast.to)
-        };
+        result = gen._code.send_stmt(
+            gen.expr(ast.msg), 
+            gen.expr(ast.to)
+        );
     } else if (ast.type === 'after_send') {  // { type: 'after_send', dt: delay, msg: message, to: target }
-        result = {
-            beh: 'after_send_stmt',
-            msg: gen.expr(ast.msg),
-            to: gen.expr(ast.to),
-            dt: gen.expr(ast.dt)
-        };
+        result = gen._code.after_send_stmt(
+            gen.expr(ast.msg), 
+            gen.expr(ast.to),
+            gen.expr(ast.dt)
+        );
     } else if (ast.type === 'create') {  // { type: 'create', ident: identifier, expr: behavior }
         var name = ast.ident.value;  // extract actual identifier name
         if (scope) {
-            scope[scope.length] = name;  // FIXME: check for duplicates?
+            scope.push(name);  // FIXME: check for duplicates?
         }
-        result = {
-            beh: 'create_stmt',
-            ident: name,
-            expr: gen.expr(ast.expr)
-        };
+        result = gen._code.create_stmt(name, gen.expr(ast.expr));
     } else if (ast.type === 'become') {  // { type: 'become', expr: behavior }
-        result = {
-            beh: 'become_stmt',
-            expr: gen.expr(ast.expr)
-        };
+        result = gen._code.become_stmt(gen.expr(ast.expr));
     } else if (ast.type === 'throw') {  // { type: 'throw', expr: exception }
-        result = {
-            beh: 'throw_stmt',
-            expr: gen.expr(ast.expr)
-        };
+        result = gen._code.throw_stmt(gen.expr(ast.expr));
     }
     log('Stmt:', result);
     return result;
@@ -286,7 +289,7 @@ gen.ptrn = function genPtrn(ast, scope) {
     } else if (ast.type === 'ident') {  // { type: 'ident', value: name }
         var name = ast.value;
         if (scope) {
-            scope[scope.length] = name;  // FIXME: check for duplicates?
+            scope.push(name);  // FIXME: check for duplicates?
         }
         result = gen._code.ident_ptrn(name);
     } else if (ast.type === 'self') {  // { type: 'self' }
