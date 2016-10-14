@@ -46,8 +46,9 @@ require('./reduceTokens.js').transform(humusTokens);
 var humusSyntax = require('./humusSyntax.js').build(sponsor/*, log*/);
 require('./reduceSyntax.js').transform(humusSyntax);
 
+var humusCode = require('./humusCode.js');
+
 /*
-*/
 var source = input.fromString(sponsor, 
 //    'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
 //    'CREATE sink WITH \\_.[]\n'
@@ -56,7 +57,9 @@ var source = input.fromString(sponsor,
 //    '(\\x.x)(42)'
     'LET ident_expr_beh(ident) = \\(cust, #eval, env).[ SEND env(ident) TO cust ]'
 );
+*/
 /*
+*/
 var source = input.fromString(sponsor, 
     'LET label_beh(cust, label) = \\msg.[ SEND (label, msg) TO cust ]\n'
   + 'CREATE R WITH label_beh(println, #Right)\n'
@@ -64,7 +67,6 @@ var source = input.fromString(sponsor,
   + 'SEND #Hello TO R\n'
   + 'SEND #Hello TO L\n'
 );
-*/
 /*
 var source = input.fromStream(sponsor, 
     require('fs').createReadStream('examples/sample.hum', {
@@ -80,7 +82,6 @@ var start = sponsor(PEG.start(
     humusSyntax.call('humus'),
     sponsor(function okBeh(m) {
         console.log('Syntax OK:', JSON.stringify(m, null, '  '));
-        var humusCode = require('./humusCode.js');
         var code = humusCode.humus(m);
         console.log('humusCode:', JSON.stringify(code, null, '  '));
     }),

@@ -46,20 +46,23 @@ gen.block = function genBlock(ast) {
     log('genBlock:', ast);
     var final = { beh: 'empty_stmt' };
     var result = {
-        beh: 'block_beh',
-        vars: [],
-        stmt: final
+        tail: final  // placeholder for initial statement
     };
-    var scope = result.vars;
+    var scope = [];
     var current = result;
     ast.value.forEach(function (stmt) {  // { value: [stmt, ...], ... }
-        current.stmt = {
+        current.tail = {
             beh: 'stmt_pair',
             head: gen.stmt(stmt, scope),
             tail: final
         };
         current = current.tail;
     });
+    result = {
+        beh: 'block_beh',
+        vars: [],
+        stmt: result.tail
+    };
     log('Block:', result);
     return result;
 };
@@ -91,7 +94,7 @@ gen.stmt = function genStmt(ast, scope) {
             dt: gen.expr(ast.dt)
         };
     } else if (ast.type === 'create') {  // { type: 'create', ident: identifier, expr: behavior }
-        var name = ast.ident.value,  // extract actual identifier name
+        var name = ast.ident.value;  // extract actual identifier name
         if (scope) {
             scope[scope.length] = name;  // FIXME: check for duplicates?
         }
