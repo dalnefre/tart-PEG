@@ -70,7 +70,7 @@ var source = input.fromString(sponsor,
 /*
 */
 var source = input.fromStream(sponsor, 
-    require('fs').createReadStream('examples/sample.hum', {
+    require('fs').createReadStream('./humus/sample.hum', {
         encoding: 'utf8'
     })
 );

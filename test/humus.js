@@ -44,7 +44,7 @@ test['empty source returns empty array'] = function (test) {
     test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var humusTokens = require('../examples/humusTokens.js').build(sponsor);
+    var humusTokens = require('../humus/humusTokens.js').build(sponsor);
     var source = input.fromString(sponsor, 
         ''
     );
@@ -74,8 +74,8 @@ test['blank source returns empty array'] = function (test) {
     test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var humusTokens = require('../examples/humusTokens.js').build(sponsor/*, log*/);
-//    require('../examples/reduceTokens.js').transform(humusTokens);  // add reduction transforms
+    var humusTokens = require('../humus/humusTokens.js').build(sponsor/*, log*/);
+//    require('../humus/reduceTokens.js').transform(humusTokens);  // add reduction transforms
     var source = input.fromString(sponsor, 
         '\r'
     );
@@ -105,8 +105,8 @@ test['transformed simple source returns token array'] = function (test) {
     test.expect(2);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
-    var humusTokens = require('../examples/humusTokens.js').build(sponsor/*, log*/);
-    require('../examples/reduceTokens.js').transform(humusTokens);  // add reduction transforms
+    var humusTokens = require('../humus/humusTokens.js').build(sponsor/*, log*/);
+    require('../humus/reduceTokens.js').transform(humusTokens);  // add reduction transforms
     var source = input.fromString(sponsor,
         'SEND (#Hello, "World", \'\\n\', ##, -16#2a) TO println\n'
     );
@@ -212,14 +212,14 @@ Tokens OK: {
 var humusFixture = function humusFixture(test, sponsor, log) {
     log = log || function () {};
     var fixture = {
-        humusTokens: require('../examples/humusTokens.js').build(sponsor/*, log*/),
-        humusSyntax: require('../examples/humusSyntax.js').build(sponsor/*, log*/),
+        humusTokens: require('../humus/humusTokens.js').build(sponsor/*, log*/),
+        humusSyntax: require('../humus/humusSyntax.js').build(sponsor/*, log*/),
         test: test,
         sponsor: sponsor,
         log: log
     };
-    require('../examples/reduceTokens.js').transform(fixture.humusTokens);
-    require('../examples/reduceSyntax.js').transform(fixture.humusSyntax);
+    require('../humus/reduceTokens.js').transform(fixture.humusTokens);
+    require('../humus/reduceSyntax.js').transform(fixture.humusSyntax);
     var tokenSource = fixture.tokenSource = function tokenSource(charSource, start) {
         start = start || 'token';
         var pattern = fixture.humusTokens.call(start);
