@@ -54,11 +54,11 @@ test['empty source returns empty array'] = function (test) {
         sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
             var v = m.value;
-            test.strictEqual('tokens', v.name);
+            test.strictEqual(v.name, 'tokens');
             v = v.value;
-            test.strictEqual(2, v.length);
+            test.strictEqual(v.length, 2);
             var tokens = v[0];
-            test.strictEqual(0, tokens.length);
+            test.strictEqual(tokens.length, 0);
         }),
         sponsor(function failBeh(m) {
             warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
@@ -85,11 +85,11 @@ test['blank source returns empty array'] = function (test) {
         sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
             var v = m.value;
-            test.strictEqual('tokens', v.name);
+            test.strictEqual(v.name, 'tokens');
             v = v.value;
-            test.strictEqual(2, v.length);
+            test.strictEqual(v.length, 2);
             var tokens = v[0];
-            test.strictEqual(0, tokens.length);
+            test.strictEqual(tokens.length, 0);
         }),
         sponsor(function failBeh(m) {
             warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
@@ -116,7 +116,7 @@ test['transformed simple source returns token array'] = function (test) {
         sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
             var tokens = m.value;
-            test.strictEqual(14, tokens.length);
+            test.strictEqual(tokens.length, 14);
         }),
         sponsor(function failBeh(m) {
             warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
@@ -254,8 +254,8 @@ test['TRUE is a simple constant'] = function (test) {
         hf.humusSyntax.call('expr'),
         hf.ok(function validate(m) {
             var v = m.value;
-            test.strictEqual('const', v.type);
-            test.strictEqual(true, v.value);
+            test.strictEqual(v.type, 'const');
+            test.strictEqual(v.value, true);
         }),
         hf.fail
     ));
@@ -278,9 +278,9 @@ test['SEND a variety of data types'] = function (test) {
         hf.humusSyntax.call('stmt'),
         hf.ok(function validate(m) {
             var v = m.value;
-            test.strictEqual('send', v.type);
-            test.strictEqual('object', typeof v.msg);
-            test.strictEqual('object', typeof v.to);
+            test.strictEqual(v.type, 'send');
+            test.strictEqual(typeof v.msg, 'object');
+            test.strictEqual(typeof v.to, 'object');
         }),
         hf.fail
     ));
@@ -310,7 +310,7 @@ CREATE sink WITH \_.[]
 }
 */
 test['CREATE sink WITH \\_.[]'] = function (test) {
-    test.expect(12);
+    test.expect(2);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
     var hf = humusFixture(test, sponsor, log);
@@ -323,21 +323,23 @@ test['CREATE sink WITH \\_.[]'] = function (test) {
         hf.humusSyntax.call('stmt'),
         hf.ok(function validate(m) {
             var code = hf.humusCode.stmt(m);
-            test.strictEqual('create_stmt', code.beh);
-            test.strictEqual('sink', code.ident);
-            test.strictEqual('object', typeof code.expr);
-            var expr = code.expr;
-            test.strictEqual('abs_expr', expr.beh);
-            test.strictEqual('object', typeof expr.ptrn);
-            test.strictEqual('object', typeof expr.body);
-            var ptrn = expr.ptrn;
-            test.strictEqual('any_ptrn', ptrn.beh);
-            var body = expr.body;
-            test.strictEqual('block_expr', body.beh);
-            test.strictEqual(0, body.vars.length);
-            test.strictEqual('object', typeof body.stmt);
-            var stmt = body.stmt;
-            test.strictEqual('empty_stmt', stmt.beh);
+            test.deepStrictEqual(code, {
+                beh: 'create_stmt',
+                ident: 'sink',
+                expr: {
+                    beh: 'abs_expr',
+                    ptrn: {
+                        beh: 'any_ptrn'
+                    },
+                    body: {
+                        beh: 'block_expr',
+                        vars: [],
+                        stmt: {
+                            beh: 'empty_stmt'
+                        }
+                    }
+                }
+            });
         }),
         hf.fail
     ));
