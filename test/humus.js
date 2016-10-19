@@ -115,8 +115,23 @@ test['transformed simple source returns token array'] = function (test) {
         humusTokens.call('tokens'),
         sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
-            var tokens = m.value;
-            test.strictEqual(tokens.length, 14);
+//            test.strictEqual(m.value.length, 14);
+            test.deepStrictEqual(m.value, [
+                'SEND',
+                '(',
+                { type: 'symbol', value: 'Hello' },
+                ',',
+                { type: 'string', value: 'World' },
+                ',',
+                { type: 'char', value: '\n' },
+                ',',
+                { type: 'symbol', value: '#' },
+                ',',
+                { type: 'number', sign: '-', radix: 16, digits: '2a', value: -42 },
+                ')',
+                'TO',
+                { type: 'ident', value: 'println' }
+            ]);
         }),
         sponsor(function failBeh(m) {
             warn('Tokens FAIL:', JSON.stringify(m, null, '  '));
@@ -140,74 +155,6 @@ test['transformed simple source returns token array'] = function (test) {
         }
     );
 };
-
-/*
-Tokens OK: {
-  "start": {
-    "pos": 0,
-    "value": "S",
-    "row": 0,
-    "col": 0
-  },
-  "end": {},
-  "value": [
-    "SEND",
-    "(",
-    {
-      "type": "symbol",
-      "value": "Hello"
-    },
-    ",",
-    {
-      "type": "string",
-      "value": "World"
-    },
-    ",",
-    {
-      "type": "char",
-      "value": "\n"
-    },
-    ",",
-    {
-      "type": "symbol",
-      "value": "#"
-    },
-    ",",
-    {
-      "type": "number",
-      "sign": "-",
-      "radix": 16,
-      "digits": "2a",
-      "value": -42
-    },
-    ")",
-    "TO",
-    {
-      "type": "ident",
-      "value": "println"
-    }
-  ]
-}
-*/
-
-/*
-<TOKENS>
-"SEND"
-"("
-{"type":"symbol","value":"Hello"}
-","
-{"type":"string","value":"World"}
-","
-{"type":"char","value":"\n"}
-","
-{"type":"symbol","value":"#"}
-","
-{"type":"number","sign":"-","radix":16,"digits":"2a","value":-42}
-")"
-"TO"
-{"type":"ident","value":"println"}
-</TOKENS>
-*/
 
 var humusFixture = function humusFixture(test, sponsor, log) {
     log = log || function () {};
@@ -240,7 +187,7 @@ var humusFixture = function humusFixture(test, sponsor, log) {
     return fixture;
 };
 
-test['TRUE is a simple constant'] = function (test) {
+test['TRUE is a simple constant expression'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
