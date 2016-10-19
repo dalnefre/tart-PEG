@@ -321,6 +321,62 @@ LET empty_env = \_.?
   }
 }
 */
+test['LET empty_env = \\_.?'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var hf = humusFixture(test, sponsor, log);
+
+    var source = hf.tokenSource(input.fromString(sponsor,
+        'LET empty_env = \\_.?\n'
+    ));
+
+    var start = sponsor(PEG.start(
+        hf.humusSyntax.call('humus'),
+        hf.ok(function validate(m) {
+            var code = hf.humusCode.humus(m);
+            test.deepEqual(code, {
+                beh: 'block',
+                vars: [
+                    'empty_env'
+                ],
+                stmt: {
+                    beh: 'pair_stmt',
+                    head: {
+                        beh: 'let_stmt',
+                        eqtn: {
+                            beh: 'eqtn',
+                            left: {
+                                beh: 'ident_ptrn',
+                                ident: 'empty_env'
+                            },
+                            right: {
+                                beh: 'value_ptrn',
+                                expr: {
+                                    beh: 'abs_expr',
+                                    ptrn: {
+                                        beh: 'any_ptrn'
+                                    },
+                                    body: {
+                                        beh: 'const_expr',
+                                        value: undefined
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    tail: {
+                        beh: 'empty_stmt'
+                    }
+                }
+            });
+        }),
+        hf.fail
+    ));
+    source(start);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
 
 /*
 (\x.x)([])
