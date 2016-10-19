@@ -13,7 +13,7 @@
   "main": "PEG.js",
   "devDependencies": {
     "tart-tracing": "0.3.0",
-    "nodeunit": "0.9.x"
+    "nodeunit": "0.10.x"
   },
   "dependencies": {
     "tart": "0.3.0"

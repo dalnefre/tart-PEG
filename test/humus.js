@@ -116,7 +116,7 @@ test['transformed simple source returns token array'] = function (test) {
         sponsor(function okBeh(m) {
             log('Tokens OK:', JSON.stringify(m, null, '  '));
 //            test.strictEqual(m.value.length, 14);
-            test.deepStrictEqual(m.value, [
+            test.deepEqual(m.value, [
                 'SEND',
                 '(',
                 { type: 'symbol', value: 'Hello' },
@@ -269,8 +269,8 @@ test['CREATE sink WITH \\_.[]'] = function (test) {
     var start = sponsor(PEG.start(
         hf.humusSyntax.call('stmt'),
         hf.ok(function validate(m) {
-            var code = hf.humusCode.stmt(m);
-            test.deepStrictEqual(code, {
+            var code = hf.humusCode.stmt(m.value);
+            test.deepEqual(code, {
                 beh: 'create_stmt',
                 ident: 'sink',
                 expr: {
@@ -279,7 +279,7 @@ test['CREATE sink WITH \\_.[]'] = function (test) {
                         beh: 'any_ptrn'
                     },
                     body: {
-                        beh: 'block_expr',
+                        beh: 'block',
                         vars: [],
                         stmt: {
                             beh: 'empty_stmt'
