@@ -214,6 +214,7 @@ var humusFixture = function humusFixture(test, sponsor, log) {
     var fixture = {
         humusTokens: require('../humus/humusTokens.js').build(sponsor/*, log*/),
         humusSyntax: require('../humus/humusSyntax.js').build(sponsor/*, log*/),
+        humusCode: require('../humus/humusCode.js'),
         test: test,
         sponsor: sponsor,
         log: log
@@ -289,8 +290,120 @@ test['SEND a variety of data types'] = function (test) {
 };
 
 /*
-'IF x = $y x ELSE y' ==>
-@{
+CREATE sink WITH \_.[]
+==> @{
+  beh: create_stmt,
+  ident: sink,
+  expr: @{
+    beh: abs_expr,
+    ptrn: @{
+      beh: any_ptrn
+    },
+    body: @{
+      beh: block_expr,
+      vars: <NIL>,
+      stmt: @{
+        beh: empty_stmt
+      }
+    }
+  }
+}
+*/
+test['CREATE sink WITH \\_.[]'] = function (test) {
+    test.expect(12);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var hf = humusFixture(test, sponsor, log);
+
+    var source = hf.tokenSource(input.fromString(sponsor,
+        'CREATE sink WITH \\_.[]\n'
+    ));
+
+    var start = sponsor(PEG.start(
+        hf.humusSyntax.call('stmt'),
+        hf.ok(function validate(m) {
+            var code = hf.humusCode.stmt(m);
+            test.strictEqual('create_stmt', code.beh);
+            test.strictEqual('sink', code.ident);
+            test.strictEqual('object', typeof code.expr);
+            var expr = code.expr;
+            test.strictEqual('abs_expr', expr.beh);
+            test.strictEqual('object', typeof expr.ptrn);
+            test.strictEqual('object', typeof expr.body);
+            var ptrn = expr.ptrn;
+            test.strictEqual('any_ptrn', ptrn.beh);
+            var body = expr.body;
+            test.strictEqual('block_expr', body.beh);
+            test.strictEqual(0, body.vars.length);
+            test.strictEqual('object', typeof body.stmt);
+            var stmt = body.stmt;
+            test.strictEqual('empty_stmt', stmt.beh);
+        }),
+        hf.fail
+    ));
+    source(start);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
+
+/*
+LET empty_env = \_.?
+==> @{
+  beh: let_stmt,
+  eqtn: @{
+    beh: eqtn,
+    left: @{
+      beh: ident_ptrn,
+      ident: empty_env
+    },
+    right: @{
+      beh: value_ptrn,
+      expr: @{
+        beh: abs_expr,
+        ptrn: @{
+          beh: any_ptrn
+        },
+        body: @{
+          beh: const_expr,
+          value: <UNDEF>
+        }
+      }
+    }
+  }
+}
+*/
+
+/*
+(\x.x)([])
+==> @{
+  beh: expr_stmt,
+  expr: @{
+    beh: app_expr,
+    abs: @{
+      beh: abs_expr,
+      ptrn: @{
+        beh: ident_ptrn,
+        ident: x
+      },
+      body: @{
+        beh: ident_expr,
+        ident: x
+      }
+    },
+    arg: @{
+      beh: block_expr,
+      vars: <NIL>,
+      stmt: @{
+        beh: empty_stmt
+      }
+    }
+  }
+}
+*/
+
+/*
+IF x = $y x ELSE y
+==> @{
   beh: expr_stmt,
   expr: @{
     beh: if_expr,
@@ -321,25 +434,74 @@ test['SEND a variety of data types'] = function (test) {
 */
 
 /*
-'LET empty_env = \\_.?' ==>
-@{
-  beh: let_stmt,
-  eqtn: @{
-    beh: eqtn,
-    left: @{
-      beh: ident_ptrn,
-      ident: empty_env
+IF () = NIL [] ELSE [ LET out = $println SEND not(FALSE) TO out ]
+==> @{
+  beh: expr_stmt,
+  expr: @{
+    beh: if_expr,
+    eqtn: @{
+      beh: eqtn,
+      left: @{
+        beh: const_ptrn,
+        value: <NIL>
+      },
+      right: @{
+        beh: const_ptrn,
+        value: <NIL>
+      }
     },
-    right: @{
-      beh: value_ptrn,
-      expr: @{
-        beh: abs_expr,
-        ptrn: @{
-          beh: any_ptrn
+    expr: @{
+      beh: block_expr,
+      vars: <NIL>,
+      stmt: @{
+        beh: empty_stmt
+      }
+    },
+    next: @{
+      beh: block_expr,
+      vars: <out,<NIL>>,
+      stmt: @{
+        beh: stmt_pair,
+        head: @{
+          beh: let_stmt,
+          eqtn: @{
+            beh: eqtn,
+            left: @{
+              beh: ident_ptrn,
+              ident: out
+            },
+            right: @{
+              beh: value_ptrn,
+              expr: @{
+                beh: ident_expr,
+                ident: println
+              }
+            }
+          }
         },
-        body: @{
-          beh: const_expr,
-          value: <UNDEF>
+        tail: @{
+          beh: stmt_pair,
+          head: @{
+            beh: send_stmt,
+            msg: @{
+              beh: app_expr,
+              abs: @{
+                beh: ident_expr,
+                ident: not
+              },
+              arg: @{
+                beh: const_expr,
+                value: false
+              }
+            },
+            to: @{
+              beh: ident_expr,
+              ident: out
+            }
+          },
+          tail: @{
+            beh: empty_stmt
+          }
         }
       }
     }
