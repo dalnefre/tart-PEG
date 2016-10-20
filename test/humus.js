@@ -294,9 +294,7 @@ test['<humus> LET empty_env = \\_.?'] = function (test) {
             var code = hf.humusCode.humus(m);
             test.deepEqual(code, {
                 beh: 'block',
-                vars: [
-                    'empty_env'
-                ],
+                vars: [ 'empty_env' ],
                 stmt: {
                     beh: 'pair_stmt',
                     head: {
@@ -391,37 +389,60 @@ test['<humus> (\\x.x)([])'] = function (test) {
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
-/*
-IF x = $y x ELSE y
-==> @{
-  beh: expr_stmt,
-  expr: @{
-    beh: if_expr,
-    eqtn: @{
-      beh: eqtn,
-      left: @{
-        beh: ident_ptrn,
-        ident: x
-      },
-      right: @{
-        beh: value_ptrn,
-        expr: @{
-          beh: ident_expr,
-          ident: y
-        }
-      }
-    },
-    expr: @{
-      beh: ident_expr,
-      ident: x
-    },
-    next: @{
-      beh: ident_expr,
-      ident: y
-    }
-  }
-}
-*/
+test['<humus> IF x = $y x ELSE y'] = function (test) {
+    test.expect(6);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var hf = humusFixture(test, sponsor, log);
+
+    var source = hf.tokenSource(input.fromString(sponsor,
+        'IF x = $y x ELSE y\n'
+    ));
+
+    var start = sponsor(PEG.start(
+        hf.humusSyntax.call('humus'),
+        hf.ok(function validate(m) {
+            var code = hf.humusCode.humus(m);
+            test.strictEqual('block', code.beh);
+            test.deepEqual([], code.vars);
+            test.strictEqual('pair_stmt', code.stmt.beh);
+            test.strictEqual('empty_stmt', code.stmt.tail.beh);
+            var stmt = code.stmt.head;
+            test.deepEqual(stmt, {
+                beh: 'expr_stmt',
+                expr: {
+                    beh: 'if_expr',
+                    eqtn: {
+                        beh: 'eqtn',
+                        left: {
+                            beh: 'ident_expr',
+                            ident: 'x'
+                        },
+                        right: {
+                            beh: 'value_ptrn',
+                            expr: {
+                                beh: 'ident_expr',
+                                ident: 'y'
+                            }
+                        }
+                    },
+                    expr: {
+                        beh: 'ident_expr',
+                        ident: 'x'
+                    },
+                    next: {
+                        beh: 'ident_expr',
+                        ident: 'y'
+                    }
+                }
+            });
+        }),
+        hf.fail
+    ));
+    source(start);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
 
 /*
 IF () = NIL [] ELSE [ LET out = $println SEND not(FALSE) TO out ]
