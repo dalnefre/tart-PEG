@@ -46,7 +46,7 @@ gen._code = (function () {
         block: function block(vars, stmt) {
             return { beh: 'block', vars: vars, stmt: stmt };
         },
-        pair_stmt: function pair_expr(head, tail) {
+        pair_stmt: function pair_stmt(head, tail) {
             return { beh: 'pair_stmt', head: head, tail: tail };
         },
         empty_stmt: function empty_stmt() {
@@ -137,6 +137,116 @@ gen._code = (function () {
             return { beh: 'literal_ptrn', value: value };
         }
     };
+})();
+
+gen._visit = (function () {
+    var visit = function visit(node, visitor) {
+        var action = self[node.beh];
+        if (action) {
+            action(node, visitor);
+        }
+    };
+
+    var self = {
+        block: function block(node, visitor) {  // { beh: 'block', vars: vars, stmt: stmt }
+            visit(node.stmt, visitor);
+        },
+        pair_stmt: function pair_expr(node, visitor) {  // { beh: 'pair_stmt', head: head, tail: tail }
+            visit(node.head, visitor);
+            visit(node.tail, visitor);
+        },
+        empty_stmt: function empty_stmt(node, visitor) {  // { beh: 'empty_stmt' }
+        },
+        expr_stmt: function expr_stmt(node, visitor) {  // { beh: 'expr_stmt', expr: expr }
+            visit(node.expr, visitor);
+        },
+        let_stmt: function let_stmt(node, visitor) {  // { beh: 'let_stmt', eqtn: eqtn }
+            visit(node.eqtn, visitor);
+        },
+        send_stmt: function send_stmt(node, visitor) {  // { beh: 'send_stmt', msg: msg, to: to }
+            visit(node.msg, visitor);
+            visit(node.to, visitor);
+        },
+        after_send_stmt: function after_send_stmt(node, visitor) {  // { beh: 'after_send_stmt', msg: msg, to: to, dt: dt }
+            visit(node.dt, visitor);
+            visit(node.msg, visitor);
+            visit(node.to, visitor);
+        },
+        create_stmt: function create_stmt(node, visitor) {  // { beh: 'create_stmt', ident: name, expr: expr }
+            visit(node.expr, visitor);
+        },
+        become_stmt: function become_stmt(node, visitor) {  // { beh: 'become_stmt', expr: expr }
+            visit(node.expr, visitor);
+        },
+        throw_stmt: function throw_stmt(node, visitor) {  // { beh: 'throw_stmt', expr: expr }
+            visit(node.expr, visitor);
+        },
+        pair_expr: function pair_expr(node, visitor) {  // { beh: 'pair_expr', head: head, tail: tail }
+            visit(node.head, visitor);
+            visit(node.tail, visitor);
+        },
+        let_expr: function let_expr(node, visitor) {  // { beh: 'let_expr', eqtn: eqtn, expr: expr }
+            visit(node.eqtn, visitor);
+            visit(node.expr, visitor);
+        },
+        if_expr: function if_expr(node, visitor) {  // { beh: 'if_expr', eqtn: eqtn, expr: expr, next: next }
+            visit(node.eqtn, visitor);
+            visit(node.expr, visitor);
+            visit(node.next, visitor);
+        },
+        case_expr: function case_expr(node, visitor) {  // { beh: 'case_expr', expr: expr, next: next }
+            visit(node.expr, visitor);
+            visit(node.next, visitor);
+        },
+        case_choice: function case_choice(node, visitor) {  // { beh: 'case_choice', ptrn: ptrn, expr: expr, next: next }
+            visit(node.ptrn, visitor);
+            visit(node.expr, visitor);
+            visit(node.next, visitor);
+        },
+        case_end: function case_end(node, visitor) {  // { beh: 'case_end' }
+        },
+        new_expr: function new_expr(node, visitor) {  // { beh: 'new_expr', expr: expr }
+            visit(node.expr, visitor);
+        },
+        app_expr: function app_expr(node, visitor) {  // { beh: 'app_expr', abs: abs, arg: arg }
+            visit(node.abs, visitor);
+            visit(node.arg, visitor);
+        },
+        ident_expr: function ident_expr(node, visitor) {  // { beh: 'ident_expr', ident: name }
+        },
+        self_expr: function self_expr(node, visitor) {  // { beh: 'self_expr' };
+        },
+        abs_expr: function abs_expr(node, visitor) {  // { beh: 'abs_expr', ptrn: ptrn, body: body };
+            visit(node.ptrn, visitor);
+            visit(node.body, visitor);
+        },
+        const_expr: function const_expr(node, visitor) {  // { beh: 'const_expr', value: value };
+        },
+        literal_expr: function literal_expr(node, visitor) {  // { beh: 'literal_expr', value: value };
+        },
+        eqtn: function eqtn(node, visitor) {  // { beh: 'eqtn', left: left, right: right };
+            visit(node.left, visitor);
+            visit(node.right, visitor);
+        },
+        any_ptrn: function any_ptrn(node, visitor) {  // { beh: 'any_ptrn' };
+        },
+        pair_ptrn: function pair_ptrn(node, visitor) {  // { beh: 'pair_ptrn', head: head, tail: tail };
+            visit(node.head, visitor);
+            visit(node.tail, visitor);
+        },
+        ident_ptrn: function ident_ptrn(node, visitor) {  // { beh: 'ident_ptrn', ident: name };
+        },
+        self_ptrn: function self_ptrn(node, visitor) {  // { beh: 'self_ptrn' };
+        },
+        value_ptrn: function value_ptrn(node, visitor) {  // { beh: 'value_ptrn', expr: expr };
+            visit(node.expr, visitor);
+        },
+        const_ptrn: function const_ptrn(node, visitor) {  // { beh: 'const_ptrn', value: value };
+        },
+        literal_ptrn: function literal_ptrn(node, visitor) {  // { beh: 'literal_ptrn', value: value };
+        }
+    };
+    return self;
 })();
 
 gen.humus = function genHumus(ast) {
