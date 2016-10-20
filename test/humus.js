@@ -187,7 +187,7 @@ var humusFixture = function humusFixture(test, sponsor, log) {
     return fixture;
 };
 
-test['TRUE is a simple constant expression'] = function (test) {
+test['<expr> TRUE is a simple constant expression'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -211,7 +211,7 @@ test['TRUE is a simple constant expression'] = function (test) {
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
-test['SEND a variety of data types'] = function (test) {
+test['<stmt> SEND a variety of data types'] = function (test) {
     test.expect(4);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -227,7 +227,10 @@ test['SEND a variety of data types'] = function (test) {
             var v = m.value;
             test.strictEqual(v.type, 'send');
             test.strictEqual(typeof v.msg, 'object');
-            test.strictEqual(typeof v.to, 'object');
+            test.deepEqual(typeof v.to, {
+                type: 'ident',
+                ident: 'println'
+            });
         }),
         hf.fail
     ));
@@ -236,34 +239,14 @@ test['SEND a variety of data types'] = function (test) {
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
-/*
-CREATE sink WITH \_.[]
-==> @{
-  beh: create_stmt,
-  ident: sink,
-  expr: @{
-    beh: abs_expr,
-    ptrn: @{
-      beh: any_ptrn
-    },
-    body: @{
-      beh: block_expr,
-      vars: <NIL>,
-      stmt: @{
-        beh: empty_stmt
-      }
-    }
-  }
-}
-*/
-test['CREATE sink WITH \\_.[]'] = function (test) {
+test['<stmt> CREATE sink WITH \\_.[]'] = function (test) {
     test.expect(2);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
     var hf = humusFixture(test, sponsor, log);
 
     var source = hf.tokenSource(input.fromString(sponsor,
-        'CREATE sink WITH \\_.[]\n'
+        'CREATE sink WITH \\_.[]'
     ));
 
     var start = sponsor(PEG.start(
@@ -295,40 +278,14 @@ test['CREATE sink WITH \\_.[]'] = function (test) {
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
-/*
-LET empty_env = \_.?
-==> @{
-  beh: let_stmt,
-  eqtn: @{
-    beh: eqtn,
-    left: @{
-      beh: ident_ptrn,
-      ident: empty_env
-    },
-    right: @{
-      beh: value_ptrn,
-      expr: @{
-        beh: abs_expr,
-        ptrn: @{
-          beh: any_ptrn
-        },
-        body: @{
-          beh: const_expr,
-          value: <UNDEF>
-        }
-      }
-    }
-  }
-}
-*/
-test['LET empty_env = \\_.?'] = function (test) {
+test['<humus> LET empty_env = \\_.?'] = function (test) {
     test.expect(2);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
     var hf = humusFixture(test, sponsor, log);
 
     var source = hf.tokenSource(input.fromString(sponsor,
-        'LET empty_env = \\_.?\n'
+        'LET empty_env = \\_.?'
     ));
 
     var start = sponsor(PEG.start(
@@ -378,33 +335,61 @@ test['LET empty_env = \\_.?'] = function (test) {
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
 };
 
-/*
-(\x.x)([])
-==> @{
-  beh: expr_stmt,
-  expr: @{
-    beh: app_expr,
-    abs: @{
-      beh: abs_expr,
-      ptrn: @{
-        beh: ident_ptrn,
-        ident: x
-      },
-      body: @{
-        beh: ident_expr,
-        ident: x
-      }
-    },
-    arg: @{
-      beh: block_expr,
-      vars: <NIL>,
-      stmt: @{
-        beh: empty_stmt
-      }
-    }
-  }
-}
-*/
+test['<humus> (\\x.x)([])'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var hf = humusFixture(test, sponsor, log);
+
+    var source = hf.tokenSource(input.fromString(sponsor,
+        '(\\x.x)([])\n'
+    ));
+
+    var start = sponsor(PEG.start(
+        hf.humusSyntax.call('humus'),
+        hf.ok(function validate(m) {
+            var code = hf.humusCode.humus(m);
+            test.deepEqual(code, {
+                beh: 'block',
+                vars: [],
+                stmt: {
+                    beh: 'pair_stmt',
+                    head: {
+                        beh: 'expr_stmt',
+                        expr: {
+                            beh: 'app_expr',
+                            abs: {
+                                beh: 'abs_expr',
+                                ptrn: {
+                                    beh: 'ident_ptrn',
+                                    ident: 'x'
+                                },
+                                body: {
+                                    beh: 'ident_expr',
+                                    ident: 'x'
+                                }
+                            },
+                            arg: {
+                                beh: 'block',
+                                vars: [],
+                                stmt: {
+                                    beh: 'empty_stmt'
+                                }
+                            }
+                        }
+                    },
+                    tail: {
+                        beh: 'empty_stmt'
+                    }
+                }
+            });
+        }),
+        hf.fail
+    ));
+    source(start);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
 
 /*
 IF x = $y x ELSE y
