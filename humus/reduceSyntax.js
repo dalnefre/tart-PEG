@@ -190,8 +190,8 @@ term ==> value
             };
         } else if ((value.length === 5) && (value[0] === 'IF')) {
             var final = { type: 'const', value: undefined };
-            if ((value[4].length == 2) && (value[4][0] === 'ELSE')) {
-                final = value[4][1];
+            if ((value[4].length == 1) && (value[4][0].length == 2) && (value[4][0][0] === 'ELSE')) {
+                final = value[4][0][1];
             }
             result = {
                 type: 'if',

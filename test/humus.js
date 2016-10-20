@@ -227,9 +227,9 @@ test['<stmt> SEND a variety of data types'] = function (test) {
             var v = m.value;
             test.strictEqual(v.type, 'send');
             test.strictEqual(typeof v.msg, 'object');
-            test.deepEqual(typeof v.to, {
+            test.deepEqual(v.to, {
                 type: 'ident',
-                ident: 'println'
+                value: 'println'
             });
         }),
         hf.fail
@@ -267,6 +267,45 @@ test['<stmt> CREATE sink WITH \\_.[]'] = function (test) {
                         stmt: {
                             beh: 'empty_stmt'
                         }
+                    }
+                }
+            });
+        }),
+        hf.fail
+    ));
+    source(start);
+
+    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
+
+test['<humus> var'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var hf = humusFixture(test, sponsor, log);
+
+    var source = hf.tokenSource(input.fromString(sponsor,
+        'var'
+    ));
+
+    var start = sponsor(PEG.start(
+        hf.humusSyntax.call('humus'),
+        hf.ok(function validate(m) {
+            var code = hf.humusCode.humus(m);
+            test.deepEqual(code, {
+                beh: 'block',
+                vars: [],
+                stmt: {
+                    beh: 'pair_stmt',
+                    head: {
+                        beh: 'expr_stmt',
+                        expr: {
+                            beh: 'ident_expr',
+                            ident: 'var'
+                        }
+                    },
+                    tail: {
+                        beh: 'empty_stmt'
                     }
                 }
             });
@@ -415,7 +454,7 @@ test['<humus> IF x = $y x ELSE y'] = function (test) {
                     eqtn: {
                         beh: 'eqtn',
                         left: {
-                            beh: 'ident_expr',
+                            beh: 'ident_ptrn',
                             ident: 'x'
                         },
                         right: {

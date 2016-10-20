@@ -151,7 +151,7 @@ gen._visit = (function () {
         block: function block(node, visitor) {  // { beh: 'block', vars: vars, stmt: stmt }
             visit(node.stmt, visitor);
         },
-        pair_stmt: function pair_expr(node, visitor) {  // { beh: 'pair_stmt', head: head, tail: tail }
+        pair_stmt: function pair_stmt(node, visitor) {  // { beh: 'pair_stmt', head: head, tail: tail }
             visit(node.head, visitor);
             visit(node.tail, visitor);
         },
@@ -397,7 +397,7 @@ gen.ptrn = function genPtrn(ast, scope) {
     } else if (ast.type === 'any') {  // { type: 'any' }
         result = gen._code.any_ptrn();
     } else if (ast.type === 'value') {  // { type: 'value', expr: term }
-        result = gen._code.value_ptrn(gen.expr(ast));
+        result = gen._code.value_ptrn(gen.expr(ast.expr));
     } else if (ast.type === 'ident') {  // { type: 'ident', value: name }
         var name = ast.value;
         if (scope) {
