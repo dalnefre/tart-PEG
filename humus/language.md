@@ -64,9 +64,12 @@ It may be possible to describe both **create** and **become** in terms of **send
 by modeling execution of an meta-actor's behavior as a flurry of messages within a configuration of more basic machine-actors.
 A meta-**create** would be accomplished by sending a _behavior_ to a machine-level _sponsor_ (ambient authority),
 which would send the _address_ of the new actor as a response.
-A meta-**become** would be accomplished by sending a _behavior_ an actor responsible for making meta-actor ready to handle another message.
+A meta-**become** would be accomplished by sending a _behavior_ to a machine-actor responsible for making the meta-actor ready to handle another message.
 
 It may also be possible to represent all _messages_ and _behaviors_ as machine-actors.
 This would lead to a universal actor representation (everything is an actor),
 but raises the issue of "grounding out".
 As some level, it must be possible to complete an action without generating additional events.
+A meta-level message delivery could trigger a series of machine-level events,
+and when there are no more machine-level events the meta-level message processing would be complete.
+
