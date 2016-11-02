@@ -28,7 +28,7 @@ A **become** action, executed as part of an actor's _behavior_, designates a new
 Actor computation consists of taking an _event_ from the set of pending events 
 and invoking the _behavior_ of the target actor to process the _message_.
 
-### Formal Semantics
+### Actor Semantics
 
 An actor _configuration_ consists of a set of pending _events_ **Q**, 
 and a set of actors **A** mapping each actor's _address_ to its current _behavior_.
@@ -55,3 +55,18 @@ The behavior has access to the contents of the message.
 You can think of the behavior as being parameterized by the message.
 
 A _message_ is an immutable data structure, which must be able to communicate (at least) an actor address.
+
+### Send is Universal
+
+The **send** action schedules work to be done in an actor system.
+At any given time, the set of pending _events_ represents all the requested (but not completed) work.
+It may be possible to describe both **create** and **become** in terms of **send**
+by modeling execution of an meta-actor's behavior as a flurry of messages within a configuration of more basic machine-actors.
+A meta-**create** would be accomplished by sending a _behavior_ to a machine-level _sponsor_ (ambient authority),
+which would send the _address_ of the new actor as a response.
+A meta-**become** would be accomplished by sending a _behavior_ an actor responsible for making meta-actor ready to handle another message.
+
+It may also be possible to represent all _messages_ and _behaviors_ as machine-actors.
+This would lead to a universal actor representation (everything is an actor),
+but raises the issue of "grounding out".
+As some level, it must be possible to complete an action without generating additional events.
