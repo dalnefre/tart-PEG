@@ -78,12 +78,28 @@ in order to understand their intended behavior.
 However, they may be implemented directly by the run-time machinery,
 thus avoiding the generation of additional events.
 
-#### Message machine-actors
+#### _Message_ machine-actors
 
 A meta-actor message is represented as a machine-level input stream.
 The meta-actor receiving the message uses machine-level pattern matching 
 to "parse" the message, understanding is structure and contents.
 
-#### Behavior machine-actors
+An input-stream machine-actor represents a position in the input source.
+When given a _customer_, the stream responds with 
+the _value_ at the current position and a machine-actor representing the _next_ position.
+If the end of the input source is reached, the response is 
+a distinguish actor representing the stream _end_.
+
+#### _Behavior_ machine-actors
 
 A meta-actor behavior is represented as a collection of machine-level primitive actions.
+Primitive actions execute within a _context_.
+The _context_ provides access to the machine-level _sponsor_ for creating new actors.
+It also contains the results of pattern-matching the meta-_message_,
+and the meta-_effects_ caused by machine-actions.
+
+The most basic action is, of course, **send**.
+A **send** takes an actor representing the _message_ and an actor representing the _target_.
+From these, a meta-_event_ is added to the pending events in the _context_.
+The _sponsor_ controls (and potentially limits) the resources required to deliver/process _events_.
+
