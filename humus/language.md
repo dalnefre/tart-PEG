@@ -73,3 +73,17 @@ As some level, it must be possible to complete an action without generating addi
 A meta-level message delivery could trigger a series of machine-level events,
 and when there are no more machine-level events the meta-level message processing would be complete.
 
+Ground-level machine-actors can be described as if they were meta-level actors,
+in order to understand their intended behavior.
+However, they may be implemented directly by the run-time machinery,
+thus avoiding the generation of additional events.
+
+#### Message machine-actors
+
+A meta-actor message is represented as a machine-level input stream.
+The meta-actor receiving the message uses machine-level pattern matching 
+to "parse" the message, understanding is structure and contents.
+
+#### Behavior machine-actors
+
+A meta-actor behavior is represented as a collection of machine-level primitive actions.
