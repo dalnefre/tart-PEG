@@ -10,6 +10,10 @@ Since actor implementations are opaque, the "state" of an actor may only be infe
 
 ## Where are actors most useful?
 
+### Actors in-the-large
+
+### Actors in-the-small
+
 ## Why a new language?
 
 ## Primary language goals
@@ -103,3 +107,12 @@ A **send** takes an actor representing the _message_ and an actor representing t
 From these, a meta-_event_ is added to the pending events in the _context_.
 The _sponsor_ controls (and potentially limits) the resources required to deliver/process _events_.
 
+#### Useful Equivalences
+
+Partial functions and dictionaries/maps are both ways of defining an output value in terms of an input value.
+
+    square(x) = \x.(x * x) = { [0 0] [1 1] [2 4] [3 9] [4 16] [5 25] ... }
+
+Pattern-matching grammars can be used in both directions. 
+Either to recognize and instance of a pattern (bind variables to parts),
+or to generate a composite value from a template via variable substitution.
