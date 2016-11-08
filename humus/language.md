@@ -116,3 +116,37 @@ Partial functions and dictionaries/maps are both ways of defining an output valu
 Pattern-matching grammars can be used in both directions. 
 Either to recognize and instance of a pattern (bind variables to parts),
 or to generate a composite value from a template via variable substitution.
+
+#### Fundamental Data Types
+
+* Address: An opaque value representing the capability to send a message to an actor. Address equality implies actor identity
+* Boolean/Bit: Either `TRUE` (1) or `FALSE` (0)
+* Null: The unique value `UNDEFINED` is available when no value can be determined
+
+#### Composite Data Types
+
+* Dictionary/Map/Function: Given an input value, produce a corresponding output value (or `UNDEFINED`).
+* List/Sequence/Stream: An ordered collection of values. May be empty.
+
+#### Extended Data Types
+
+* Integer: Arbitrary precision signed numbers (Sequence of Bits)
+* String: Arbitrary length sequence of characters (Sequence of Integer)
+* Symbol: Atomic constants (Sequence of Integer/Bits)
+
+#### Basic Patterns
+
+* Nothing: Matches without consuming a value
+* Anything: Matches (and consumes) any single value
+* Predicate: Matches (and consumes) a value if a condition holds
+* Sequence: Matches a sequence of patterns in order
+* Choice: Find first match in a sequence of patterns
+* Elimination: Fails if pattern matches, while consuming nothing
+
+#### Extended Patterns
+
+* Equal: Matches a specific value (`Predicate:equal`)
+* Class: Matches any of a class/type of values (`Predicate:type-of` or `Choice:set-of-values`)
+* Optional: Matches 0 or 1 occurance of a pattern (`Choice:[pattern Nothing]`)
+* Repeat: Matches 0 or more occurances of a pattern (`Choice:[Sequence:[pattern recurse] Nothing]`)
+* Some: Matches 1 or more occurances of a pattern (`Sequence[pattern Repeat:pattern]`)
