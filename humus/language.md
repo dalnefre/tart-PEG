@@ -150,3 +150,18 @@ or to generate a composite value from a template via variable substitution.
 * Optional: Matches 0 or 1 occurance of a pattern (`Choice:[pattern Nothing]`)
 * Repeat: Matches 0 or more occurances of a pattern (`Choice:[Sequence:[pattern recurse] Nothing]`)
 * Some: Matches 1 or more occurances of a pattern (`Sequence[pattern Repeat:pattern]`)
+
+### Object/Functional Hybrid
+
+How about if we isolate state-change to the message-dispatch machinery?
+To dispatch a message:
+
+1. Find the behavior associated with the actor address
+2. Invoke the behavior with the message as a parameter
+3. The behavior is a pure (no side-effects) function producing a deterministic result
+4. The result describes the new actors created, new message-events, and replacement behavior
+5. The message dispatch transaction completes by releasing the message-events and updating the actor behavior
+
+The message is an immutable object.
+The behavior is a deterministic pure-function.
+The result is an immutable object.
