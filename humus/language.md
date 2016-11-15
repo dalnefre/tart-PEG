@@ -165,3 +165,36 @@ To dispatch a message:
 The message is an immutable object.
 The behavior is a deterministic pure-function.
 The result is an immutable object.
+
+#### Immutable Objects (ala JSON)
+
+Imagine that all message-passing, method invocation, and function calling 
+involved JSON serialization by the caller
+and deserialization by the receiver
+(as if a network boundry was crossed).
+In effect,
+this would force all interfaces
+to work with immutable pass-by-value parameters.
+For efficiency,
+values may share information by reference
+within a memory domain,
+but this optimization is not observable,
+since all values are immutable.
+
+#### Primitive Behaviors
+
+An actor behavior is a function that takes a message and returns a result object.
+The result has the following fields:
+
+  * `actors`: _List_ The addresses of newly-created actors.
+  * `messages`: _List_ The message-events (target-actor and message) for each `send`.
+  * `behavior`: _Function_ The function used to process subsequent messages.
+
+If the `behavior` is `undefined`, the current behavior will be used to process the next message.
+
+The following primitives are provided to help construct the _result_ object:
+
+  * `create`: _Function_ `function (behavior) {}`
+    Returns _address_ of a new actor with the specified initial _behavior_.
+  * `send`: _Function_ `function (address, message) {}`
+    Returns a message-event that will deliver the _message_ to the target actor _address_.
