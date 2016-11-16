@@ -55,7 +55,7 @@ var generateAddress = function generateAddress() {  // generate unique actor add
 var newborn = {};  // address -> behavior map for newborn actors
 var actors = {};  // address -> behavior map for established actors
 
-hybrid.create = function create(behavior) {
+hybrid.create = function create(behavior) {  // add new actor to behavior result
     if (typeof behavior !== 'function') {
         behavior = undefined;
     }
@@ -64,10 +64,20 @@ hybrid.create = function create(behavior) {
     return address;
 };
 
-hybrid.send = function send(address, message) {
+hybrid.send = function send(address, message) {  // add new message-event to behavior result
     return deepFreeze({
         target: address,
         message: message
+    });
+};
+
+hybrid.apply(result) {  // apply effects from stand-alone result (no 'self')
+    result.actors.forEach(function (address) {  // new actors created
+        actors[address] = newborn[address];
+    });
+    newborn = {};  // clear nursery
+    result.events.forEach(function (event) {  // new message-events
+        setImmediate(hybrid.dispatch, event);
     });
 };
 
@@ -76,14 +86,8 @@ hybrid.dispatch(event) {
         hybrid.self = event.target;  // begin transaction
         var behavior = actors[hybrid.self];  // Find the behavior associated with the actor address
         var result = behavior(event.message);  // Invoke the behavior with the message as a parameter
-        result.actors.forEach(function (address) {  // new actors created
-            actors[address] = newborn[address];
-        });
-        newborn = {};  // clear nursery
-        result.events.forEach(function (event) {  // new message-events
-            setImmediate(hybrid.dispatch, event);
-        });
-        if (result.behavior) {  // replacement behavior
+        hybrid.apply(result);
+        if (result.behavior) {  // optional replacement behavior
             actors[hybrid.self] = result.behavior;
         }
         hybrid.self = undefined;  // end transaction
