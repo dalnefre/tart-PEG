@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var hybrid = module.exports;
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 
 var crypto = require('crypto');
 
@@ -61,17 +61,20 @@ hybrid.create = function create(behavior) {  // add new actor to behavior result
     }
     var address = generateAddress();
     newborn[address] = behavior;
+    log('create:', address);
     return address;
 };
 
 hybrid.send = function send(address, message) {  // add new message-event to behavior result
-    return deepFreeze({
+    var event = {
         target: address,
         message: message
-    });
+    };
+    log('send:', event);
+    return deepFreeze(event);
 };
 
-hybrid.apply(result) {  // apply effects from stand-alone result (no 'self')
+hybrid.apply = function apply(result) {  // apply effects from stand-alone result (no 'self')
     result.actors.forEach(function (address) {  // new actors created
         actors[address] = newborn[address];
     });
@@ -81,11 +84,13 @@ hybrid.apply(result) {  // apply effects from stand-alone result (no 'self')
     });
 };
 
-hybrid.dispatch(event) {
+hybrid.dispatch = function dispatch(event) {  // deliver message-event
     try {
+        log('dispatch:', event);
         hybrid.self = event.target;  // begin transaction
         var behavior = actors[hybrid.self];  // Find the behavior associated with the actor address
         var result = behavior(event.message);  // Invoke the behavior with the message as a parameter
+        log('dispatch.result:', result);
         hybrid.apply(result);
         if (typeof result.behavior === 'function') {  // optional replacement behavior
             actors[hybrid.self] = result.behavior;

@@ -32,27 +32,23 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var test = module.exports = {};
 
-//var log = console.log;
-var log = function () {};
+var log = console.log;
+//var log = function () {};
 var warn = console.log;
 
-var tart = require('tart-tracing');
-//var PEG = require('../PEG.js');
-//var input = require('../input.js');
+//var tart = require('tart-tracing');
 var hybrid = require('../humus/hybrid.js');
 
 test['hybrid model defines create and send'] = function (test) {
-    test.expect(3);
-    var tracing = tart.tracing();
-    var sponsor = tracing.sponsor;
+    test.expect(2);
 
     test.strictEqual('function', typeof hybrid.create);
     test.strictEqual('function', typeof hybrid.send);
 
-    require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+    test.done();
 };
 
-var no_op = function beh(msg) {  // no-op actor behavior
+var null_beh = function null_beh(msg) {  // no-op actor behavior
     return {
         actors: [],
         events: [],
@@ -64,7 +60,8 @@ test['behavior returns actors, events, and optional behavior'] = function (test)
     test.expect(4);
     
     var m = 'Hello!';
-    var r = no_op(m);
+    var r = null_beh(m);
+    log('r:', r);
     
     test.strictEqual('object', typeof r);
     test.ok(Array.isArray(r.actors));
@@ -77,7 +74,7 @@ test['behavior returns actors, events, and optional behavior'] = function (test)
 test['create returns actor address'] = function (test) {
     test.expect(1);
     
-    var a = hybrid.create(no_op);
+    var a = hybrid.create(null_beh);
     
     test.strictEqual('string', typeof a);
 
@@ -87,7 +84,7 @@ test['create returns actor address'] = function (test) {
 test['send returns message-event'] = function (test) {
     test.expect(3);
     
-    var a = hybrid.create(no_op);
+    var a = hybrid.create(null_beh);
     var m = 'Hello!';
     var e = hybrid.send(a, m);
     
