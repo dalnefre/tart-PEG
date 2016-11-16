@@ -187,7 +187,7 @@ An actor behavior is a function that takes a message and returns a result object
 The result has the following fields:
 
   * `actors`: _List_ The addresses of newly-created actors.
-  * `messages`: _List_ The message-events (target-actor and message) for each `send`.
+  * `events`: _List_ The message-events (target-actor and message) for each `send`.
   * `behavior`: _Function_ The function used to process subsequent messages.
 
 If the `behavior` is `undefined`, the current behavior will be used to process the next message.
