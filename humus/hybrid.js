@@ -87,11 +87,12 @@ hybrid.dispatch(event) {
         var behavior = actors[hybrid.self];  // Find the behavior associated with the actor address
         var result = behavior(event.message);  // Invoke the behavior with the message as a parameter
         hybrid.apply(result);
-        if (result.behavior) {  // optional replacement behavior
+        if (typeof result.behavior === 'function') {  // optional replacement behavior
             actors[hybrid.self] = result.behavior;
         }
-        hybrid.self = undefined;  // end transaction
     } catch (error) {
         log('dispatch.error:', error);
+    } finally {
+        hybrid.self = undefined;  // end transaction
     }
 };
