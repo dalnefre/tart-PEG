@@ -41,13 +41,59 @@ var tart = require('tart-tracing');
 //var input = require('../input.js');
 var hybrid = require('../humus/hybrid.js');
 
-test['hybrid model defines send and create'] = function (test) {
+test['hybrid model defines create and send'] = function (test) {
     test.expect(3);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
 
-    test.strictEqual('function', typeof hybrid.send);
     test.strictEqual('function', typeof hybrid.create);
+    test.strictEqual('function', typeof hybrid.send);
 
     require('../fixture.js').testEventLoop(test, 3, tracing.eventLoop, log);
+};
+
+var no_op = function beh(msg) {  // no-op actor behavior
+    return {
+        actors: [],
+        events: [],
+        behavior: undefined
+    };
+};
+
+test['behavior returns actors, events, and optional behavior'] = function (test) {
+    test.expect(4);
+    
+    var m = 'Hello!';
+    var r = no_op(m);
+    
+    test.strictEqual('object', typeof r);
+    test.ok(Array.isArray(r.actors));
+    test.ok(Array.isArray(r.events));
+    test.ok((r.behavior === undefined) || ('function' === typeof r.behavior));
+
+    test.done();
+};
+
+test['create returns actor address'] = function (test) {
+    test.expect(1);
+    
+    var a = hybrid.create(no_op);
+    
+    test.strictEqual('string', typeof a);
+
+    test.done();
+};
+
+test['send returns message-event'] = function (test) {
+    test.expect(3);
+    
+    var a = hybrid.create(no_op);
+    var m = 'Hello!';
+    var e = hybrid.send(a, m);
+    
+    test.strictEqual('object', typeof e);
+    test.strictEqual(a, e.target);
+    test.strictEqual(m, e.message);
+
+    test.done();
 };
