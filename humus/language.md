@@ -198,3 +198,4 @@ The following primitives are provided to help construct the _result_ object:
     Returns _address_ of a new actor with the specified initial _behavior_.
   * `send`: _Function_ `function (address, message) {}`
     Returns a message-event that will deliver the _message_ to the target actor _address_.
+  * `self`: _String_ The address of the currently-executing actor.
