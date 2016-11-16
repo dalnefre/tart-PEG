@@ -35,8 +35,34 @@ var hybrid = module.exports;
 //var log = console.log;
 var log = function () {};
 
-hybrid.send = function send(address, message) {
+var crypto = require('crypto');
+
+var deepFreeze = function deepFreeze(obj) {  // make object immutable
+    if ((obj === null) || (typeof obj !== 'object')) {
+        return obj;
+    }
+    var propNames = Object.getOwnPropertyNames(obj);
+    propNames.forEach(function(name) {  // Freeze properties before freezing self
+        deepFreeze(obj[name]);
+    });
+    return Object.freeze(obj);  // Freeze self (no-op if already frozen)
 };
 
+var generateAddress = function generateAddress() {  // generate unique actor address string
+    return crypto.randomBytes(42).toString('base64');
+};
+
+var newborn = {};  // address -> behavior map for newborn actors
+
 hybrid.create = function create(behavior) {
+    var address = generateAddress();
+    newborn[address] = behavior;
+    return address;
+};
+
+hybrid.send = function send(address, message) {
+    return deepFreeze({
+        target: address,
+        message: message
+    });
 };
