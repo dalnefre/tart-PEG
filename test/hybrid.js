@@ -94,3 +94,62 @@ test['send returns message-event'] = function (test) {
 
     test.done();
 };
+
+test['one shot actor should forward first message, then ignore everything'] = function (test) {
+    test.expect(4);
+    
+    var null_beh = function null_beh(msg) {
+        log('null:', msg, hybrid.self);
+        test.strictEqual(2, ++count);
+        return {
+            actors: [],
+            events: [],
+            behavior: undefined
+        };
+    };
+    var one_shot = function one_shot(fwd) {
+        return function one_shot_beh(msg) {
+            log('one_shot:', msg, hybrid.self);
+            test.strictEqual(1, ++count);
+            return {
+                actors: [],
+                events: [
+                    hybrid.send(fwd, msg)
+                ],
+                behavior: null_beh
+            };
+        };
+    };
+    var done_beh = function done_beh(msg) {
+        log('done:', msg, hybrid.self);
+        test.done();
+        return {
+            actors: [],
+            events: [],
+            behavior: undefined
+        };
+    };
+    
+    var count = 0;
+    var a = hybrid.create(function end_beh(msg) {
+        log('end:', msg, hybrid.self);
+        test.strictEqual(3, ++count);
+        var d = hybrid.create(done_beh);
+        return {
+            actors: [d],
+            events: [
+                hybrid.send(d, 'Z')
+            ],
+            behavior: undefined
+        };
+    });
+    var b = hybrid.create(one_shot(a));
+    hybrid.apply({
+        actors: [a, b],
+        events: [
+            hybrid.send(b, 'X'),
+            hybrid.send(b, 'Y')
+        ]
+    });
+    test.strictEqual(undefined, hybrid.self);
+};
