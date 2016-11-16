@@ -42,7 +42,7 @@ var deepFreeze = function deepFreeze(obj) {  // make object immutable
         return obj;
     }
     var propNames = Object.getOwnPropertyNames(obj);
-    propNames.forEach(function(name) {  // Freeze properties before freezing self
+    propNames.forEach(function (name) {  // Freeze properties before freezing self
         deepFreeze(obj[name]);
     });
     return Object.freeze(obj);  // Freeze self (no-op if already frozen)
@@ -53,6 +53,7 @@ var generateAddress = function generateAddress() {  // generate unique actor add
 };
 
 var newborn = {};  // address -> behavior map for newborn actors
+var actors = {};  // address -> behavior map for established actors
 
 hybrid.create = function create(behavior) {
     if (typeof behavior !== 'function') {
@@ -68,4 +69,25 @@ hybrid.send = function send(address, message) {
         target: address,
         message: message
     });
+};
+
+hybrid.dispatch(event) {
+    try {
+        hybrid.self = event.target;  // begin transaction
+        var behavior = actors[hybrid.self];  // Find the behavior associated with the actor address
+        var result = behavior(event.message);  // Invoke the behavior with the message as a parameter
+        result.actors.forEach(function (address) {  // new actors created
+            actors[address] = newborn[address];
+        });
+        newborn = {};  // clear nursery
+        result.events.forEach(function (event) {  // new message-events
+            setImmediate(hybrid.dispatch, event);
+        });
+        if (result.behavior) {  // replacement behavior
+            actors[hybrid.self] = result.behavior;
+        }
+        hybrid.self = undefined;  // end transaction
+    } catch (error) {
+        log('dispatch.error:', error);
+    }
 };
