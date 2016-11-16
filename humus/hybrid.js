@@ -55,6 +55,9 @@ var generateAddress = function generateAddress() {  // generate unique actor add
 var newborn = {};  // address -> behavior map for newborn actors
 
 hybrid.create = function create(behavior) {
+    if (typeof behavior !== 'function') {
+        behavior = undefined;
+    }
     var address = generateAddress();
     newborn[address] = behavior;
     return address;
