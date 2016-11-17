@@ -76,7 +76,7 @@ actor.send = function send(address, message) {  // add new message-event to beha
 
 actor.apply = function apply(result) {  // apply effects from stand-alone result (no 'self')
     result.actors.forEach(function (address) {  // new actors created
-        var beahvior = newborn[address];
+        var behavior = newborn[address];
         if (typeof behavior === 'function') {
             actors[address] = behavior;
         }
