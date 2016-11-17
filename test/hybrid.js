@@ -37,13 +37,13 @@ var log = console.log;
 var warn = console.log;
 
 //var tart = require('tart-tracing');
-var hybrid = require('../humus/hybrid.js');
+var actor = require('../humus/hybrid.js');
 
-test['hybrid model defines create and send'] = function (test) {
+test['actor model defines create and send'] = function (test) {
     test.expect(2);
 
-    test.strictEqual('function', typeof hybrid.create);
-    test.strictEqual('function', typeof hybrid.send);
+    test.strictEqual('function', typeof actor.create);
+    test.strictEqual('function', typeof actor.send);
 
     test.done();
 };
@@ -74,7 +74,7 @@ test['behavior returns actors, events, and optional behavior'] = function (test)
 test['create returns actor address'] = function (test) {
     test.expect(1);
     
-    var a = hybrid.create(null_beh);
+    var a = actor.create(null_beh);
     
     test.strictEqual('string', typeof a);
 
@@ -84,9 +84,9 @@ test['create returns actor address'] = function (test) {
 test['send returns message-event'] = function (test) {
     test.expect(3);
     
-    var a = hybrid.create(null_beh);
+    var a = actor.create(null_beh);
     var m = 'Hello!';
-    var e = hybrid.send(a, m);
+    var e = actor.send(a, m);
     
     test.strictEqual('object', typeof e);
     test.strictEqual(a, e.target);
@@ -99,7 +99,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     test.expect(4);
     
     var null_beh = function null_beh(msg) {
-        log('null:', msg, hybrid.self);
+        log('null:', msg, actor.self);
         test.strictEqual(2, ++count);
         return {
             actors: [],
@@ -109,19 +109,19 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     };
     var one_shot = function one_shot(fwd) {
         return function one_shot_beh(msg) {
-            log('one_shot:', msg, hybrid.self);
+            log('one_shot:', msg, actor.self);
             test.strictEqual(1, ++count);
             return {
                 actors: [],
                 events: [
-                    hybrid.send(fwd, msg)
+                    actor.send(fwd, msg)
                 ],
                 behavior: null_beh
             };
         };
     };
     var done_beh = function done_beh(msg) {
-        log('done:', msg, hybrid.self);
+        log('done:', msg, actor.self);
         test.done();
         return {
             actors: [],
@@ -131,25 +131,25 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     };
     
     var count = 0;
-    var a = hybrid.create(function end_beh(msg) {
-        log('end:', msg, hybrid.self);
+    var a = actor.create(function end_beh(msg) {
+        log('end:', msg, actor.self);
         test.strictEqual(3, ++count);
-        var d = hybrid.create(done_beh);
+        var d = actor.create(done_beh);
         return {
             actors: [d],
             events: [
-                hybrid.send(d, 'Z')
+                actor.send(d, 'Z')
             ],
             behavior: undefined
         };
     });
-    var b = hybrid.create(one_shot(a));
-    hybrid.apply({
+    var b = actor.create(one_shot(a));
+    actor.apply({
         actors: [a, b],
         events: [
-            hybrid.send(b, 'X'),
-            hybrid.send(b, 'Y')
+            actor.send(b, 'X'),
+            actor.send(b, 'Y')
         ]
     });
-    test.strictEqual(undefined, hybrid.self);
+    test.strictEqual(undefined, actor.self);
 };
