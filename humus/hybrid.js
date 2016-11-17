@@ -76,7 +76,10 @@ hybrid.send = function send(address, message) {  // add new message-event to beh
 
 hybrid.apply = function apply(result) {  // apply effects from stand-alone result (no 'self')
     result.actors.forEach(function (address) {  // new actors created
-        actors[address] = newborn[address];
+        var beahvior = newborn[address];
+        if (typeof behavior === 'function') {
+            actors[address] = behavior;
+        }
     });
     newborn = {};  // clear nursery
     result.events.forEach(function (event) {  // new message-events
