@@ -1,6 +1,6 @@
 /*
 
-hybrid.js - object/functional hybrid model
+hybrid.js - object/functional hybrid actor model
 
 The MIT License (MIT)
 
@@ -30,7 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var hybrid = module.exports;
+var actor = module.exports;
 
 var log = console.log;
 //var log = function () {};
@@ -55,7 +55,7 @@ var generateAddress = function generateAddress() {  // generate unique actor add
 var newborn = {};  // address -> behavior map for newborn actors
 var actors = {};  // address -> behavior map for established actors
 
-hybrid.create = function create(behavior) {  // add new actor to behavior result
+actor.create = function create(behavior) {  // add new actor to behavior result
     if (typeof behavior !== 'function') {
         behavior = undefined;
     }
@@ -65,7 +65,7 @@ hybrid.create = function create(behavior) {  // add new actor to behavior result
     return address;
 };
 
-hybrid.send = function send(address, message) {  // add new message-event to behavior result
+actor.send = function send(address, message) {  // add new message-event to behavior result
     var event = {
         target: address,
         message: message
@@ -74,7 +74,7 @@ hybrid.send = function send(address, message) {  // add new message-event to beh
     return deepFreeze(event);
 };
 
-hybrid.apply = function apply(result) {  // apply effects from stand-alone result (no 'self')
+actor.apply = function apply(result) {  // apply effects from stand-alone result (no 'self')
     result.actors.forEach(function (address) {  // new actors created
         var beahvior = newborn[address];
         if (typeof behavior === 'function') {
@@ -83,24 +83,24 @@ hybrid.apply = function apply(result) {  // apply effects from stand-alone resul
     });
     newborn = {};  // clear nursery
     result.events.forEach(function (event) {  // new message-events
-        setImmediate(hybrid.dispatch, event);
+        setImmediate(actor.dispatch, event);
     });
 };
 
-hybrid.dispatch = function dispatch(event) {  // deliver message-event
+actor.dispatch = function dispatch(event) {  // deliver message-event
     try {
         log('dispatch:', event);
-        hybrid.self = event.target;  // begin transaction
-        var behavior = actors[hybrid.self];  // Find the behavior associated with the actor address
+        actor.self = event.target;  // begin transaction
+        var behavior = actors[actor.self];  // Find the behavior associated with the actor address
         var result = behavior(event.message);  // Invoke the behavior with the message as a parameter
         log('dispatch.result:', result);
-        hybrid.apply(result);
+        actor.apply(result);
         if (typeof result.behavior === 'function') {  // optional replacement behavior
-            actors[hybrid.self] = result.behavior;
+            actors[actor.self] = result.behavior;
         }
     } catch (error) {
         log('dispatch.error:', error);
     } finally {
-        hybrid.self = undefined;  // end transaction
+        actor.self = undefined;  // end transaction
     }
 };
