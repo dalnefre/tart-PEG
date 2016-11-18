@@ -76,7 +76,7 @@ test['create returns actor address'] = function (test) {
     
     var a = actor.create(null_beh);
     
-    test.strictEqual('string', typeof a);
+    test.strictEqual('function', typeof a);  // address encoded as a function
 
     test.done();
 };

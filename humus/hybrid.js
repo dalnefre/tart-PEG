@@ -48,8 +48,9 @@ var deepFreeze = function deepFreeze(obj) {  // make object immutable
     return Object.freeze(obj);  // Freeze self (no-op if already frozen)
 };
 
-var generateAddress = function generateAddress() {  // generate unique actor address string
-    return crypto.randomBytes(42).toString('base64');
+var generateAddress = function generateAddress() {  // generate unique actor address
+    var token = crypto.randomBytes(42).toString('base64');
+    return function () { return token };
 };
 
 var newborn = {};  // address -> behavior map for newborn actors
@@ -60,7 +61,7 @@ actor.create = function create(behavior) {  // add new actor to behavior result
         behavior = undefined;
     }
     var address = generateAddress();
-    newborn[address] = behavior;
+    newborn[address()] = behavior;
     log('create:', address);
     return address;
 };
@@ -76,9 +77,9 @@ actor.send = function send(address, message) {  // add new message-event to beha
 
 actor.apply = function apply(result) {  // apply effects from stand-alone result (no 'self')
     result.actors.forEach(function (address) {  // new actors created
-        var behavior = newborn[address];
+        var behavior = newborn[address()];
         if (typeof behavior === 'function') {
-            actors[address] = behavior;
+            actors[address()] = behavior;
         }
     });
     newborn = {};  // clear nursery
@@ -91,12 +92,12 @@ actor.dispatch = function dispatch(event) {  // deliver message-event
     try {
         log('dispatch:', event);
         actor.self = event.target;  // begin transaction
-        var behavior = actors[actor.self];  // Find the behavior associated with the actor address
+        var behavior = actors[actor.self()];  // Find the behavior associated with the actor address
         var result = behavior(event.message);  // Invoke the behavior with the message as a parameter
         log('dispatch.result:', result);
         actor.apply(result);
         if (typeof result.behavior === 'function') {  // optional replacement behavior
-            actors[actor.self] = result.behavior;
+            actors[actor.self()] = result.behavior;
         }
     } catch (error) {
         log('dispatch.error:', error);
