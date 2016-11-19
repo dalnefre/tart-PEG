@@ -50,7 +50,11 @@ var deepFreeze = function deepFreeze(obj) {  // make object immutable
 
 var generateAddress = function generateAddress() {  // generate unique actor address
     var token = crypto.randomBytes(42).toString('base64');
-    return function () { return token };
+    var address = function () { return token };
+    var label = '@' + token.substring(0, 6) + '...' + token.substring(token.length - 6);
+    address.toString = address.inspect = function toString() { return label };
+//    log('token:', token, ' label:', label);
+    return address;
 };
 
 var newborn = {};  // address -> behavior map for newborn actors

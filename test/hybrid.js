@@ -99,7 +99,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     test.expect(4);
     
     var null_beh = function null_beh(msg) {
-        log('null:', msg, actor.self);
+        log('null'+actor.self+':', msg);
         test.strictEqual(2, ++count);
         return {
             actors: [],
@@ -109,7 +109,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     };
     var one_shot = function one_shot(fwd) {
         return function one_shot_beh(msg) {
-            log('one_shot:', msg, actor.self);
+            log('one_shot'+actor.self+':', msg);
             test.strictEqual(1, ++count);
             return {
                 actors: [],
@@ -121,7 +121,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
         };
     };
     var done_beh = function done_beh(msg) {
-        log('done:', msg, actor.self);
+        log('done'+actor.self+':', msg);
         test.done();
         return {
             actors: [],
@@ -132,7 +132,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     
     var count = 0;
     var a = actor.create(function end_beh(msg) {
-        log('end:', msg, actor.self);
+        log('end'+actor.self+':', msg);
         test.strictEqual(3, ++count);
         var d = actor.create(done_beh);
         return {
