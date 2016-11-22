@@ -25,7 +25,7 @@ Since actor implementations are opaque, the "state" of an actor may only be infe
 
 ## Minimalism
 
-The Actor Model is defined in terms of three primitive actions: **send**, **create**, and **become**.
+The [Actor Model](https://arxiv.org/abs/1008.1459) is defined in terms of three primitive actions: **send**, **create**, and **become**.
 A **send** action adds a pending _event_ to the configuration, consisting of a _message_ and a target actor _address_.
 A **create** action adds a new actor to the configuration, with a uniquely defined _address_ and an initial _behavior_.
 A **become** action, executed as part of an actor's _behavior_, designates a new _behavior_ for handling subsequent _messages_ to this actor.
