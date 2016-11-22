@@ -198,4 +198,33 @@ The following primitives are provided to help construct the _result_ object:
     Returns _address_ of a new actor with the specified initial _behavior_.
   * `send`: _Function_ `function (address, message) {}`
     Returns a message-event that will deliver the _message_ to the target actor _address_.
-  * `self`: _String_ The address of the currently-executing actor.
+  * `self`: _Address_ The address of the currently-executing actor.
+
+### Configurations and Domains
+
+A _configuration_ is an organizational structure for actors.
+It can be arbitrarily large or small.
+It consists of a collection of actors and pending actor-message events.
+A configuration may have a _sponsor_ (explicit or implicit) 
+that controls storage and computational resources.
+Within a configuration, some actors are given an _external_ or _receptionist_ designation.
+An _external_ actor represents an actor in another configuration.
+A _receptionist_ is an actor whose address is shared outside the configuration,
+and thus may be referenced as _external_ in another configuration.
+
+A _domain_ defines an addressing strategy for a group of actors.
+Addresses are opaque.
+They can be compared for equality (implying that they designate the same actor),
+or used to send a message to the designated actor, 
+nothing more.
+In particular, there is no way to synthesize an address.
+Addressing schemes must ensure that actor addresses maintain 
+[Object Capability](http://www.dalnefre.com/wp/2013/10/towards-a-universal-implementation-of-unforgeable-actor-addresses/) properties.
+
+Configuration and Domain actor groupings are independent of each other.
+Some implementation strategies may find it convenient
+to make them correspond, or nest in some way.
+But this is not a requirement of their definition.
+An addressing domain may contain (or overlap) several configurations.
+A configuration may include actors from multiple addressing domains.
+An actor is does not need to be aware of its inclusion in a configuration or domain.
