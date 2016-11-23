@@ -220,6 +220,8 @@ nothing more.
 In particular, there is no way to synthesize an address.
 Addressing schemes must ensure that actor addresses maintain 
 [Object Capability](http://www.dalnefre.com/wp/2013/10/towards-a-universal-implementation-of-unforgeable-actor-addresses/) properties.
+Domain addressing schemes are closely-related to message routing and transport.
+Although addresses are opaque to actors, they expose implementation-specific information to routing and transport mechanisms.
 
 Configuration and Domain actor groupings are independent of each other.
 Some implementation strategies may find it convenient
