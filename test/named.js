@@ -45,19 +45,19 @@ test['right recursion groups right-to-left'] = function (test) {
     var sponsor = tracing.sponsor;
     var ns = PEG.namespace(log);
     
-    // Expr <- Term "-" Expr / Term
-    ns.define('Expr',
+    // List <- Item "," List / Item
+    ns.define('List',
         sponsor(PEG.choice([
             sponsor(PEG.sequence([
-                sponsor(ns.lookup('Term')),
-                sponsor(PEG.terminal('-')),
-                sponsor(ns.lookup('Expr'))
+                sponsor(ns.lookup('Item')),
+                sponsor(PEG.terminal(',')),
+                sponsor(ns.lookup('List'))
             ])),
-            sponsor(ns.lookup('Term'))
+            sponsor(ns.lookup('Item'))
         ]))
     );
-    // Term <- [a-z]
-    ns.define('Term',
+    // Item <- [a-z]
+    ns.define('Item',
         sponsor(PEG.predicate(function (token) {
             return /[a-z]/.test(token);
         }))
@@ -66,18 +66,18 @@ test['right recursion groups right-to-left'] = function (test) {
     var ok = sponsor(function (r) {
         log('OK:', JSON.stringify(r, null, 2));
         var rule = r.value;
-        test.equal('Expr', rule.name);
+        test.equal('List', rule.name);
         test.equal(3, rule.value.length);
-        test.equal('Term', rule.value[0].name);
+        test.equal('Item', rule.value[0].name);
         test.equal(5, r.end.pos);
     });
     var fail = sponsor(function (r) {
         console.log('FAIL:', r);
     });
 
-    var start = sponsor(ns.lookup('Expr'));
+    var start = sponsor(ns.lookup('List'));
     var matcher = sponsor(PEG.start(start, ok, fail));
-    var stream = input.fromSequence(sponsor, 'a-b-c');
+    var stream = input.fromSequence(sponsor, 'a,b,c');
     stream(matcher);
 
     test.ok(tracing.eventLoop({ count: 1000 }));
