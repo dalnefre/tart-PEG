@@ -65,9 +65,7 @@ ns.define('Assign',
 Name   <- [a-zA-Z]
 */
 ns.define('Name',
-    pf.predicate(function (token) {
-        return /[a-zA-Z]/.test(token);
-    })
+    pf.predicate(token => /[a-zA-Z]/.test(token))
 );
 
 /*
@@ -78,9 +76,7 @@ ns.define('Expr',
         ns.call('Term'),
         pf.zeroOrMore(
             pf.sequence([
-                pf.predicate(function (token) {
-                    return /[-+]/.test(token);
-                }),
+                pf.predicate(token => /[-+]/.test(token)),
                 ns.call('Term')
             ])
         )
@@ -95,9 +91,7 @@ ns.define('Term',
         ns.call('Factor'),
         pf.zeroOrMore(
             pf.sequence([
-                pf.predicate(function (token) {
-                    return /[/*]/.test(token);
-                }),
+                pf.predicate(token => /[/*]/.test(token)),
                 ns.call('Factor')
             ])
         )
@@ -118,9 +112,7 @@ ns.define('Factor',
         ]),
         ns.call('Name'),
         pf.oneOrMore(
-            pf.predicate(function (token) {
-                return /[0-9]/.test(token);
-            })
+            pf.predicate(token => /[0-9]/.test(token))
         )
     ])
 );
