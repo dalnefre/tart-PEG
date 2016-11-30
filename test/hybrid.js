@@ -42,8 +42,8 @@ var actor = require('../humus/hybrid.js');
 test['actor model defines create and send'] = function (test) {
     test.expect(2);
 
-    test.strictEqual('function', typeof actor.create);
-    test.strictEqual('function', typeof actor.send);
+    test.strictEqual(typeof actor.create, 'function');
+    test.strictEqual(typeof actor.send, 'function');
 
     test.done();
 };
@@ -63,7 +63,7 @@ test['behavior returns actors, events, and optional behavior'] = function (test)
     var r = null_beh(m);
     log('r:', r);
     
-    test.strictEqual('object', typeof r);
+    test.strictEqual(typeof r, 'object');
     test.ok(Array.isArray(r.actors));
     test.ok(Array.isArray(r.events));
     test.ok((r.behavior === undefined) || ('function' === typeof r.behavior));
@@ -76,7 +76,7 @@ test['create returns actor address'] = function (test) {
     
     var a = actor.create(null_beh);
     
-    test.strictEqual('function', typeof a);  // address encoded as a function
+    test.strictEqual(typeof a, 'function');  // address encoded as a function
 
     test.done();
 };
@@ -88,9 +88,9 @@ test['send returns message-event'] = function (test) {
     var m = 'Hello!';
     var e = actor.send(a, m);
     
-    test.strictEqual('object', typeof e);
-    test.strictEqual(a, e.target);
-    test.strictEqual(m, e.message);
+    test.strictEqual(typeof e, 'object');
+    test.strictEqual(e.target, a);
+    test.strictEqual(e.message, m);
 
     test.done();
 };
@@ -100,7 +100,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     
     var null_beh = function null_beh(msg) {
         log('null'+actor.self+':', msg);
-        test.strictEqual(2, ++count);
+        test.strictEqual(++count, 2);
         return {
             actors: [],
             events: [],
@@ -110,7 +110,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     var one_shot = function one_shot(fwd) {
         return function one_shot_beh(msg) {
             log('one_shot'+actor.self+':', msg);
-            test.strictEqual(1, ++count);
+            test.strictEqual(++count, 1);
             return {
                 actors: [],
                 events: [
@@ -133,7 +133,7 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     var count = 0;
     var a = actor.create(function end_beh(msg) {
         log('end'+actor.self+':', msg);
-        test.strictEqual(3, ++count);
+        test.strictEqual(++count, 3);
         var d = actor.create(done_beh);
         return {
             actors: [d],
@@ -151,5 +151,5 @@ test['one shot actor should forward first message, then ignore everything'] = fu
             actor.send(b, 'Y')
         ]
     });
-    test.strictEqual(undefined, actor.self);
+    test.strictEqual(actor.self, undefined);
 };
