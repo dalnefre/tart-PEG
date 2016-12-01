@@ -250,9 +250,7 @@ var rq = function rq(code) {
 var textClass = function textClass(list) {
     var s = '';
     
-    s += 'pf.if(function cond(token) {\n';
-    indentDepth += indentWidth;
-    s += indent() + 'return /[';
+    s += 'pf.if(token => /[';
     for (var i = 0; i < list.length; ++i) {
         var range = list[i];
         if (typeof range === 'number') {
@@ -261,9 +259,7 @@ var textClass = function textClass(list) {
             s += rq(range[0]) + '-' + rq(range[1]);
         }
     }
-    s += ']/.test(token);\n';
-    indentDepth -= indentWidth;
-    s += indent() + '})';
+    s += ']/.test(token))';
     
     return s;
 };
