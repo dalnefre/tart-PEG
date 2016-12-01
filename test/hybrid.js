@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var test = module.exports = {};
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 var warn = console.log;
 
 //var tart = require('tart-tracing');

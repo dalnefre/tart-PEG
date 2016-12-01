@@ -32,8 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var actor = module.exports;
 
-var log = console.log;
-//var log = function () {};
+//var log = console.log;
+var log = function () {};
 
 var crypto = require('crypto');
 
