@@ -9,13 +9,14 @@ grammar.build = function build(sponsor, log) {
   var ns = pf.namespace(log);
 
 /*
-tokens  <- token* EOF
+tokens  <- token* _ EOF
 */
   ns.define("tokens",
     pf.seq([
       pf.star(
         ns.call("token")
       ),
+      ns.call("_"),
       ns.call("EOF")
     ])
   );

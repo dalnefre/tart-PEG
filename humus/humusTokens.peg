@@ -2,7 +2,7 @@
 # Lexical tokens for the Humus programming language (cf. humusSyntax.peg)
 #
 
-tokens  <- token* EOF
+tokens  <- token* _ EOF
 token   <- _ (symbol / number / char / string / ident / punct)
 
 symbol  <- '#' (punct / name)

@@ -232,6 +232,7 @@ PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
         log('zeroOrMoreBeh'+this.self+':', m);
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
+            log('zeroOrMoreBeh'+this.self+'.more:', r, list);
             list.push(r.value);  // mutate list
             pattern({
                 input: r.end,
@@ -240,9 +241,10 @@ PEG.star = PEG.zeroOrMore = function zeroOrMorePtrn(pattern) {
             });
         });
         var done = this.sponsor(function doneBeh(r) {
+            log('zeroOrMoreBeh'+this.self+'.done:', r, list);
             m.ok({
                 start: m.input,
-                end: r.end,
+                end: r.start,
                 value: list
             });
         });
@@ -259,6 +261,7 @@ PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
         log('oneOrMoreBeh'+this.self+':', m);
         var list = [];
         var more = this.sponsor(function moreBeh(r) {
+            log('oneOrMoreBeh'+this.self+'.more:', r, list);
             list.push(r.value);  // mutate list
             pattern({
                 input: r.end,
@@ -267,9 +270,10 @@ PEG.plus = PEG.oneOrMore = function oneOrMorePtrn(pattern) {
             });
         });
         var done = this.sponsor(function doneBeh(r) {
+            log('oneOrMoreBeh'+this.self+'.done:', r, list);
             m.ok({
                 start: m.input,
-                end: r.end,
+                end: r.start,
                 value: list
             });
         });

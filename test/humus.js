@@ -56,7 +56,7 @@ test['empty source returns empty array'] = function (test) {
             var v = m.value;
             test.strictEqual(v.name, 'tokens');
             v = v.value;
-            test.strictEqual(v.length, 2);
+            test.strictEqual(v.length, 3);
             var tokens = v[0];
             test.strictEqual(tokens.length, 0);
         }),
@@ -87,7 +87,7 @@ test['blank source returns empty array'] = function (test) {
             var v = m.value;
             test.strictEqual(v.name, 'tokens');
             v = v.value;
-            test.strictEqual(v.length, 2);
+            test.strictEqual(v.length, 3);
             var tokens = v[0];
             test.strictEqual(tokens.length, 0);
         }),
