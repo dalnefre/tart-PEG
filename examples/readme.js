@@ -46,19 +46,21 @@ var input = require('../input.js');
 var pf = PEG.factory(sponsor);
 var ns = pf.namespace(log);
 
+ns.defaultTransform = ((name, value) => value);
+
 /*
-Assign <- Name "=" Assign
-        / Expr
+Assign <- (Name "=")* Expr
 */
 ns.define('Assign',
-    pf.choice([
-        pf.sequence([
-            ns.call('Name'),
-            pf.terminal('='),
-            ns.call('Assign')
-        ]),
+	pf.sequence([
+        pf.zeroOrMore(
+	        pf.sequence([
+				ns.call('Name'),
+				pf.terminal('=')
+	        ])
+        ),
         ns.call('Expr')
-    ])
+	])
 );
 
 /*
@@ -101,7 +103,7 @@ ns.define('Term',
 /*
 Factor <- "(" Assign ")"
         / Name
-        / [0-9]+
+        / Number
 */
 ns.define('Factor',
     pf.choice([
@@ -111,11 +113,24 @@ ns.define('Factor',
             pf.terminal(')')
         ]),
         ns.call('Name'),
-        pf.oneOrMore(
-            pf.predicate(token => /[0-9]/.test(token))
-        )
+        ns.call('Number')
     ])
 );
+
+/*
+Number <- [0-9]+
+*/
+ns.define('Number',
+	pf.oneOrMore(
+		pf.predicate(token => /[0-9]/.test(token))
+	)
+).transform = ((name, value) => {
+	var number = 0;
+	value.forEach(digit => {
+		number = (10 * number) + (1 * digit);
+	});
+	return number;
+});
 
 var ok = sponsor(function okBeh(m) {
     console.log('OK:', JSON.stringify(m, null, '  '));

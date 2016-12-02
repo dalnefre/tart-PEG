@@ -356,7 +356,7 @@ PEG.namespace = function namespace(log) {
     var ruleNamed = {};
     log = log || defaultLog;
     
-    var defaultTransform = function ruleValue(name, value, r) {
+    ns.defaultTransform = function ruleValue(name, value, r) {
         return {
             name: name,
             start: r.start,
@@ -372,9 +372,10 @@ PEG.namespace = function namespace(log) {
         var rule = {
             name: name,
             pattern: pattern,
-            transform: defaultTransform
+            transform: ns.defaultTransform
         };
         ruleNamed[name] = rule;
+        return rule;
     };
     
     ns.lookup = function getRule(name) {
