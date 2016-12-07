@@ -143,7 +143,7 @@ test['left recursion fails safely'] = function (test) {
     test.done();
 };
 
-test['suffix iteration is left-associative'] = function (test) {
+test['suffix iteration should be left-associative (foldl)'] = function (test) {
     test.expect(2);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -202,7 +202,7 @@ test['suffix iteration is left-associative'] = function (test) {
     test.done();
 };
 
-test['prefix iteration is right-associative'] = function (test) {
+test['prefix iteration should be right-associative (foldr)'] = function (test) {
     test.expect(2);
     var tracing = tart.tracing();
     var sponsor = tracing.sponsor;
@@ -255,6 +255,82 @@ test['prefix iteration is right-associative'] = function (test) {
 
     var matcher =  pf.matcher(ns.call('List'), ok, fail);
     var stream = input.fromString(sponsor, 'a,b,c,d');
+    stream(matcher);
+
+    test.ok(tracing.eventLoop({ count: 1000 }), 'Exceeded message limit');
+    test.done();
+};
+
+test['star expansion is right-associative'] = function (test) {
+    test.expect(2);
+    var tracing = tart.tracing();
+    var sponsor = tracing.sponsor;
+    var pf = PEG.factory(sponsor);
+    var ns = pf.namespace(/*log*/);
+    
+    // G* <- G G*
+    //     |
+    var star = function star(G) {
+        var G_star = pf.choice([
+            pf.sequence([
+                G,
+                sponsor(function delay(m) {
+                    G_star(m);  // this will be bound before it is called
+                })
+            ]),
+            pf.empty
+        ]);
+        return G_star;
+    };
+    // Path <- Name star('.' Name)
+    ns.define('Path',
+        pf.sequence([
+            ns.call('Name'),
+            star(
+                pf.sequence([
+                    pf.terminal('.'),
+                    ns.call('Name')
+                ])
+            )
+        ])
+    ).transform = transformValue;
+    // Name <- [a-z]
+    ns.define('Name',
+        pf.predicate(token => /[a-z]/.test(token))
+    ).transform = transformValue;
+
+    var ok = sponsor(function (m) {
+        var v = m.value;
+        log('OK.value:', JSON.stringify(v, null, 2));
+        test.deepEqual(v, [
+            'a',
+            [
+                [
+                    '.',
+                    'b'
+                ],
+                [
+                    [
+                        '.',
+                        'c'
+                    ],
+                    [
+                        [
+                            '.',
+                            'd'
+                        ],
+                        []
+                    ]
+                ]
+            ]
+        ]);
+    });
+    var fail = sponsor(function (m) {
+        console.log('FAIL:', m);
+    });
+
+    var matcher =  pf.matcher(ns.call('Path'), ok, fail);
+    var stream = input.fromString(sponsor, 'a.b.c.d');
     stream(matcher);
 
     test.ok(tracing.eventLoop({ count: 1000 }), 'Exceeded message limit');

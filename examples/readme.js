@@ -133,7 +133,7 @@ ns.define('Number',
 });
 
 var ok = sponsor(function okBeh(m) {
-    console.log('OK:', JSON.stringify(m, null, '  '));
+    console.log('OK:', JSON.stringify(m.value, null, '  '));
 });
 var fail = sponsor(function failBeh(m) {
     console.log('FAIL:', JSON.stringify(m, null, '  '));
