@@ -111,10 +111,11 @@ The _sponsor_ controls (and potentially limits) the resources required to delive
 
 Partial functions and dictionaries/maps are both ways of defining an output value in terms of an input value.
 
-    square(x) = \x.(x * x) = { [0 0] [1 1] [2 4] [3 9] [4 16] [5 25] ... }
+    square(x) = \x.(x * x) = { '0':0, '1':1, '2':4, '3':9, '4':16, '5':25 ... }
 
+The formal argument in a function definition can be thought of as a pattern binding a variable.
 Pattern-matching grammars can be used in both directions. 
-Either to recognize and instance of a pattern (bind variables to parts),
+Either to recognize an instance of a pattern (bind variables to parts),
 or to generate a composite value from a template via variable substitution.
 
 #### Fundamental Data Types
@@ -145,11 +146,11 @@ or to generate a composite value from a template via variable substitution.
 
 #### Extended Patterns
 
-* Equal: Matches a specific value (`Predicate:equal`)
-* Class: Matches any of a class/type of values (`Predicate:type-of` or `Choice:set-of-values`)
-* Optional: Matches 0 or 1 occurance of a pattern (`Choice:[pattern Nothing]`)
-* Repeat: Matches 0 or more occurances of a pattern (`Choice:[Sequence:[pattern recurse] Nothing]`)
-* Some: Matches 1 or more occurances of a pattern (`Sequence[pattern Repeat:pattern]`)
+* Equal: Matches a specific value (`Predicate<equal>`)
+* Class: Matches any of a class/type of values (`Predicate<type-of> or `Choice<set-of-values>`)
+* Optional: Matches 0 or 1 occurance of a pattern (`Choice<pattern, Nothing>`)
+* Repeat: Matches 0 or more occurances of a pattern (`Choice<Sequence:<pattern, recurse>, Nothing>`)
+* Some: Matches 1 or more occurances of a pattern (`Sequence<pattern, Repeat<pattern>>`)
 
 ### Object/Functional Hybrid
 
