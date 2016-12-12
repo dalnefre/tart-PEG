@@ -147,7 +147,7 @@ or to generate a composite value from a template via variable substitution.
 #### Extended Patterns
 
 * Equal: Matches a specific value (`Predicate<equal>`)
-* Class: Matches any of a class/type of values (`Predicate<type-of> or `Choice<set-of-values>`)
+* Class: Matches any of a class/type of values (`Predicate<type-of>` or `Choice<set-of-values>`)
 * Optional: Matches 0 or 1 occurance of a pattern (`Choice<pattern, Nothing>`)
 * Repeat: Matches 0 or more occurances of a pattern (`Choice<Sequence:<pattern, recurse>, Nothing>`)
 * Some: Matches 1 or more occurances of a pattern (`Sequence<pattern, Repeat<pattern>>`)
