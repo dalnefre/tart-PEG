@@ -175,3 +175,19 @@ test['<1, <<2, 3>, 4>> has fringe [1, 2, 3, 4]'] = function (test) {
 
     test.done();
 };
+
+test['fringe(<1, <<2, 3>, 4>>) = fringe(<<1, 2>, <3, 4>>)'] = function (test) {
+    test.expect(1);
+    
+    var fringe = function fringe(tree) {
+        if (tree instanceof Y) {
+            return fringe(tree.a).concat(fringe(tree.b));
+        }
+        return [ tree ];
+    };
+    
+    var bTree = new Y(new Y(1, 2), new Y(3, 4));  // <<1, 2>, <3, 4>>
+    test.deepEqual(fringe(aTree), fringe(bTree));
+
+    test.done();
+};
