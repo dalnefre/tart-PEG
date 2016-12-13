@@ -195,18 +195,21 @@ test['fringe(<1, <<2, 3>, 4>>) = fringe(<<1, 2>, <3, 4>>)'] = function (test) {
 test['suspend calculations in closures'] = function (test) {
     test.expect(1);
     
-    var nextFringe = function nextFringe(tree, next) {
-        return function getLeaf() {
-            if (tree instanceof Y) {
-                next = nextFringe(tree.a, nextFringe(tree.b, next));
-                return next();
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+//            return () => (genFringe(tree.a, genFringe(tree.b, next)))();
+            return () => {
+                var right = genFringe(tree.b, next);
+                var left = genFringe(tree.a, right);
+                return left();
             }
-            return { value: tree, next: next };
-        };
+        } else {
+            return () => { value: tree, next: next }
+        }
     };
 
     var fringe = [];
-    var next = nextFringe(aTree);
+    var next = genFringe(aTree, null);
     while (next) {
         var leaf = next();
         fringe.push(leaf.value);
@@ -215,4 +218,87 @@ test['suspend calculations in closures'] = function (test) {
     test.deepEqual(fringe, [ 1, 2, 3, 4 ]);
 
     test.done();
+};
+
+var tart = (f)=>{let c=(b)=>{let a=(m)=>{setImmediate(()=>{try{x.behavior(m)}catch(e){f&&f(e)}})},x={self:a,behavior:b,sponsor:c};return a};return c};
+/*
+var tart = (f) => {
+    let c = (b) => {
+        let a = (m) => {
+            setImmediate(() => {
+                try {
+                    x.behavior(m)
+                } catch(e) {
+                    f && f(e)
+                }
+            })
+        }, x = {
+            self: a,
+            behavior: b,
+            sponsor: c
+        };
+        return a
+    };
+    return c
+};
+var tart = function(){var c=function(b){var a=function(m){setImmediate(function(){x.behavior(m)})},x={self:a,behavior:b,sponsor:c};return a};return c}
+var tart = function () {
+    var c = function (b) {
+        var a = function (m) {
+            setImmediate(function () {
+                x.behavior(m)
+            })
+        }, x = {
+            self: a,
+            behavior: b,
+            sponsor: c
+        };
+        return a
+    };
+    return c
+}
+*/
+
+test['actor-based fringe stream'] = function (test) {
+    test.expect(1);
+    var sponsor = tart(warn);  // actor create capability
+    
+    /*
+    LET fringe_gen_beh(tree, next) = \cust.[
+        IF $tree = (left, right) [
+            SEND cust TO NEW fringe_gen_beh(left, SELF)
+            BECOME fringe_gen_beh(right, next)
+        ] ELSE [
+            SEND (tree, next) TO cust
+        ]
+    ]
+    */
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return function treeBeh(cust) {
+                var right = this.sponsor(genFringe(tree.b, next));
+                var left = this.sponsor(genFringe(tree.a, right));
+                left(cust);
+            };
+        } else {
+            return function leafBeh(cust) {
+                cust({ value: tree, next: next });
+            };
+        }
+    };
+    var collector = function collector(fringe) {
+        return function collectBeh(leaf) {  // leaf = { value:, next: } | null
+            if (leaf) {
+                this.behavior = collector(fringe.concat([ leaf.value ]));
+                leaf.next(this.self);
+            } else {
+                test.deepEqual(fringe, [ 1, 2, 3, 4 ]);
+                test.done();
+            }
+        };
+    };
+    
+    var stream = sponsor(genFringe(aTree, null));
+    var reader = sponsor(collector([]));
+    stream(reader);
 };
