@@ -259,7 +259,41 @@ var tart = function () {
 }
 */
 
-test['actor-based fringe stream'] = function (test) {
+test['stateless actor-based fringe stream'] = function (test) {
+    test.expect(1);
+    var sponsor = tart(warn);  // actor create capability
+    
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return function treeBeh(cust) {
+                var right = this.sponsor(genFringe(tree.b, next));
+                var left = this.sponsor(genFringe(tree.a, right));
+                left(cust);
+            };
+        } else {
+            return function leafBeh(cust) {
+                cust({ value: tree, next: next });
+            };
+        }
+    };
+    var collector = function collector(fringe) {
+        return function collectBeh(leaf) {  // leaf = { value:, next: } | null
+            if (leaf) {
+                this.behavior = collector(fringe.concat([ leaf.value ]));
+                leaf.next(this.self);
+            } else {
+                test.deepEqual(fringe, [ 1, 2, 3, 4 ]);
+                test.done();
+            }
+        };
+    };
+    
+    var stream = sponsor(genFringe(aTree, null));
+    var reader = sponsor(collector([]));
+    stream(reader);
+};
+
+test['stateful actor-based fringe stream'] = function (test) {
     test.expect(1);
     var sponsor = tart(warn);  // actor create capability
     
@@ -276,8 +310,8 @@ test['actor-based fringe stream'] = function (test) {
     var genFringe = function genFringe(tree, next) {
         if (tree instanceof Y) {
             return function treeBeh(cust) {
-                var right = this.sponsor(genFringe(tree.b, next));
-                var left = this.sponsor(genFringe(tree.a, right));
+                this.behavior = genFringe(tree.b, next);
+                var left = this.sponsor(genFringe(tree.a, this.self));
                 left(cust);
             };
         } else {
