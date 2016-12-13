@@ -361,3 +361,70 @@ test['stateful actor-based fringe stream'] = function (test) {
     var reader = sponsor(collector([]));
     stream(reader);
 };
+
+test['incrementally compare actor-based streams'] = function (test) {
+    test.expect(5);
+    var sponsor = tart(warn);  // actor create capability
+    
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return function treeBeh(cust) {
+                this.behavior = genFringe(tree.b, next);
+                var left = this.sponsor(genFringe(tree.a, this.self));
+                left(cust);
+            };
+        } else {
+            return function leafBeh(cust) {
+                cust({ value: tree, next: next });
+            };
+        }
+    };
+    /*
+    LET cmp_stream_beh(cust) = \(value, next).[
+        BECOME \(value', next').[
+            IF $value = $value' [
+                BECOME cmp_stream_beh(cust)
+                IF $next = $next' [
+                    SEND TRUE TO cust
+                ] ELIF $next = NIL [
+                    SEND FALSE TO cust
+                ] ELIF $next' = NIL [
+                    SEND FALSE TO cust
+                ] ELSE [
+                    SEND SELF TO next
+                    SEND SELF TO next'
+                ]
+            ] ELSE [
+                SEND FALSE TO cust
+            ]
+        ]
+    ]
+    */
+    var comparator = function comparator(cust) {
+        var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
+            this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
+                test.strictEqual(i0.value, i1.value);  // match stream contents
+                this.behavior = initBeh;
+                if (i0.next === i1.next) {  // both streams ended
+                    cust(true);
+                } else if (i0.next && i0.next) {  // get next leaves to compare
+                    i0.next(this.self);
+                    i1.next(this.self);
+                } else {  // one stream ended early
+                    cust(false);
+                }
+            };
+        };
+        return initBeh;
+    };
+
+    var finish = sponsor(function finishBeh(matched) {
+        test.ok(matched);
+        test.done();
+    });
+    var s0 = sponsor(genFringe(aTree, null));
+    var s1 = sponsor(genFringe(bTree, null));
+    var compare = sponsor(comparator(finish));
+    s0(compare);
+    s1(compare);
+};
