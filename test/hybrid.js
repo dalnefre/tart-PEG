@@ -160,6 +160,7 @@ var Y = function Y(a, b) {  // fork in a tree with `a` left branch and `b` right
 };
 // Y.prototype.toString = function toString() { return '<' + this.a + ', ' + this.b + '>' };
 var aTree = new Y(1, new Y(new Y(2, 3), 4));  // <1, <<2, 3>, 4>>
+var bTree = new Y(new Y(1, 2), new Y(3, 4));  // <<1, 2>, <3, 4>>
 
 test['<1, <<2, 3>, 4>> has fringe [1, 2, 3, 4]'] = function (test) {
     test.expect(1);
@@ -186,7 +187,6 @@ test['fringe(<1, <<2, 3>, 4>>) = fringe(<<1, 2>, <3, 4>>)'] = function (test) {
         return [ tree ];
     };
     
-    var bTree = new Y(new Y(1, 2), new Y(3, 4));  // <<1, 2>, <3, 4>>
     test.deepEqual(fringe(aTree), fringe(bTree));
 
     test.done();
@@ -204,7 +204,7 @@ test['suspend calculations in closures'] = function (test) {
                 return left();
             }
         } else {
-            return () => { value: tree, next: next }
+            return () => { value: tree, next: next };
         }
     };
 
@@ -216,6 +216,31 @@ test['suspend calculations in closures'] = function (test) {
         next = leaf.next;
     };
     test.deepEqual(fringe, [ 1, 2, 3, 4 ]);
+
+    test.done();
+};
+
+test['incrementally compare functional fringe'] = function (test) {
+    test.expect(5);
+    
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return () => (genFringe(tree.a, genFringe(tree.b, next)))();
+        } else {
+            return () => { value: tree, next: next };
+        }
+    };
+    
+    var s0 = genFringe(aTree, null);
+    var s1 = genFringe(bTree, null);
+    while (s0 && s1) {
+        var i0 = s0();
+        var i1 = s1();
+        test.strictEqual(i0.value, i1.value);  // match stream contents
+        s0 = i0.next;
+        s1 = i1.next;
+    };
+    test.strictEqual(s0, s1);  // make sure both streams ended (null === null)
 
     test.done();
 };
