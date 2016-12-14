@@ -161,6 +161,7 @@ var Y = function Y(a, b) {  // fork in a tree with `a` left branch and `b` right
 // Y.prototype.toString = function toString() { return '<' + this.a + ', ' + this.b + '>' };
 var aTree = new Y(1, new Y(new Y(2, 3), 4));  // <1, <<2, 3>, 4>>
 var bTree = new Y(new Y(1, 2), new Y(3, 4));  // <<1, 2>, <3, 4>>
+var cTree = new Y(new Y(new Y(1, 2), 3), new Y(5, 8));  // <<<1, 2>, 3>, <5, 8>>
 
 test['<1, <<2, 3>, 4>> has fringe [1, 2, 3, 4]'] = function (test) {
     test.expect(1);
@@ -405,11 +406,11 @@ test['incrementally compare actor-based streams'] = function (test) {
     var comparator = function comparator(cust) {
         var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
             this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
-                test.strictEqual(i0.value, i1.value);  // match stream contents
                 this.behavior = initBeh;
-                if (i0.next === i1.next) {  // both streams ended
+                if (i0 === i1) {  // both streams ended
                     cust(true);
-                } else if (i0.next && i0.next) {  // get next leaves to compare
+                } else if (i0 && i1) {  // get next leaves to compare
+                    test.strictEqual(i0.value, i1.value);  // match stream contents
                     i0.next(this.self);
                     i1.next(this.self);
                 } else {  // one stream ended early
@@ -427,6 +428,60 @@ test['incrementally compare actor-based streams'] = function (test) {
     var end = sponsor(function (cust) { cust(null); });
     var s0 = sponsor(genFringe(aTree, end));
     var s1 = sponsor(genFringe(bTree, end));
+    var compare = sponsor(comparator(finish));
+    s0(compare);
+    s1(compare);
+};
+
+
+test['stream comparison stops early on mismatch'] = function (test) {
+    test.expect(3);
+    var sponsor = tart(warn);  // actor create capability
+    
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return function treeBeh(cust) {
+                this.behavior = genFringe(tree.b, next);
+                var left = this.sponsor(genFringe(tree.a, this.self));
+                left(cust);
+            };
+        } else {
+            return function leafBeh(cust) {
+                cust({ value: tree, next: next });
+            };
+        }
+    };
+    var comparator = function comparator(cust) {
+        var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
+            this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
+                this.behavior = initBeh;
+                if (i0 === i1) {  // both streams ended
+                    cust(true);
+                } else if (i0 && i1) {  // get next leaves to compare
+                    if (i0.value === i1.value) {  // match stream contents
+                        i0.next(this.self);
+                        i1.next(this.self);
+                    } else {
+//                        cust(false);
+                        i1.next(cust);  // should send 8 to finish
+                    }
+                } else {  // one stream ended early
+                    cust(false);
+                }
+            };
+        };
+        return initBeh;
+    };
+
+    var finish = sponsor(function finishBeh(matched) {
+        test.strictEqual('object', typeof matched);
+        test.strictEqual(8, matched.value);
+        test.strictEqual(end, matched.next);
+        test.done();
+    });
+    var end = sponsor(function (cust) { cust(null); });
+    var s0 = sponsor(genFringe(aTree, end));
+    var s1 = sponsor(genFringe(cTree, end));
     var compare = sponsor(comparator(finish));
     s0(compare);
     s1(compare);
