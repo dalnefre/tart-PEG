@@ -246,6 +246,35 @@ test['incrementally compare functional fringe'] = function (test) {
     test.done();
 };
 
+test['compare functional fringe to infinite series'] = function (test) {
+    test.expect(6);
+    
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return () => (genFringe(tree.a, genFringe(tree.b, next)))();
+        } else {
+            return () => ({ value: tree, next: next });
+        }
+    };
+    var genSeries = function genSeries(value, update) {
+        return () => ({ value: value, next: genSeries(update(value), update) });
+    };
+    
+    var s0 = genFringe(aTree, null);
+    var s1 = genSeries(1, (n => n + 1));
+    while (s0 && s1) {
+        var i0 = s0();
+        var i1 = s1();
+        test.strictEqual(i0.value, i1.value);  // match stream contents
+        s0 = i0.next;
+        s1 = i1.next;
+    };
+    test.strictEqual(s0, null);  // fringe stream ended
+    test.strictEqual(s1().value, 5);  // first un-matched value should be 5
+
+    test.done();
+};
+
 var tart = (f)=>{let c=(b)=>{let a=(m)=>{setImmediate(()=>{try{x.behavior(m)}catch(e){f&&f(e)}})},x={self:a,behavior:b,sponsor:c};return a};return c};
 /*
 var tart = (f) => {
@@ -433,7 +462,6 @@ test['incrementally compare actor-based streams'] = function (test) {
     s1(compare);
 };
 
-
 test['stream comparison stops early on mismatch'] = function (test) {
     test.expect(3);
     var sponsor = tart(warn);  // actor create capability
@@ -482,6 +510,76 @@ test['stream comparison stops early on mismatch'] = function (test) {
     var end = sponsor(function (cust) { cust(null); });
     var s0 = sponsor(genFringe(aTree, end));
     var s1 = sponsor(genFringe(cTree, end));
+    var compare = sponsor(comparator(finish));
+    s0(compare);
+    s1(compare);
+};
+
+test['compare actor fringe to infinite series'] = function (test) {
+    test.expect(2);
+    var sponsor = tart(warn);  // actor create capability
+    
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return function treeBeh(cust) {
+                this.behavior = genFringe(tree.b, next);
+                var left = this.sponsor(genFringe(tree.a, this.self));
+                left(cust);
+            };
+        } else {
+            return function leafBeh(cust) {
+                cust({ value: tree, next: next });
+            };
+        }
+    };
+    var genSeries = function genSeries(value, update) {
+        return function seriesBeh(cust) {
+            var next = this.sponsor(genSeries(update(value), update));
+            cust({ value: value, next: next });
+        }
+    };
+    var comparator = function comparator(cust) {
+        var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
+            this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
+                this.behavior = initBeh;
+                if (i0 === i1) {  // both streams ended
+                    cust(true);
+                } else if (i0 && i1) {  // get next leaves to compare
+                    if (i0.value === i1.value) {  // match stream contents
+                        i0.next(this.self);
+                        i1.next(this.self);
+                    } else {
+//                        cust(false);
+                        i1.next(cust);  // should send 5 to finish
+                    }
+                } else {  // one stream ended early
+                    cust(false);
+                }
+            };
+        };
+        return initBeh;
+    };
+    
+    var s0 = genFringe(aTree, null);
+    var s1 = genSeries(1, (n => n + 1));
+    while (s0 && s1) {
+        var i0 = s0();
+        var i1 = s1();
+        test.strictEqual(i0.value, i1.value);  // match stream contents
+        s0 = i0.next;
+        s1 = i1.next;
+    };
+    test.strictEqual(s0, null);  // fringe stream ended
+    test.strictEqual(s1().value, 5);  // first un-matched value should be 5
+
+    var finish = sponsor(function finishBeh(matched) {
+        test.strictEqual('object', typeof matched);
+        test.strictEqual(5, matched.value);
+        test.done();
+    });
+    var end = sponsor(function (cust) { cust(null); });
+    var s0 = sponsor(genFringe(aTree, end));
+    var s1 = sponsor(genSeries(1, (n => n + 1)));
     var compare = sponsor(comparator(finish));
     s0(compare);
     s1(compare);
