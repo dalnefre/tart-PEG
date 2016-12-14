@@ -204,7 +204,7 @@ test['suspend calculations in closures'] = function (test) {
                 return left();
             }
         } else {
-            return () => { value: tree, next: next };
+            return () => ({ value: tree, next: next });
         }
     };
 
@@ -227,7 +227,7 @@ test['incrementally compare functional fringe'] = function (test) {
         if (tree instanceof Y) {
             return () => (genFringe(tree.a, genFringe(tree.b, next)))();
         } else {
-            return () => { value: tree, next: next };
+            return () => ({ value: tree, next: next });
         }
     };
     
@@ -313,7 +313,8 @@ test['stateless actor-based fringe stream'] = function (test) {
         };
     };
     
-    var stream = sponsor(genFringe(aTree, null));
+    var end = sponsor(function (cust) { cust(null); });
+    var stream = sponsor(genFringe(aTree, end));
     var reader = sponsor(collector([]));
     stream(reader);
 };
@@ -357,7 +358,8 @@ test['stateful actor-based fringe stream'] = function (test) {
         };
     };
     
-    var stream = sponsor(genFringe(aTree, null));
+    var end = sponsor(function (cust) { cust(null); });
+    var stream = sponsor(genFringe(aTree, end));
     var reader = sponsor(collector([]));
     stream(reader);
 };
@@ -422,8 +424,9 @@ test['incrementally compare actor-based streams'] = function (test) {
         test.ok(matched);
         test.done();
     });
-    var s0 = sponsor(genFringe(aTree, null));
-    var s1 = sponsor(genFringe(bTree, null));
+    var end = sponsor(function (cust) { cust(null); });
+    var s0 = sponsor(genFringe(aTree, end));
+    var s1 = sponsor(genFringe(bTree, end));
     var compare = sponsor(comparator(finish));
     s0(compare);
     s1(compare);
