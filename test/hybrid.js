@@ -333,6 +333,7 @@ test['stateless actor-based fringe stream'] = function (test) {
     };
     var collector = function collector(fringe) {
         return function collectBeh(leaf) {  // leaf = { value:, next: } | null
+            log('leaf:', leaf);
             if (leaf) {
                 this.behavior = collector(fringe.concat([ leaf.value ]));
                 leaf.next(this.self);
@@ -378,6 +379,7 @@ test['stateful actor-based fringe stream'] = function (test) {
     };
     var collector = function collector(fringe) {
         return function collectBeh(leaf) {  // leaf = { value:, next: } | null
+            log('leaf:', leaf);
             if (leaf) {
                 this.behavior = collector(fringe.concat([ leaf.value ]));
                 leaf.next(this.self);
@@ -436,6 +438,7 @@ test['incrementally compare actor-based streams'] = function (test) {
         var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
             this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
                 this.behavior = initBeh;
+                log('i0:', i0, 'i1:', i1);
                 if (i0 === i1) {  // both streams ended
                     cust(true);
                 } else if (i0 && i1) {  // get next leaves to compare
@@ -483,6 +486,7 @@ test['stream comparison stops early on mismatch'] = function (test) {
         var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
             this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
                 this.behavior = initBeh;
+                log('i0:', i0, 'i1:', i1);
                 if (i0 === i1) {  // both streams ended
                     cust(true);
                 } else if (i0 && i1) {  // get next leaves to compare
@@ -541,6 +545,7 @@ test['compare actor fringe to infinite series'] = function (test) {
     var comparator = function comparator(cust) {
         var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
             this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
+                log('i0:', i0, 'i1:', i1);
                 this.behavior = initBeh;
                 if (i0 === i1) {  // both streams ended
                     cust(true);
@@ -549,29 +554,17 @@ test['compare actor fringe to infinite series'] = function (test) {
                         i0.next(this.self);
                         i1.next(this.self);
                     } else {
-//                        cust(false);
-                        i1.next(cust);  // should send 5 to finish
+                        cust(false);
                     }
                 } else {  // one stream ended early
-                    cust(false);
+//                    cust(false);
+                    cust(i0 || i1);  // should send 5 to finish
                 }
             };
         };
         return initBeh;
     };
     
-    var s0 = genFringe(aTree, null);
-    var s1 = genSeries(1, (n => n + 1));
-    while (s0 && s1) {
-        var i0 = s0();
-        var i1 = s1();
-        test.strictEqual(i0.value, i1.value);  // match stream contents
-        s0 = i0.next;
-        s1 = i1.next;
-    };
-    test.strictEqual(s0, null);  // fringe stream ended
-    test.strictEqual(s1().value, 5);  // first un-matched value should be 5
-
     var finish = sponsor(function finishBeh(matched) {
         test.strictEqual('object', typeof matched);
         test.strictEqual(5, matched.value);
