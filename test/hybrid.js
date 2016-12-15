@@ -154,10 +154,10 @@ test['one shot actor should forward first message, then ignore everything'] = fu
     test.strictEqual(actor.self, undefined);
 };
 
-var Y = function Y(a, b) {  // fork in a tree with `a` left branch and `b` right branch
+function Y(a, b) {  // binary tree with left branch `a` and right branch `b`
     this.a = a;
     this.b = b;
-};
+}
 // Y.prototype.toString = function toString() { return '<' + this.a + ', ' + this.b + '>' };
 var aTree = new Y(1, new Y(new Y(2, 3), 4));  // <1, <<2, 3>, 4>>
 var bTree = new Y(new Y(1, 2), new Y(3, 4));  // <<1, 2>, <3, 4>>
@@ -168,7 +168,9 @@ test['<1, <<2, 3>, 4>> has fringe [1, 2, 3, 4]'] = function (test) {
     
     var fringe = function fringe(tree) {
         if (tree instanceof Y) {
-            return fringe(tree.a).concat(fringe(tree.b));
+            let left = fringe(tree.a);
+            let right = fringe(tree.b);
+            return left.concat(right);
         }
         return [ tree ];
     };
