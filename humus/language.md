@@ -231,3 +231,37 @@ But this is not a requirement of their definition.
 An addressing domain may contain (or overlap) several configurations.
 A configuration may include actors from multiple addressing domains.
 An actor is does not need to be aware of its inclusion in a configuration or domain.
+
+### Functional Objects (ala B. Marick)
+Taken from the first few minutes of "[Ruby After 18 Months of Clojure](https://vimeo.com/34972874)".
+```
+Point = ->(x, y) {
+    methods =
+        Hash[:x,      -> { x },
+             :r,      -> { Math.sqrt(x*x + y*y) },
+             :shift!, ->(xinc, yinc) {
+                 x += xinc,
+                 y += yinc
+             }]
+    ->(message, *args) {
+        methods[message].(*args)
+    }
+}
+```
+Or, as rewritten in JavaScript:
+```
+function Point(x, y) {
+    let methods = {
+        x: () => x,
+        r: () => Math.sqrt(x*x + y*y),
+        shift: (dx, dy) => {
+          x += dx;
+          y += dy;
+        }
+    };
+    return function (message) {
+        let args = Array.prototype.slice.call(arguments, 1);
+        return methods[message].apply(null, args);
+    }
+}
+```
