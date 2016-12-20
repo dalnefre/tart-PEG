@@ -277,6 +277,51 @@ test['compare functional fringe to infinite series'] = function (test) {
     test.done();
 };
 
+test['functional fringe comparisons'] = function (test) {
+    test.expect(6);
+    
+    var genFringe = function genFringe(tree, next) {
+        if (tree instanceof Y) {
+            return () => (genFringe(tree.a, genFringe(tree.b, next)))();
+        } else {
+            return () => ({ value: tree, next: next });
+        }
+    };
+    var sameFringe = function sameFringe(s0, s1) {
+        while (s0 && s1) {
+            let r0 = s0();  // get result from first sequence
+            let r1 = s1();  // get result from second sequence
+            if (r0.value != r1.value) {
+                return false;   // mismatched values
+            }
+            s0 = r0.next;
+            s1 = r1.next;
+        }
+        return (s0 == s1);  // same sequence, or both ended (null)
+    };
+    
+    test.strictEqual(sameFringe(genFringe(aTree), genFringe(bTree)), true);
+    test.strictEqual(sameFringe(genFringe(cTree), genFringe(bTree)), false);
+
+    var genSeries = function genSeries(value, update) {
+        return () => ({ value: value, next: genSeries(update(value), update) });
+    };
+    test.strictEqual(sameFringe(genFringe(cTree), genSeries(1, (n => n + 1))), false);
+    
+    var genRange = function genRange(lo, hi) {
+        if (lo < hi) {
+            return () => ({ value: lo, next: genRange(lo + 1, hi) });
+        } else {
+            return null;
+        }
+    };
+    test.strictEqual(sameFringe(genRange(0, 32), genRange(0, 32)), true);
+    test.strictEqual(sameFringe(genRange(0, 100000), genRange(0, 100000)), true);
+    test.strictEqual(sameFringe(genRange(42, 123456), genSeries(42, (n => n + 1))), false);
+
+    test.done();
+};
+
 var tart = (f)=>{let c=(b)=>{let a=(m)=>{setImmediate(()=>{try{x.behavior(m)}catch(e){f&&f(e)}})},x={self:a,behavior:b,sponsor:c};return a};return c};
 /*
 var tart = (f) => {
