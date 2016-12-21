@@ -304,7 +304,14 @@ test['functional fringe comparisons'] = function (test) {
     test.strictEqual(sameFringe(genFringe(cTree), genFringe(bTree)), false);
 
     var genSeries = function genSeries(value, update) {
-        return () => ({ value: value, next: genSeries(update(value), update) });
+        return () => {
+            try {
+                let next = genSeries(update(value), update);
+                return { value: value, next: next };
+            } catch (e) {
+                return { error: e };
+            }
+        };
     };
     test.strictEqual(sameFringe(genFringe(cTree), genSeries(1, (n => n + 1))), false);
     
