@@ -199,8 +199,8 @@ test['suspend calculations in closures'] = function (test) {
     test.expect(1);
     
     var genFringe = function genFringe(tree, next) {
+        next = next || () => ({});  // default next == end
         if (tree instanceof Y) {
-//            return () => (genFringe(tree.a, genFringe(tree.b, next)))();
             return () => {
                 var right = genFringe(tree.b, next);
                 var left = genFringe(tree.a, right);
@@ -212,11 +212,10 @@ test['suspend calculations in closures'] = function (test) {
     };
 
     var fringe = [];
-    var next = genFringe(aTree, null);
-    while (next) {
-        var leaf = next();
+    var leaf = (genFringe(aTree))();
+    while (leaf.value !== undefined) {
         fringe.push(leaf.value);
-        next = leaf.next;
+        leaf = leaf.next();
     };
     test.deepEqual(fringe, [ 1, 2, 3, 4 ]);
 
@@ -227,6 +226,7 @@ test['incrementally compare functional fringe'] = function (test) {
     test.expect(5);
     
     var genFringe = function genFringe(tree, next) {
+        next = next || () => ({});  // default next == end
         if (tree instanceof Y) {
             return () => (genFringe(tree.a, genFringe(tree.b, next)))();
         } else {
@@ -234,16 +234,16 @@ test['incrementally compare functional fringe'] = function (test) {
         }
     };
     
-    var s0 = genFringe(aTree, null);
-    var s1 = genFringe(bTree, null);
-    while (s0 && s1) {
-        var i0 = s0();
-        var i1 = s1();
-        test.strictEqual(i0.value, i1.value);  // match stream contents
-        s0 = i0.next;
-        s1 = i1.next;
+    var r0 = (genFringe(aTree))();
+    var r1 = (genFringe(bTree))();
+    while (true) {
+        test.strictEqual(r0.value, r1.value);  // match stream contents
+        if ((r0.value === undefined) || (r1.value === undefined)) {
+            break;  // stream end
+        }
+        r0 = r0.next();
+        r1 = r1.next();
     };
-    test.strictEqual(s0, s1);  // make sure both streams ended (null === null)
 
     test.done();
 };
@@ -252,6 +252,7 @@ test['compare functional fringe to infinite series'] = function (test) {
     test.expect(6);
     
     var genFringe = function genFringe(tree, next) {
+        next = next || () => ({});  // default next == end
         if (tree instanceof Y) {
             return () => (genFringe(tree.a, genFringe(tree.b, next)))();
         } else {
@@ -262,17 +263,15 @@ test['compare functional fringe to infinite series'] = function (test) {
         return () => ({ value: value, next: genSeries(update(value), update) });
     };
     
-    var s0 = genFringe(aTree, null);
-    var s1 = genSeries(1, (n => n + 1));
-    while (s0 && s1) {
-        var i0 = s0();
-        var i1 = s1();
-        test.strictEqual(i0.value, i1.value);  // match stream contents
-        s0 = i0.next;
-        s1 = i1.next;
+    var r0 = (genFringe(aTree))();
+    var r1 = (genSeries(1, n => n + 1))();
+    while ((r0.value !== undefined) && (r1.value !== undefined)) {
+        test.strictEqual(r0.value, r1.value);  // match stream contents
+        r0 = r0.next();
+        r1 = r1.next();
     };
-    test.strictEqual(s0, null);  // fringe stream ended
-    test.strictEqual(s1().value, 5);  // first un-matched value should be 5
+    test.strictEqual(r0.value, undefined);  // fringe stream ended
+    test.strictEqual(r1.value, 5);  // un-matched series value should be 5
 
     test.done();
 };
@@ -281,6 +280,7 @@ test['functional fringe comparisons'] = function (test) {
     test.expect(6);
     
     var genFringe = function genFringe(tree, next) {
+        next = next || () => ({});  // default next == end
         if (tree instanceof Y) {
             return () => (genFringe(tree.a, genFringe(tree.b, next)))();
         } else {
@@ -288,18 +288,18 @@ test['functional fringe comparisons'] = function (test) {
         }
     };
     var sameFringe = function sameFringe(s0, s1) {
-        while (s0 && s1) {
-            let r0 = s0();  // get result from first sequence
-            let r1 = s1();  // get result from second sequence
-            if (r0.value != r1.value) {
-                return false;   // mismatched values
+        let r0 = s0();  // get result from first sequence
+        let r1 = s1();  // get result from second sequence
+        while (r0.value === r1.value) {
+            if (r0.value === undefined) {
+                return true;   // stream end
             }
-            s0 = r0.next;
-            s1 = r1.next;
+            r0 = r0.next();
+            r1 = r1.next();
         }
-        return (s0 == s1);  // same sequence, or both ended (null)
+        return false;  // mismatch
     };
-    
+   
     test.strictEqual(sameFringe(genFringe(aTree), genFringe(bTree)), true);
     test.strictEqual(sameFringe(genFringe(cTree), genFringe(bTree)), false);
 
@@ -313,7 +313,7 @@ test['functional fringe comparisons'] = function (test) {
             }
         };
     };
-    test.strictEqual(sameFringe(genFringe(cTree), genSeries(1, (n => n + 1))), false);
+    test.strictEqual(sameFringe(genFringe(cTree), genSeries(1, n => n + 1)), false);
     
     var genRange = function genRange(lo, hi) {
         if (lo < hi) {
@@ -323,8 +323,8 @@ test['functional fringe comparisons'] = function (test) {
         }
     };
     test.strictEqual(sameFringe(genRange(0, 32), genRange(0, 32)), true);
-    test.strictEqual(sameFringe(genRange(0, 100000), genRange(0, 100000)), true);
-    test.strictEqual(sameFringe(genRange(42, 123456), genSeries(42, (n => n + 1))), false);
+    test.strictEqual(sameFringe(genRange(0, 99999), genRange(0, 99999)), true);
+    test.strictEqual(sameFringe(genRange(42, 123456), genSeries(42, n => n + 1)), false);
 
     test.done();
 };
