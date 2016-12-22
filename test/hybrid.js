@@ -319,7 +319,7 @@ test['functional fringe comparisons'] = function (test) {
         if (lo < hi) {
             return () => ({ value: lo, next: genRange(lo + 1, hi) });
         } else {
-            return null;
+            return () => ({});  // stream end
         }
     };
     test.strictEqual(sameFringe(genRange(0, 32), genRange(0, 32)), true);
