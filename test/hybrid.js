@@ -372,23 +372,22 @@ test['stateless actor-based fringe stream'] = function (test) {
     test.expect(1);
     var sponsor = tart(warn);  // actor create capability
     
-    var genFringe = function genFringe(tree, next) {
-        if (tree instanceof Y) {
-            return function treeBeh(cust) {
-                var right = this.sponsor(genFringe(tree.b, next));
-                var left = this.sponsor(genFringe(tree.a, right));
+    var mkFringe = function mkFringe(tree, next) {
+        return function fringeBeh(cust) {
+            next = next || this.sponsor(function (cust) { cust({}); });
+            if (tree instanceof Y) {
+                var right = this.sponsor(mkFringe(tree.b, next));
+                var left = this.sponsor(mkFringe(tree.a, right));
                 left(cust);
-            };
-        } else {
-            return function leafBeh(cust) {
+            } else {
                 cust({ value: tree, next: next });
-            };
-        }
+            }
+        };
     };
     var collector = function collector(fringe) {
-        return function collectBeh(leaf) {  // leaf = { value:, next: } | null
+        return function collectBeh(leaf) {  // leaf = { value:, next: } | {}
             log('leaf:', leaf);
-            if (leaf) {
+            if (leaf.value) {
                 this.behavior = collector(fringe.concat([ leaf.value ]));
                 leaf.next(this.self);
             } else {
@@ -398,8 +397,7 @@ test['stateless actor-based fringe stream'] = function (test) {
         };
     };
     
-    var end = sponsor(function (cust) { cust(null); });
-    var stream = sponsor(genFringe(aTree, end));
+    var stream = sponsor(mkFringe(aTree));
     var reader = sponsor(collector([]));
     stream(reader);
 };
@@ -408,33 +406,22 @@ test['stateful actor-based fringe stream'] = function (test) {
     test.expect(1);
     var sponsor = tart(warn);  // actor create capability
     
-    /*
-    LET fringe_gen_beh(tree, next) = \cust.[
-        IF $tree = (left, right) [
-            SEND cust TO NEW fringe_gen_beh(left, SELF)
-            BECOME fringe_gen_beh(right, next)
-        ] ELSE [
-            SEND (tree, next) TO cust
-        ]
-    ]
-    */
-    var genFringe = function genFringe(tree, next) {
-        if (tree instanceof Y) {
-            return function treeBeh(cust) {
-                this.behavior = genFringe(tree.b, next);
-                var left = this.sponsor(genFringe(tree.a, this.self));
+    var mkFringe = function mkFringe(tree, next) {
+        return function fringeBeh(cust) {
+            next = next || this.sponsor(function (cust) { cust({}); });
+            if (tree instanceof Y) {
+                this.behavior = mkFringe(tree.b, next);
+                var left = this.sponsor(mkFringe(tree.a, this.self));
                 left(cust);
-            };
-        } else {
-            return function leafBeh(cust) {
+            } else {
                 cust({ value: tree, next: next });
-            };
-        }
+            }
+        };
     };
     var collector = function collector(fringe) {
-        return function collectBeh(leaf) {  // leaf = { value:, next: } | null
+        return function collectBeh(leaf) {  // leaf = { value:, next: } | {}
             log('leaf:', leaf);
-            if (leaf) {
+            if (leaf.value) {
                 this.behavior = collector(fringe.concat([ leaf.value ]));
                 leaf.next(this.self);
             } else {
@@ -444,8 +431,7 @@ test['stateful actor-based fringe stream'] = function (test) {
         };
     };
     
-    var end = sponsor(function (cust) { cust(null); });
-    var stream = sponsor(genFringe(aTree, end));
+    var stream = sponsor(mkFringe(aTree));
     var reader = sponsor(collector([]));
     stream(reader);
 };
@@ -454,53 +440,33 @@ test['incrementally compare actor-based streams'] = function (test) {
     test.expect(5);
     var sponsor = tart(warn);  // actor create capability
     
-    var genFringe = function genFringe(tree, next) {
-        if (tree instanceof Y) {
-            return function treeBeh(cust) {
-                this.behavior = genFringe(tree.b, next);
-                var left = this.sponsor(genFringe(tree.a, this.self));
+    var mkFringe = function mkFringe(tree, next) {
+        return function fringeBeh(cust) {
+            next = next || this.sponsor(function (cust) { cust({}); });
+            if (tree instanceof Y) {
+                this.behavior = mkFringe(tree.b, next);
+                var left = this.sponsor(mkFringe(tree.a, this.self));
                 left(cust);
-            };
-        } else {
-            return function leafBeh(cust) {
+            } else {
                 cust({ value: tree, next: next });
-            };
-        }
+            }
+        };
     };
-    /*
-    LET cmp_stream_beh(cust) = \(value, next).[
-        BECOME \(value', next').[
-            IF $value = $value' [
-                BECOME cmp_stream_beh(cust)
-                IF $next = $next' [
-                    SEND TRUE TO cust
-                ] ELIF $next = NIL [
-                    SEND FALSE TO cust
-                ] ELIF $next' = NIL [
-                    SEND FALSE TO cust
-                ] ELSE [
-                    SEND SELF TO next
-                    SEND SELF TO next'
-                ]
-            ] ELSE [
-                SEND FALSE TO cust
-            ]
-        ]
-    ]
-    */
     var comparator = function comparator(cust) {
-        var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
-            this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
+        var initBeh = function compareBeh(r0) {  // r0 = { value:, next: } | {}
+            this.behavior = function compareBeh(r1) {  // r1 = { value:, next: } | {}
                 this.behavior = initBeh;
-                log('i0:', i0, 'i1:', i1);
-                if (i0 === i1) {  // both streams ended
-                    cust(true);
-                } else if (i0 && i1) {  // get next leaves to compare
-                    test.strictEqual(i0.value, i1.value);  // match stream contents
-                    i0.next(this.self);
-                    i1.next(this.self);
-                } else {  // one stream ended early
-                    cust(false);
+                log('r0:', r0, 'r1:', r1);
+                if (r0.value === r1.value) {
+                    if (r0.value === undefined) {
+                        cust(true);  // stream end
+                    } else {
+                        test.strictEqual(r0.value, r1.value);  // match stream contents
+                        r0.next(this.self);
+                        r1.next(this.self);
+                    }
+                } else {
+                    cust(false);  // mismatch
                 }
             };
         };
@@ -511,48 +477,45 @@ test['incrementally compare actor-based streams'] = function (test) {
         test.ok(matched);
         test.done();
     });
-    var end = sponsor(function (cust) { cust(null); });
-    var s0 = sponsor(genFringe(aTree, end));
-    var s1 = sponsor(genFringe(bTree, end));
+    var s0 = sponsor(mkFringe(aTree));
+    var s1 = sponsor(mkFringe(bTree));
     var compare = sponsor(comparator(finish));
     s0(compare);
     s1(compare);
 };
 
 test['stream comparison stops early on mismatch'] = function (test) {
-    test.expect(3);
+    test.expect(5);
     var sponsor = tart(warn);  // actor create capability
     
-    var genFringe = function genFringe(tree, next) {
-        if (tree instanceof Y) {
-            return function treeBeh(cust) {
-                this.behavior = genFringe(tree.b, next);
-                var left = this.sponsor(genFringe(tree.a, this.self));
+    var mkFringe = function mkFringe(tree, next) {
+        return function fringeBeh(cust) {
+            next = next || this.sponsor(function (cust) { cust({}); });
+            if (tree instanceof Y) {
+                this.behavior = mkFringe(tree.b, next);
+                var left = this.sponsor(mkFringe(tree.a, this.self));
                 left(cust);
-            };
-        } else {
-            return function leafBeh(cust) {
+            } else {
                 cust({ value: tree, next: next });
-            };
-        }
+            }
+        };
     };
     var comparator = function comparator(cust) {
-        var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
-            this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
+        var initBeh = function compareBeh(r0) {  // r0 = { value:, next: } | {}
+            this.behavior = function compareBeh(r1) {  // r1 = { value:, next: } | {}
                 this.behavior = initBeh;
-                log('i0:', i0, 'i1:', i1);
-                if (i0 === i1) {  // both streams ended
-                    cust(true);
-                } else if (i0 && i1) {  // get next leaves to compare
-                    if (i0.value === i1.value) {  // match stream contents
-                        i0.next(this.self);
-                        i1.next(this.self);
+                log('r0:', r0, 'r1:', r1);
+                if (r0.value === r1.value) {
+                    if (r0.value === undefined) {
+                        cust(true);  // stream end
                     } else {
-//                        cust(false);
-                        i1.next(cust);  // should send 8 to finish
+                        test.strictEqual(r0.value, r1.value);  // match stream contents
+                        r0.next(this.self);
+                        r1.next(this.self);
                     }
-                } else {  // one stream ended early
-                    cust(false);
+                } else {
+//                    cust(false);  // mismatch
+                    cust(r1);  // send mismatch to finish
                 }
             };
         };
@@ -560,59 +523,56 @@ test['stream comparison stops early on mismatch'] = function (test) {
     };
 
     var finish = sponsor(function finishBeh(matched) {
+        log('matched:', matched);
         test.strictEqual('object', typeof matched);
-        test.strictEqual(8, matched.value);
-        test.strictEqual(end, matched.next);
+        test.strictEqual(5, matched.value);
         test.done();
     });
-    var end = sponsor(function (cust) { cust(null); });
-    var s0 = sponsor(genFringe(aTree, end));
-    var s1 = sponsor(genFringe(cTree, end));
+    var s0 = sponsor(mkFringe(aTree));
+    var s1 = sponsor(mkFringe(cTree));
     var compare = sponsor(comparator(finish));
     s0(compare);
     s1(compare);
 };
 
 test['compare actor fringe to infinite series'] = function (test) {
-    test.expect(2);
+    test.expect(6);
     var sponsor = tart(warn);  // actor create capability
     
-    var genFringe = function genFringe(tree, next) {
-        if (tree instanceof Y) {
-            return function treeBeh(cust) {
-                this.behavior = genFringe(tree.b, next);
-                var left = this.sponsor(genFringe(tree.a, this.self));
+    var mkFringe = function mkFringe(tree, next) {
+        return function fringeBeh(cust) {
+            next = next || this.sponsor(function (cust) { cust({}); });
+            if (tree instanceof Y) {
+                this.behavior = mkFringe(tree.b, next);
+                var left = this.sponsor(mkFringe(tree.a, this.self));
                 left(cust);
-            };
-        } else {
-            return function leafBeh(cust) {
+            } else {
                 cust({ value: tree, next: next });
-            };
-        }
+            }
+        };
     };
-    var genSeries = function genSeries(value, update) {
+    var mkSeries = function mkSeries(value, update) {
         return function seriesBeh(cust) {
-            var next = this.sponsor(genSeries(update(value), update));
+            var next = this.sponsor(mkSeries(update(value), update));
             cust({ value: value, next: next });
         }
     };
     var comparator = function comparator(cust) {
-        var initBeh = function compareBeh(i0) {  // i0 = { value:, next: } | null
-            this.behavior = function compareBeh(i1) {  // i1 = { value:, next: } | null
-                log('i0:', i0, 'i1:', i1);
+        var initBeh = function compareBeh(r0) {  // r0 = { value:, next: } | {}
+            this.behavior = function compareBeh(r1) {  // r1 = { value:, next: } | {}
                 this.behavior = initBeh;
-                if (i0 === i1) {  // both streams ended
-                    cust(true);
-                } else if (i0 && i1) {  // get next leaves to compare
-                    if (i0.value === i1.value) {  // match stream contents
-                        i0.next(this.self);
-                        i1.next(this.self);
+                log('r0:', r0, 'r1:', r1);
+                if (r0.value === r1.value) {
+                    if (r0.value === undefined) {
+                        cust(true);  // stream end
                     } else {
-                        cust(false);
+                        test.strictEqual(r0.value, r1.value);  // match stream contents
+                        r0.next(this.self);
+                        r1.next(this.self);
                     }
-                } else {  // one stream ended early
-//                    cust(false);
-                    cust(i0 || i1);  // should send 5 to finish
+                } else {
+//                    cust(false);  // mismatch
+                    cust(r0);  // send mismatch to finish
                 }
             };
         };
@@ -620,13 +580,13 @@ test['compare actor fringe to infinite series'] = function (test) {
     };
     
     var finish = sponsor(function finishBeh(matched) {
+        log('matched:', matched);
         test.strictEqual('object', typeof matched);
         test.strictEqual(5, matched.value);
         test.done();
     });
-    var end = sponsor(function (cust) { cust(null); });
-    var s0 = sponsor(genFringe(aTree, end));
-    var s1 = sponsor(genSeries(1, (n => n + 1)));
+    var s0 = sponsor(mkFringe(aTree));
+    var s1 = sponsor(mkSeries(1, (n => n + 1)));
     var compare = sponsor(comparator(finish));
     s0(compare);
     s1(compare);
