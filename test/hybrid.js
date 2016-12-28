@@ -300,6 +300,39 @@ test['compare functional fringe to infinite series'] = function (test) {
     test.done();
 };
 
+test['compare generator fringe to infinite series'] = function (test) {
+    test.expect(6);
+
+    var genFringe = function* genFringe(tree) {
+        if (tree instanceof Y) {
+            yield* genFringe(tree.a);
+            yield* genFringe(tree.b);
+        } else {
+            yield tree;
+        }
+    };
+    var genSeries = function* genSeries(value, update) {
+        while (true) {
+            yield value;
+            value = update(value);
+        }
+    };
+
+    var gen0 = genFringe(aTree);
+    var r0 = gen0.next();
+    var gen1 = genSeries(1, n => n + 1);
+    var r1 = gen1.next();
+    while ((r0.value !== undefined) && (r1.value !== undefined)) {
+        test.strictEqual(r0.value, r1.value);  // match stream contents
+        r0 = gen0.next();
+        r1 = gen1.next();
+    };
+    test.strictEqual(r0.value, undefined);  // fringe stream ended
+    test.strictEqual(r1.value, 5);  // un-matched series value should be 5
+
+    test.done();
+};
+
 test['functional fringe comparisons'] = function (test) {
     test.expect(6);
 
