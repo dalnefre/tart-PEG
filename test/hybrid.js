@@ -333,6 +333,47 @@ test['compare generator fringe to infinite series'] = function (test) {
     test.done();
 };
 
+test['compare generator fringe to infinite series using for..of'] = function (test) {
+    test.expect(6);
+
+    var genFringe = function* genFringe(tree) {
+        if (tree instanceof Y) {
+            yield* genFringe(tree.a);
+            yield* genFringe(tree.b);
+        } else {
+            yield tree;
+        }
+    };
+    var genSeries = function* genSeries(value, update) {
+        while (true) {
+            yield value;
+            value = update(value);
+        }
+    };
+    var zip = function* zip(first, second) {
+        while (true) {
+            let f = first.next();
+            let s = second.next();
+            if (f.done || s.done)
+            {
+                return;
+            }
+            yield [f.value, s.value];
+        }
+    }
+
+    let pair;
+    for (pair of zip(genFringe(aTree), genSeries(1, n => n + 1)))
+    {
+        test.strictEqual(pair[0], pair[1]);
+    }
+
+    test.strictEqual(pair[0], 4);  // finished at last fringe stream value
+    test.strictEqual(pair[1], 4);  // finished at last series value
+
+    test.done();
+};
+
 test['functional fringe comparisons'] = function (test) {
     test.expect(6);
 
