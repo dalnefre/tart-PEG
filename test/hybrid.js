@@ -208,12 +208,10 @@ test['suspend calculations in generators'] = function (test) {
     };
 
     var fringe = [];
-    var gen = genFringe(aTree);
-    var leaf = gen.next();
-    while (leaf.value !== undefined) {
-        fringe.push(leaf.value);
-        leaf = gen.next();
-    };
+    for (const leaf of genFringe(aTree))
+    {
+        fringe.push(leaf);
+    }
     test.deepEqual(fringe, [ 1, 2, 3, 4 ]);
 
     test.done();
