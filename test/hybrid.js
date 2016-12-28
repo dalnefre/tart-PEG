@@ -374,6 +374,101 @@ test['compare generator fringe to infinite series using for..of'] = function (te
     test.done();
 };
 
+test['compare generator fringe to infinite series using compare generator'] = function (test) {
+    test.expect(2);
+
+    var genFringe = function* genFringe(tree) {
+        if (tree instanceof Y) {
+            yield* genFringe(tree.a);
+            yield* genFringe(tree.b);
+        } else {
+            yield tree;
+        }
+    };
+    var genSeries = function* genSeries(value, update) {
+        while (true) {
+            yield value;
+            value = update(value);
+        }
+    };
+    var compare = function* compare(first, second) {
+        while (true) {
+            let f = first.next();
+            let s = second.next();
+            console.log(f, s);
+            if (f.value !== undefined && f.value == s.value)
+            {
+                yield true;
+            }
+            else if (f.value !== undefined && f.value != s.value)
+            {
+                return yield false;
+            }
+            else if (f.done && s.done)
+            {
+                return yield true;
+            }
+            else if (f.done || s.done)
+            {
+                return yield false;
+            }
+        }
+    }
+
+    let match;
+    let matched = 0;
+    for (match of compare(genFringe(aTree), genSeries(1, n => n + 1)))
+    {
+        match ? matched++ : matched;
+    }
+    test.strictEqual(matched, 4); // only first four match
+    test.strictEqual(match, false); // the fringe doesn't match the series
+
+    test.done();
+};
+
+test['compare generator fringe to generator fringe using compare generator'] = function (test) {
+    test.expect(1);
+
+    var genFringe = function* genFringe(tree) {
+        if (tree instanceof Y) {
+            yield* genFringe(tree.a);
+            yield* genFringe(tree.b);
+        } else {
+            yield tree;
+        }
+    };
+    var compare = function* compare(first, second) {
+        while (true) {
+            let f = first.next();
+            let s = second.next();
+            console.log(f, s);
+            if (f.value !== undefined && f.value == s.value)
+            {
+                yield true;
+            }
+            else if (f.value !== undefined && f.value != s.value)
+            {
+                return yield false;
+            }
+            else if (f.done && s.done)
+            {
+                return yield true;
+            }
+            else if (f.done || s.done)
+            {
+                return yield false;
+            }
+        }
+    }
+
+    let match;
+    for (match of compare(genFringe(aTree), genFringe(aTree)));
+    test.strictEqual(match, true); // the fringe matches the fringe
+
+    test.done();
+};
+
 test['functional fringe comparisons'] = function (test) {
     test.expect(6);
 
