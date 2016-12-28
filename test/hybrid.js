@@ -395,7 +395,6 @@ test['compare generator fringe to infinite series using compare generator'] = fu
         while (true) {
             let f = first.next();
             let s = second.next();
-            console.log(f, s);
             if (f.value !== undefined && f.value == s.value)
             {
                 yield true;
@@ -442,7 +441,6 @@ test['compare generator fringe to generator fringe using compare generator'] = f
         while (true) {
             let f = first.next();
             let s = second.next();
-            console.log(f, s);
             if (f.value !== undefined && f.value == s.value)
             {
                 yield true;
