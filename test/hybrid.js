@@ -195,6 +195,30 @@ test['fringe(<1, <<2, 3>, 4>>) = fringe(<<1, 2>, <3, 4>>)'] = function (test) {
     test.done();
 };
 
+test['suspend calculations in generators'] = function (test) {
+    test.expect(1);
+
+    var genFringe = function* genFringe(tree) {
+        if (tree instanceof Y) {
+            yield* genFringe(tree.a);
+            yield* genFringe(tree.b);
+        } else {
+            yield tree;
+        }
+    };
+
+    var fringe = [];
+    var gen = genFringe(aTree);
+    var leaf = gen.next();
+    while (leaf.value !== undefined) {
+        fringe.push(leaf.value);
+        leaf = gen.next();
+    };
+    test.deepEqual(fringe, [ 1, 2, 3, 4 ]);
+
+    test.done();
+};
+
 test['suspend calculations in closures'] = function (test) {
     test.expect(1);
 
