@@ -451,6 +451,38 @@ test['compare generator fringe to generator fringe using compare generator'] = f
     test.done();
 };
 
+test['verify iterFringe() and sameIterable() as posted'] = function (test) {
+    test.expect(4);
+
+    var iterFringe = function* iterFringe(tree) {
+        if (tree instanceof Y) {
+            yield* iterFringe(tree.a);
+            yield* iterFringe(tree.b);
+        } else {
+            yield tree;
+        }
+    };
+    var sameIterable = function sameIterable(g0, g1) {
+        let r0 = g0.next();  // get result from first sequence
+        let r1 = g1.next();  // get result from second sequence
+        while (r0.value === r1.value) {
+            if (r0.value === undefined) {
+                return true;  // stream end
+            }
+            r0 = g0.next();
+            r1 = g1.next();
+        }
+        return false;  // mismatch
+    };
+
+    test.strictEqual(sameIterable(iterFringe(aTree), iterFringe(bTree)), true);
+    test.strictEqual(sameIterable(iterFringe(bTree), iterFringe(cTree)), false);
+    test.strictEqual(sameIterable(iterFringe(cTree), iterFringe(aTree)), false);
+    test.strictEqual(sameIterable(iterFringe(cTree), iterFringe(cTree)), true);
+
+    test.done();
+};
+
 test['functional fringe comparisons'] = function (test) {
     test.expect(6);
 
