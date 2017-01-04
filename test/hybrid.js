@@ -354,17 +354,15 @@ test['compare generator fringe to infinite series using for..of'] = function (te
         while (true) {
             let f = first.next();
             let s = second.next();
-            if (f.done || s.done)
-            {
+            if (f.done || s.done) {
                 return;
             }
             yield [f.value, s.value];
         }
-    }
+    };
 
     let pair;
-    for (pair of zip(genFringe(aTree), genSeries(1, n => n + 1)))
-    {
+    for (pair of zip(genFringe(aTree), genSeries(1, n => n + 1))) {
         test.strictEqual(pair[0], pair[1]);
     }
 
@@ -395,29 +393,21 @@ test['compare generator fringe to infinite series using compare generator'] = fu
         while (true) {
             let f = first.next();
             let s = second.next();
-            if (f.value !== undefined && f.value == s.value)
-            {
+            if (f.value !== undefined && f.value == s.value) {
                 yield true;
-            }
-            else if (f.value !== undefined && f.value != s.value)
-            {
+            } else if (f.value !== undefined && f.value != s.value) {
                 return yield false;
-            }
-            else if (f.done && s.done)
-            {
+            } else if (f.done && s.done) {
                 return yield true;
-            }
-            else if (f.done || s.done)
-            {
+            } else if (f.done || s.done) {
                 return yield false;
             }
         }
-    }
+    };
 
     let match;
     let matched = 0;
-    for (match of compare(genFringe(aTree), genSeries(1, n => n + 1)))
-    {
+    for (match of compare(genFringe(aTree), genSeries(1, n => n + 1))) {
         match ? matched++ : matched;
     }
     test.strictEqual(matched, 4); // only first four match
@@ -441,27 +431,21 @@ test['compare generator fringe to generator fringe using compare generator'] = f
         while (true) {
             let f = first.next();
             let s = second.next();
-            if (f.value !== undefined && f.value == s.value)
-            {
+            if (f.value !== undefined && f.value == s.value) {
                 yield true;
-            }
-            else if (f.value !== undefined && f.value != s.value)
-            {
+            } else if (f.value !== undefined && f.value != s.value) {
                 return yield false;
-            }
-            else if (f.done && s.done)
-            {
+            } else if (f.done && s.done) {
                 return yield true;
-            }
-            else if (f.done || s.done)
-            {
+            } else if (f.done || s.done) {
                 return yield false;
             }
         }
-    }
+    };
 
     let match;
-    for (match of compare(genFringe(aTree), genFringe(aTree)));
+    for (match of compare(genFringe(aTree), genFringe(aTree)))
+        ;
     test.strictEqual(match, true); // the fringe matches the fringe
 
     test.done();
