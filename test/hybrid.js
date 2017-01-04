@@ -467,7 +467,7 @@ test['verify iterFringe() and sameIterable() as posted'] = function (test) {
         let r1 = g1.next();  // get result from second sequence
         while (r0.value === r1.value) {
             if (r0.value === undefined) {
-                return true;  // stream end
+                return (r0.done && r1.done);  // true == stream end
             }
             r0 = g0.next();
             r1 = g1.next();
