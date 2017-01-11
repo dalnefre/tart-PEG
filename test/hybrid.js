@@ -617,9 +617,9 @@ test['stateful actor-based fringe stream'] = function (test) {
         return function fringeBeh(cust) {
             next = next || this.sponsor(function (cust) { cust({}); });
             if (tree instanceof Y) {
-                this.behavior = mkFringe(tree.b, next);
-                var left = this.sponsor(mkFringe(tree.a, this.self));
-                left(cust);
+                var right = this.sponsor(mkFringe(tree.b, next));
+                this.behavior = mkFringe(tree.a, right);
+                this.self(cust);
             } else {
                 cust({ value: tree, next: next });
             }
